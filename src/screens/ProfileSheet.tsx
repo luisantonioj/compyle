@@ -16,6 +16,8 @@ interface ProfileSheetProps {
   partnerName: string;
   user?: User | null;
   onSignOut?: () => void;
+  onEnableNotifications?: () => Promise<void>;
+  pushEnabled?: boolean;
 }
 
 const PRIVACY_ITEMS: { key: keyof PrivacySettings; label: string }[] = [
@@ -26,18 +28,26 @@ const PRIVACY_ITEMS: { key: keyof PrivacySettings; label: string }[] = [
   { key: 'reminders', label: 'Reminders summary' },
 ];
 
-const SETTINGS_ROWS = [
-  { icon: '🔔', label: 'Notifications', detail: 'On' },
+const STATIC_SETTINGS_ROWS = [
   { icon: '🌙', label: 'Appearance', detail: 'Cream' },
   { icon: '📥', label: 'Export data', detail: 'CSV / JSON' },
   { icon: '🔒', label: 'Privacy mode', detail: 'On' },
   { icon: '✨', label: 'About compyle', detail: 'v3.0' },
 ];
 
-export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPrivacyToggle, partnerLinked, partnerName, user, onSignOut }: ProfileSheetProps) {
+export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPrivacyToggle, partnerLinked, partnerName, user, onSignOut, onEnableNotifications, pushEnabled }: ProfileSheetProps) {
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'yle';
   const initial = (viewMode === 'partner' ? partnerName : displayName).charAt(0).toUpperCase();
   const email = user?.email || 'yle@compyle.app';
+
+  const notifDetail = IS_CONFIGURED
+    ? pushEnabled
+      ? 'On'
+      : typeof Notification !== 'undefined' && Notification.permission === 'denied'
+        ? 'Blocked'
+        : 'Off'
+    : 'On';
+  const notifClickable = IS_CONFIGURED && !pushEnabled && typeof Notification !== 'undefined' && Notification.permission !== 'denied';
 
   return (
     <Sheet onClose={onClose}>
@@ -107,10 +117,34 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
 
         {/* settings list */}
         <div className="card white" style={{ padding: 0, overflow: 'hidden' }}>
-          {SETTINGS_ROWS.map((row, i) => (
+          {/* Notifications row — interactive when push not yet enabled */}
+          <div
+            className="row"
+            onClick={notifClickable && onEnableNotifications ? () => void onEnableNotifications() : undefined}
+            style={{
+              padding: '13px 18px',
+              borderBottom: '1px solid var(--hair)',
+              gap: 12,
+              cursor: notifClickable ? 'pointer' : 'default',
+            }}
+          >
+            <div style={{
+              width: 28, height: 28, borderRadius: 8, background: 'var(--cream-deep)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
+            }}>🔔</div>
+            <div style={{ flex: 1, fontSize: 15 }}>Notifications</div>
+            <div className="mono" style={{
+              fontSize: 11,
+              color: notifDetail === 'On' ? 'var(--sage)' : notifDetail === 'Blocked' ? 'var(--clay)' : 'var(--ink-mute)',
+              letterSpacing: '0.05em',
+            }}>{notifDetail}</div>
+            {Icons.chevR({ stroke: 'var(--ink-faint)' })}
+          </div>
+
+          {STATIC_SETTINGS_ROWS.map((row, i) => (
             <div key={row.label} className="row" style={{
               padding: '13px 18px',
-              borderBottom: i < SETTINGS_ROWS.length - 1 ? '1px solid var(--hair)' : 'none',
+              borderBottom: i < STATIC_SETTINGS_ROWS.length - 1 ? '1px solid var(--hair)' : 'none',
               gap: 12,
             }}>
               <div style={{

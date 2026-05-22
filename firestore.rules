@@ -91,6 +91,15 @@ service cloud.firestore {
       allow read, write: if isOwner(uid);
     }
 
+    // ── Device push tokens (top-level, public read) ───────────────────────
+    // Stores the Web Push subscription JSON + pre-computed daily summary.
+    // Public read is safe: the subscription endpoint can only be used to send
+    // a notification if the sender holds the VAPID private key.
+    match /device_tokens/{uid} {
+      allow read:  if true;
+      allow write: if isOwner(uid);
+    }
+
     // ── Partner invites ───────────────────────────────────────────────────
     // Inviter creates their own invite; anyone signed-in can read (to accept);
     // only the inviter can delete.

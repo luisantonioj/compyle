@@ -1,42 +1,53 @@
-// compyle — FCM push notification client
-// Only active when Firebase is configured and browser supports notifications.
+// compyle — Web Push client
+// Uses the browser's native PushManager API with our own VAPID key pair.
+// No Firebase Messaging SDK needed — push subscriptions are stored in Firestore
+// and the Vercel cron sends notifications via the web-push npm package.
 
-import { getMessaging, getToken, onMessage, type Messaging } from 'firebase/messaging';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { app, db, IS_CONFIGURED } from './firebase';
+import { db, IS_CONFIGURED } from './firebase';
 
-let messaging: Messaging | null = null;
+function urlBase64ToUint8Array(base64url: string): Uint8Array<ArrayBuffer> {
+  const padding = '='.repeat((4 - (base64url.length % 4)) % 4);
+  const base64  = (base64url + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw     = window.atob(base64);
+  const arr     = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
 
-export async function enablePushNotifications(uid: string): Promise<string | null> {
-  if (!IS_CONFIGURED || !app || !db) return null;
-  if (!('Notification' in window)) return null;
+export async function enablePushNotifications(uid: string): Promise<boolean> {
+  if (!IS_CONFIGURED || !db) return false;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+  if (!('Notification' in window)) return false;
 
   const permission = await Notification.requestPermission();
-  if (permission !== 'granted') return null;
+  if (permission !== 'granted') return false;
 
   try {
-    messaging = messaging ?? getMessaging(app);
-    const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-    const token = await getToken(messaging, {
-      vapidKey: import.meta.env.VITE_FCM_VAPID_KEY,
-      serviceWorkerRegistration: swReg,
+    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY as string),
     });
-    if (token && db) {
-      await setDoc(
-        doc(db, 'users', uid, 'push_subscriptions', token.slice(0, 20)),
-        { token, created_at: serverTimestamp() },
-      );
-    }
-    return token;
+
+    await setDoc(
+      doc(db, 'device_tokens', uid),
+      { subscription: JSON.stringify(sub), uid, updated_at: serverTimestamp() },
+      { merge: true },
+    );
+
+    return true;
   } catch {
-    return null;
+    return false;
   }
 }
 
-export function listenForegroundMessages(cb: (payload: { notification?: { title?: string; body?: string } }) => void) {
-  if (!IS_CONFIGURED || !app) return () => {};
-  if (!messaging) {
-    try { messaging = getMessaging(app); } catch { return () => {}; }
-  }
-  return onMessage(messaging, cb);
+export function listenForegroundMessages(
+  cb: (payload: { title: string; body: string }) => void,
+): () => void {
+  if (!IS_CONFIGURED || !('BroadcastChannel' in window)) return () => {};
+  const channel = new BroadcastChannel('compyle-push');
+  const handler = (e: MessageEvent<{ title: string; body: string }>) => cb(e.data);
+  channel.addEventListener('message', handler);
+  return () => channel.close();
 }

@@ -62,6 +62,15 @@ export const savePrivacy = (uid: string, privacy: PrivacySettings) =>
 export const ensureProfile = (uid: string, displayName: string, email: string) =>
   setDoc(doc(db!, 'users', uid), { displayName, email, created_at: serverTimestamp() }, { merge: true });
 
+// ── Push notification summary (written by the client for the Vercel cron to read) ──
+// Stored in a top-level public collection so the cron can read it without admin auth.
+export const savePushSummary = (uid: string, summary: string) =>
+  setDoc(
+    doc(db!, 'device_tokens', uid),
+    { daily_summary: summary, summary_updated_at: serverTimestamp() },
+    { merge: true },
+  );
+
 // ── Real-time subscription ────────────────────────────────────────────────────
 // Calls onPartial whenever any subcollection changes.
 // Calls onReady once all 7 listeners have fired at least once (initial load done).

@@ -1,5 +1,5 @@
 // compyle — root app component
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { useAppStore, selectData, selectIsPartner, selectPartnerName } from './store/appStore';
 import { TODAY_KEY } from './lib/seed';
@@ -25,6 +25,7 @@ import { useIsWeb } from './hooks/useIsWeb';
 import { useAuth } from './hooks/useAuth';
 import { useFirestoreSync } from './hooks/useFirestoreSync';
 import { auth, IS_CONFIGURED } from './lib/firebase';
+import { enablePushNotifications, listenForegroundMessages } from './lib/messaging';
 import {
   upsertTask, removeTask,
   upsertHabit, removeHabit,
@@ -33,6 +34,7 @@ import {
   upsertBill, removeBill,
   upsertDebt, removeDebt,
   savePrivacy,
+  savePushSummary,
 } from './lib/db';
 import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt, PrivacySettings } from './types';
 
@@ -83,8 +85,47 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     return () => window.removeEventListener('click', onTap);
   }, []);
 
+  // Push notification state — track whether permission is granted and a token is saved
+  const [pushEnabled, setPushEnabled] = useState(
+    IS_CONFIGURED && typeof Notification !== 'undefined' && Notification.permission === 'granted',
+  );
+
+  // Show foreground push notifications as in-app toasts
+  useEffect(() => {
+    if (!fs) return;
+    return listenForegroundMessages(({ title, body }) => {
+      store.flash(body ? `${title}: ${body}` : title);
+    });
+  }, [fs]);
+
+  // Keep today's summary fresh in Firestore so the morning cron can send dynamic content.
+  useEffect(() => {
+    if (dataLoading || !fs || !user) return;
+    const own = store.yleData;
+    const openTasks     = (own.tasks[TODAY_KEY] ?? []).filter((t) => !t.done).length;
+    const pendingHabits = own.habits.filter((h) => !h.doneToday).length;
+    const dueBills      = own.bills.filter((b) => b.status !== 'paid').length;
+    const parts: string[] = [];
+    if (openTasks     > 0) parts.push(`${openTasks} task${openTasks > 1 ? 's' : ''}`);
+    if (pendingHabits > 0) parts.push(`${pendingHabits} habit${pendingHabits > 1 ? 's' : ''}`);
+    if (dueBills      > 0) parts.push(`${dueBills} bill${dueBills > 1 ? 's' : ''} due`);
+    void savePushSummary(user.uid, parts.length > 0 ? parts.join(' · ') : 'Everything is on track ✓');
+  }, [dataLoading, store.yleData, fs, user]);
+
   // Show loading screen while Firestore fetches initial data
   if (dataLoading) return <div className="auth-loading paper-grain" />;
+
+  // ─── Push notifications ───
+  const handleEnableNotifications = async () => {
+    if (!user) return;
+    const ok = await enablePushNotifications(user.uid);
+    if (ok) {
+      setPushEnabled(true);
+      store.flash('Notifications enabled ✓');
+    } else if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+      store.flash('Notifications blocked — enable in browser settings');
+    }
+  };
 
   // ─── helpers ───
   const maybe = (prob = 1) => {
@@ -526,6 +567,8 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           partnerName={partnerName}
           user={user}
           onSignOut={handleSignOut}
+          onEnableNotifications={handleEnableNotifications}
+          pushEnabled={pushEnabled}
         />
       )}
 
