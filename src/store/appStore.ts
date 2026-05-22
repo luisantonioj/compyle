@@ -1,6 +1,7 @@
 // compyle — Zustand app store
 import { create } from 'zustand';
-import { SEED_YLE, SEED_LUIS } from '../lib/seed';
+import { SEED_YLE, SEED_LUIS, EMPTY_DATA } from '../lib/seed';
+import { IS_CONFIGURED } from '../lib/firebase';
 import type { TabId, ViewMode, EditingState, UserData, UserProfile } from '../types';
 import { SEED_USER_ME, SEED_USER_PARTNER } from '../lib/seed';
 
@@ -46,6 +47,10 @@ interface AppStore {
   triggerConfetti: () => void;
   triggerCrown: () => void;
 
+  // loading state for Firestore initial fetch
+  dataLoading: boolean;
+  setDataLoading: (v: boolean) => void;
+
   // data actions (own data only; partner data is read-only)
   setYleData: (updater: (d: UserData) => UserData) => void;
 }
@@ -60,8 +65,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
   confettiTrigger: 0,
   crown: false,
 
-  yleData: structuredClone(SEED_YLE),
-  luisData: structuredClone(SEED_LUIS),
+  dataLoading: IS_CONFIGURED,
+  yleData: IS_CONFIGURED ? { ...EMPTY_DATA } : structuredClone(SEED_YLE),
+  luisData: IS_CONFIGURED ? { ...EMPTY_DATA } : structuredClone(SEED_LUIS),
   meProfile: SEED_USER_ME,
   partnerProfile: SEED_USER_PARTNER,
 
@@ -85,6 +91,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     setTimeout(() => set({ crown: false }), 2200);
   },
 
+  setDataLoading: (dataLoading) => set({ dataLoading }),
   setYleData: (updater) => set((s) => ({ yleData: updater(s.yleData) })),
 }));
 

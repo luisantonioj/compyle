@@ -130,6 +130,16 @@ export const SEED_LUIS: UserData = {
   privacy: { tasks: true, habits: true, budget: true, payments: true, reminders: false },
 };
 
+export const EMPTY_DATA: UserData = {
+  tasks: {},
+  habits: [],
+  banks: [],
+  transactions: [],
+  bills: [],
+  debts: [],
+  privacy: { tasks: true, habits: true, budget: true, payments: true, reminders: true },
+};
+
 // ─── helpers ───
 
 export function formatPHP(n: number, opts: { short?: boolean; cents?: boolean } = {}): string {

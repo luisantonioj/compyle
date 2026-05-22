@@ -23,7 +23,17 @@ import {
 } from './components/forms/Forms';
 import { useIsWeb } from './hooks/useIsWeb';
 import { useAuth } from './hooks/useAuth';
+import { useFirestoreSync } from './hooks/useFirestoreSync';
 import { auth, IS_CONFIGURED } from './lib/firebase';
+import {
+  upsertTask, removeTask,
+  upsertHabit, removeHabit,
+  upsertTx, removeTx,
+  upsertBank, removeBank,
+  upsertBill, removeBill,
+  upsertDebt, removeDebt,
+  savePrivacy,
+} from './lib/db';
 import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt, PrivacySettings } from './types';
 
 export default function App() {
@@ -40,13 +50,17 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   const data = useAppStore(selectData);
   const isPartner = useAppStore(selectIsPartner);
   const partnerName = useAppStore(selectPartnerName);
-  const { tab, viewMode, profileOpen, editing, confirm, toast, confettiTrigger, crown } = store;
+  const { tab, viewMode, profileOpen, editing, confirm, toast, confettiTrigger, crown, dataLoading } = store;
   const isWeb = useIsWeb();
+  useFirestoreSync(user);
 
   const handleSignOut = async () => {
     if (auth) await signOut(auth);
     store.setProfileOpen(false);
   };
+
+  // true when we should write to Firestore instead of in-memory store
+  const fs = IS_CONFIGURED && !!user;
 
   const tapRef = useRef({ count: 0, timer: 0 as unknown as ReturnType<typeof setTimeout> });
 
@@ -69,6 +83,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     return () => window.removeEventListener('click', onTap);
   }, []);
 
+  // Show loading screen while Firestore fetches initial data
+  if (dataLoading) return <div className="auth-loading paper-grain" />;
+
   // ─── helpers ───
   const maybe = (prob = 1) => {
     if (Math.random() < prob) store.triggerConfetti();
@@ -84,24 +101,31 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
 
   // ─── Task CRUD ───
   const saveTask = (task: Task, dateKey: string) => {
-    store.setYleData((d) => {
-      const day = d.tasks[dateKey] ?? [];
-      const existed = day.find((t) => t.id === task.id);
-      const newDay = existed ? day.map((t) => (t.id === task.id ? task : t)) : [...day, task];
-      return { ...d, tasks: { ...d.tasks, [dateKey]: newDay } };
-    });
+    if (fs) {
+      void upsertTask(user!.uid, task, dateKey);
+    } else {
+      store.setYleData((d) => {
+        const day = d.tasks[dateKey] ?? [];
+        const existed = day.find((t) => t.id === task.id);
+        const newDay = existed ? day.map((t) => (t.id === task.id ? task : t)) : [...day, task];
+        return { ...d, tasks: { ...d.tasks, [dateKey]: newDay } };
+      });
+    }
     store.setEditing(null);
     store.flash(editing && 'item' in editing && editing.item ? 'Task updated' : 'Task added ✨');
   };
 
   const deleteTask = (taskId: string, dateKey: string) => {
-    let removed: Task | undefined;
-    store.setYleData((d) => {
-      const day = d.tasks[dateKey] ?? [];
-      removed = day.find((t) => t.id === taskId);
-      return { ...d, tasks: { ...d.tasks, [dateKey]: day.filter((t) => t.id !== taskId) } };
-    });
+    const removed = (store.yleData.tasks[dateKey] ?? []).find((t) => t.id === taskId);
     store.setEditing(null);
+    if (fs) {
+      void removeTask(user!.uid, taskId);
+    } else {
+      store.setYleData((d) => {
+        const day = d.tasks[dateKey] ?? [];
+        return { ...d, tasks: { ...d.tasks, [dateKey]: day.filter((t) => t.id !== taskId) } };
+      });
+    }
     store.flash('Task deleted', 'Undo', () => {
       if (removed) saveTask(removed, dateKey);
       store.setToast(null);
@@ -109,34 +133,47 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   };
 
   const checkTask = (taskId: string, dateKey = TODAY_KEY) => {
-    store.setYleData((d) => {
-      const dayTasks = (d.tasks[dateKey] ?? []).map((t) =>
-        t.id === taskId ? { ...t, done: !t.done } : t
-      );
-      const nowDone = dayTasks.find((t) => t.id === taskId)?.done;
+    if (fs) {
+      const task = (store.yleData.tasks[dateKey] ?? []).find((t) => t.id === taskId);
+      if (!task) return;
+      const nowDone = !task.done;
       if (nowDone) maybe();
-      return { ...d, tasks: { ...d.tasks, [dateKey]: dayTasks } };
-    });
+      void upsertTask(user!.uid, { ...task, done: nowDone }, dateKey);
+    } else {
+      store.setYleData((d) => {
+        const dayTasks = (d.tasks[dateKey] ?? []).map((t) =>
+          t.id === taskId ? { ...t, done: !t.done } : t
+        );
+        const nowDone = dayTasks.find((t) => t.id === taskId)?.done;
+        if (nowDone) maybe();
+        return { ...d, tasks: { ...d.tasks, [dateKey]: dayTasks } };
+      });
+    }
   };
 
   // ─── Habit CRUD ───
   const saveHabit = (h: Habit) => {
-    store.setYleData((d) => {
-      const existed = d.habits.find((x) => x.id === h.id);
-      const habits = existed ? d.habits.map((x) => (x.id === h.id ? h : x)) : [...d.habits, h];
-      return { ...d, habits };
-    });
+    if (fs) {
+      void upsertHabit(user!.uid, h);
+    } else {
+      store.setYleData((d) => {
+        const existed = d.habits.find((x) => x.id === h.id);
+        const habits = existed ? d.habits.map((x) => (x.id === h.id ? h : x)) : [...d.habits, h];
+        return { ...d, habits };
+      });
+    }
     store.setEditing(null);
     store.flash(editing && 'item' in editing && editing.item ? 'Habit updated' : 'New habit started 🌱');
   };
 
   const deleteHabit = (id: string) => {
-    let removed: Habit | undefined;
-    store.setYleData((d) => {
-      removed = d.habits.find((h) => h.id === id);
-      return { ...d, habits: d.habits.filter((h) => h.id !== id) };
-    });
+    const removed = store.yleData.habits.find((h) => h.id === id);
     store.setEditing(null);
+    if (fs) {
+      void removeHabit(user!.uid, id);
+    } else {
+      store.setYleData((d) => ({ ...d, habits: d.habits.filter((h) => h.id !== id) }));
+    }
     store.flash('Habit deleted', 'Undo', () => {
       if (removed) saveHabit(removed);
       store.setToast(null);
@@ -144,17 +181,27 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   };
 
   const checkHabit = (habitId: string) => {
-    store.setYleData((d) => {
-      const habits = d.habits.map((h) => {
-        if (h.id !== habitId) return h;
-        const flipped = !h.doneToday;
-        const newStreak = flipped ? h.streak + 1 : Math.max(0, h.streak - 1);
-        if (flipped && (newStreak % 7 === 0 || newStreak >= 30)) maybe();
-        else if (flipped) maybe(0.3);
-        return { ...h, doneToday: flipped, streak: newStreak };
+    if (fs) {
+      const habit = store.yleData.habits.find((h) => h.id === habitId);
+      if (!habit) return;
+      const flipped = !habit.doneToday;
+      const newStreak = flipped ? habit.streak + 1 : Math.max(0, habit.streak - 1);
+      if (flipped && (newStreak % 7 === 0 || newStreak >= 30)) maybe();
+      else if (flipped) maybe(0.3);
+      void upsertHabit(user!.uid, { ...habit, doneToday: flipped, streak: newStreak, doneDate: TODAY_KEY });
+    } else {
+      store.setYleData((d) => {
+        const habits = d.habits.map((h) => {
+          if (h.id !== habitId) return h;
+          const flipped = !h.doneToday;
+          const newStreak = flipped ? h.streak + 1 : Math.max(0, h.streak - 1);
+          if (flipped && (newStreak % 7 === 0 || newStreak >= 30)) maybe();
+          else if (flipped) maybe(0.3);
+          return { ...h, doneToday: flipped, streak: newStreak };
+        });
+        return { ...d, habits };
       });
-      return { ...d, habits };
-    });
+    }
   };
 
   // ─── Transaction CRUD ───
@@ -168,59 +215,89 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     });
 
   const saveTx = (tx: Transaction) => {
-    store.setYleData((d) => {
+    if (fs) {
+      const d = store.yleData;
       const existed = d.transactions.find((t) => t.id === tx.id);
       let banks = d.banks;
       if (existed) {
         if (existed.bank && existed.cat) banks = applyTx(banks, existed.bank, existed.cat, -existed.amt);
         if (tx.bank && tx.cat) banks = applyTx(banks, tx.bank, tx.cat, tx.amt);
-        return { ...d, transactions: d.transactions.map((t) => (t.id === tx.id ? tx : t)), banks };
+      } else if (tx.bank && tx.cat) {
+        banks = applyTx(banks, tx.bank, tx.cat, tx.amt);
       }
-      if (tx.bank && tx.cat) banks = applyTx(banks, tx.bank, tx.cat, tx.amt);
-      return { ...d, transactions: [tx, ...d.transactions], banks };
-    });
+      void upsertTx(user!.uid, tx);
+      const affectedIds = new Set([tx.bank, existed?.bank].filter(Boolean) as string[]);
+      banks.filter((b) => affectedIds.has(b.id)).forEach((b) => void upsertBank(user!.uid, b));
+    } else {
+      store.setYleData((d) => {
+        const existed = d.transactions.find((t) => t.id === tx.id);
+        let banks = d.banks;
+        if (existed) {
+          if (existed.bank && existed.cat) banks = applyTx(banks, existed.bank, existed.cat, -existed.amt);
+          if (tx.bank && tx.cat) banks = applyTx(banks, tx.bank, tx.cat, tx.amt);
+          return { ...d, transactions: d.transactions.map((t) => (t.id === tx.id ? tx : t)), banks };
+        }
+        if (tx.bank && tx.cat) banks = applyTx(banks, tx.bank, tx.cat, tx.amt);
+        return { ...d, transactions: [tx, ...d.transactions], banks };
+      });
+    }
     store.setEditing(null);
     store.flash(editing && 'item' in editing && editing.item ? 'Updated' : tx.amt > 0 ? 'Money in 💰' : 'Logged');
   };
 
   const deleteTx = (id: string) => {
-    let removed: Transaction | undefined;
-    store.setYleData((d) => {
-      removed = d.transactions.find((t) => t.id === id);
-      let banks = d.banks;
-      if (removed?.bank && removed?.cat) banks = applyTx(banks, removed.bank, removed.cat, -removed.amt);
-      return { ...d, transactions: d.transactions.filter((t) => t.id !== id), banks };
-    });
+    const removed = store.yleData.transactions.find((t) => t.id === id);
     store.setEditing(null);
+    if (fs) {
+      let banks = store.yleData.banks;
+      if (removed?.bank && removed?.cat) banks = applyTx(banks, removed.bank, removed.cat, -removed.amt);
+      void removeTx(user!.uid, id);
+      if (removed?.bank) {
+        const affected = banks.find((b) => b.id === removed!.bank);
+        if (affected) void upsertBank(user!.uid, affected);
+      }
+    } else {
+      store.setYleData((d) => {
+        const rem = d.transactions.find((t) => t.id === id);
+        let banks = d.banks;
+        if (rem?.bank && rem?.cat) banks = applyTx(banks, rem.bank, rem.cat, -rem.amt);
+        return { ...d, transactions: d.transactions.filter((t) => t.id !== id), banks };
+      });
+    }
     store.flash('Removed', 'Undo', () => { if (removed) saveTx(removed); store.setToast(null); });
   };
 
   // ─── Account CRUD ───
   const saveAccount = (acct: BankAccount) => {
-    store.setYleData((d) => {
-      const existed = d.banks.find((b) => b.id === acct.id);
-      const banks = existed ? d.banks.map((b) => (b.id === acct.id ? acct : b)) : [...d.banks, acct];
-      return { ...d, banks };
-    });
+    if (fs) {
+      void upsertBank(user!.uid, acct);
+    } else {
+      store.setYleData((d) => {
+        const existed = d.banks.find((b) => b.id === acct.id);
+        const banks = existed ? d.banks.map((b) => (b.id === acct.id ? acct : b)) : [...d.banks, acct];
+        return { ...d, banks };
+      });
+    }
     store.setEditing(null);
     store.flash(editing && 'item' in editing && editing.item ? 'Account updated' : 'Account added');
   };
 
   const deleteAccount = (id: string) => {
-    let removed: BankAccount | undefined;
-    store.setYleData((d) => {
-      removed = d.banks.find((b) => b.id === id);
-      return { ...d, banks: d.banks.filter((b) => b.id !== id) };
-    });
+    const removed = store.yleData.banks.find((b) => b.id === id);
     store.setEditing(null);
+    if (fs) {
+      void removeBank(user!.uid, id);
+    } else {
+      store.setYleData((d) => ({ ...d, banks: d.banks.filter((b) => b.id !== id) }));
+    }
     store.flash('Account removed', 'Undo', () => { if (removed) saveAccount(removed); store.setToast(null); });
   };
 
   // ─── Category CRUD ───
   const saveCategory = (cat: Category & { bankId?: string }) => {
-    store.setYleData((d) => {
-      const { bankId, ...rest } = cat;
-      let banks = d.banks.map((b) => {
+    const { bankId, ...rest } = cat;
+    if (fs) {
+      let banks = store.yleData.banks.map((b) => {
         if ((b.categories ?? []).some((c) => c.id === cat.id)) {
           return { ...b, categories: (b.categories ?? []).filter((c) => c.id !== cat.id) };
         }
@@ -231,8 +308,23 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           b.id === bankId ? { ...b, categories: [...(b.categories ?? []), rest] } : b
         );
       }
-      return { ...d, banks };
-    });
+      void Promise.all(banks.map((b) => upsertBank(user!.uid, b)));
+    } else {
+      store.setYleData((d) => {
+        let banks = d.banks.map((b) => {
+          if ((b.categories ?? []).some((c) => c.id === cat.id)) {
+            return { ...b, categories: (b.categories ?? []).filter((c) => c.id !== cat.id) };
+          }
+          return b;
+        });
+        if (bankId) {
+          banks = banks.map((b) =>
+            b.id === bankId ? { ...b, categories: [...(b.categories ?? []), rest] } : b
+          );
+        }
+        return { ...d, banks };
+      });
+    }
     store.setEditing(null);
     store.flash(editing && 'item' in editing && editing.item ? 'Category updated' : 'Category added');
   };
@@ -240,15 +332,24 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   const deleteCategory = (id: string) => {
     let removed: Category | undefined;
     let removedBankId: string | undefined;
-    store.setYleData((d) => {
-      const banks = d.banks.map((b) => {
-        const found = (b.categories ?? []).find((c) => c.id === id);
-        if (found) { removed = found; removedBankId = b.id; }
-        return { ...b, categories: (b.categories ?? []).filter((c) => c.id !== id) };
-      });
-      return { ...d, banks };
+    store.yleData.banks.forEach((b) => {
+      const found = (b.categories ?? []).find((c) => c.id === id);
+      if (found) { removed = found; removedBankId = b.id; }
     });
     store.setEditing(null);
+    if (fs) {
+      const banks = store.yleData.banks.map((b) => ({
+        ...b, categories: (b.categories ?? []).filter((c) => c.id !== id),
+      }));
+      void Promise.all(banks.map((b) => upsertBank(user!.uid, b)));
+    } else {
+      store.setYleData((d) => {
+        const banks = d.banks.map((b) => ({
+          ...b, categories: (b.categories ?? []).filter((c) => c.id !== id),
+        }));
+        return { ...d, banks };
+      });
+    }
     store.flash('Category removed', 'Undo', () => {
       if (removed) saveCategory({ ...removed, bankId: removedBankId });
       store.setToast(null);
@@ -257,75 +358,108 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
 
   // ─── Bill CRUD ───
   const saveBill = (b: Bill) => {
-    store.setYleData((d) => {
-      const existed = d.bills.find((x) => x.id === b.id);
-      return { ...d, bills: existed ? d.bills.map((x) => (x.id === b.id ? b : x)) : [...d.bills, b] };
-    });
+    if (fs) {
+      void upsertBill(user!.uid, b);
+    } else {
+      store.setYleData((d) => {
+        const existed = d.bills.find((x) => x.id === b.id);
+        return { ...d, bills: existed ? d.bills.map((x) => (x.id === b.id ? b : x)) : [...d.bills, b] };
+      });
+    }
     store.setEditing(null);
     store.flash(editing && 'item' in editing && editing.item ? 'Bill updated' : 'Bill added');
   };
 
   const deleteBill = (id: string) => {
-    let removed: Bill | undefined;
-    store.setYleData((d) => {
-      removed = d.bills.find((b) => b.id === id);
-      return { ...d, bills: d.bills.filter((b) => b.id !== id) };
-    });
+    const removed = store.yleData.bills.find((b) => b.id === id);
     store.setEditing(null);
+    if (fs) {
+      void removeBill(user!.uid, id);
+    } else {
+      store.setYleData((d) => ({ ...d, bills: d.bills.filter((b) => b.id !== id) }));
+    }
     store.flash('Bill removed', 'Undo', () => { if (removed) saveBill(removed); store.setToast(null); });
   };
 
   const toggleBillPaid = (id: string) => {
-    store.setYleData((d) => {
-      const bills = d.bills.map((b) => {
-        if (b.id !== id) return b;
-        const next = b.status === 'paid' ? 'due' : 'paid';
-        if (next === 'paid') maybe(0.6);
-        return { ...b, status: next } as Bill;
+    if (fs) {
+      const bill = store.yleData.bills.find((b) => b.id === id);
+      if (!bill) return;
+      const next = bill.status === 'paid' ? 'due' : 'paid';
+      if (next === 'paid') maybe(0.6);
+      void upsertBill(user!.uid, { ...bill, status: next });
+    } else {
+      store.setYleData((d) => {
+        const bills = d.bills.map((b) => {
+          if (b.id !== id) return b;
+          const next = b.status === 'paid' ? 'due' : 'paid';
+          if (next === 'paid') maybe(0.6);
+          return { ...b, status: next } as Bill;
+        });
+        return { ...d, bills };
       });
-      return { ...d, bills };
-    });
+    }
   };
 
   // ─── Debt CRUD ───
   const saveDebt = (debt: Debt) => {
-    store.setYleData((d) => {
-      const existed = d.debts.find((x) => x.id === debt.id);
-      const debts = existed ? d.debts.map((x) => (x.id === debt.id ? debt : x)) : [...d.debts, debt];
-      return { ...d, debts };
-    });
+    if (fs) {
+      void upsertDebt(user!.uid, debt);
+    } else {
+      store.setYleData((d) => {
+        const existed = d.debts.find((x) => x.id === debt.id);
+        const debts = existed ? d.debts.map((x) => (x.id === debt.id ? debt : x)) : [...d.debts, debt];
+        return { ...d, debts };
+      });
+    }
     store.setEditing(null);
     store.flash(editing && 'item' in editing && editing.item ? 'Debt updated' : 'Tracking 💪');
   };
 
   const deleteDebt = (id: string) => {
-    let removed: Debt | undefined;
-    store.setYleData((d) => {
-      removed = d.debts.find((b) => b.id === id);
-      return { ...d, debts: d.debts.filter((b) => b.id !== id) };
-    });
+    const removed = store.yleData.debts.find((b) => b.id === id);
     store.setEditing(null);
+    if (fs) {
+      void removeDebt(user!.uid, id);
+    } else {
+      store.setYleData((d) => ({ ...d, debts: d.debts.filter((b) => b.id !== id) }));
+    }
     store.flash('Debt removed', 'Undo', () => { if (removed) saveDebt(removed); store.setToast(null); });
   };
 
   const recordDebtPayment = (id: string) => {
-    store.setYleData((d) => {
-      const debts = d.debts.map((deb) => {
-        if (deb.id !== id) return deb;
-        const monthlyAmt = deb.months > 0 ? deb.total / deb.months : 0;
-        const newPaid = Math.min(deb.total, deb.paid + monthlyAmt);
-        const newPaidMonths = Math.min(deb.months, deb.paidMonths + 1);
-        if (newPaid >= deb.total) maybe();
-        return { ...deb, paid: newPaid, paidMonths: newPaidMonths };
+    if (fs) {
+      const debt = store.yleData.debts.find((d) => d.id === id);
+      if (!debt) return;
+      const monthlyAmt = debt.months > 0 ? debt.total / debt.months : 0;
+      const newPaid = Math.min(debt.total, debt.paid + monthlyAmt);
+      const newPaidMonths = Math.min(debt.months, debt.paidMonths + 1);
+      if (newPaid >= debt.total) maybe();
+      void upsertDebt(user!.uid, { ...debt, paid: newPaid, paidMonths: newPaidMonths });
+    } else {
+      store.setYleData((d) => {
+        const debts = d.debts.map((deb) => {
+          if (deb.id !== id) return deb;
+          const monthlyAmt = deb.months > 0 ? deb.total / deb.months : 0;
+          const newPaid = Math.min(deb.total, deb.paid + monthlyAmt);
+          const newPaidMonths = Math.min(deb.months, deb.paidMonths + 1);
+          if (newPaid >= deb.total) maybe();
+          return { ...deb, paid: newPaid, paidMonths: newPaidMonths };
+        });
+        return { ...d, debts };
       });
-      return { ...d, debts };
-    });
+    }
     store.flash('Payment recorded ✓');
   };
 
   // ─── Privacy ───
   const togglePrivacy = (key: keyof PrivacySettings) => {
-    store.setYleData((d) => ({ ...d, privacy: { ...d.privacy, [key]: !d.privacy[key] } }));
+    if (fs) {
+      const next = { ...store.yleData.privacy, [key]: !store.yleData.privacy[key] };
+      void savePrivacy(user!.uid, next);
+    } else {
+      store.setYleData((d) => ({ ...d, privacy: { ...d.privacy, [key]: !d.privacy[key] } }));
+    }
   };
 
   // ─── FAB action ───

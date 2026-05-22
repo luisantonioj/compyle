@@ -19,6 +19,7 @@ export interface Habit {
   doneToday: boolean;
   pattern: string; // comma-separated "on"/"off" for last 28 days
   sort_order?: number;
+  doneDate?: string; // "YYYY-MM-DD" — used to reset doneToday on a new day
 }
 
 export interface Category {
