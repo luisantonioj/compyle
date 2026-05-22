@@ -184,7 +184,7 @@ export function TodayScreen({ data, viewMode, partnerName, isPartner, onProfile,
           <div style={{ border: '1px dashed rgba(176,74,47,0.3)', borderRadius: 16, padding: '16px 18px', background: 'rgba(243,220,207,0.3)' }}>
             <div className="label" style={{ color: 'var(--clay)', marginBottom: 4 }}>From Luis</div>
             <div style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 18, lineHeight: 1.3, color: 'var(--ink)' }}>
-              "Five days till our anniversary. I made this for you. Open it daily."
+              "I miss you."
             </div>
           </div>
         </div>

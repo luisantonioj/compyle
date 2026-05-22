@@ -193,7 +193,7 @@ export function WebTodayScreen({
           {showLoveNote && !isPartner && (
             <div className="love-note">
               <div className="ln-label">From Luis</div>
-              <div className="ln-body">"Five days till our anniversary. I made this for you. Open it daily."</div>
+              <div className="ln-body">"I miss you"</div>
             </div>
           )}
         </div>
