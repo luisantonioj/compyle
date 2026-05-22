@@ -1,0 +1,19 @@
+# References
+compyle-handoff/
+SRS_PersonalCompanionApp_v3.md
+
+# Build output
+node_modules
+dist
+*.local
+
+# Environment
+.env.local
+.env
+
+# Firebase
+emulator-data
+.firebase
+firebase-debug.log
+firestore-debug.log
+ui-debug.log

@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "userData",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "transactions.date", "order": "DESCENDING" },
+        { "fieldPath": "transactions.bank", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

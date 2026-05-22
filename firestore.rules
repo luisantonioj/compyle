@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── helpers ───
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function isPartner(uid) {
+      return isAuth()
+        && exists(/databases/$(database)/documents/partnerships/$(request.auth.uid + '_' + uid))
+        || exists(/databases/$(database)/documents/partnerships/$(uid + '_' + request.auth.uid));
+    }
+
+    // ─── User profiles ───
+    match /users/{uid} {
+      allow read: if isAuth() && (isOwner(uid) || isPartner(uid));
+      allow write: if isOwner(uid);
+    }
+
+    // ─── User data (tasks, habits, money, etc.) ───
+    // Each user has one document at /userData/{uid}
+    match /userData/{uid} {
+      allow read: if isOwner(uid) || isPartner(uid);
+      allow write: if isOwner(uid);
+    }
+
+    // ─── Tasks (sub-collection for efficiency) ───
+    match /userData/{uid}/tasks/{dateKey} {
+      allow read: if isOwner(uid) || isPartner(uid);
+      allow write: if isOwner(uid);
+    }
+
+    // ─── Partnerships ───
+    // Document ID format: uid1_uid2 (alphabetically sorted)
+    match /partnerships/{partnershipId} {
+      allow read: if isAuth()
+        && (partnershipId.matches(request.auth.uid + '_.*')
+            || partnershipId.matches('.*_' + request.auth.uid));
+      allow create: if isAuth()
+        && (partnershipId.matches(request.auth.uid + '_.*')
+            || partnershipId.matches('.*_' + request.auth.uid));
+      allow delete: if isAuth()
+        && (partnershipId.matches(request.auth.uid + '_.*')
+            || partnershipId.matches('.*_' + request.auth.uid));
+    }
+
+    // ─── Invite links ───
+    match /invites/{inviteCode} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.uid == request.auth.uid;
+      allow delete: if isAuth() && resource.data.uid == request.auth.uid;
+    }
+
+    // ─── FCM tokens ───
+    match /tokens/{uid} {
+      allow read, write: if isOwner(uid);
+    }
+  }
+}
