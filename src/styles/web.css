@@ -619,6 +619,68 @@
   .month-cell .mini-task:hover .mini-check { opacity: 1; }
   .month-cell .mini-task.done .mini-check { opacity: 1; }
 
+  /* ─── web week strip ─── */
+  .web-week-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .web-week-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 8px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--hair);
+    background: var(--white);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+    min-height: 90px;
+  }
+  .web-week-day:hover { background: var(--cream); border-color: var(--hair-strong); }
+  .web-week-day.selected { border-color: var(--ink-soft); background: var(--cream-deep); }
+  .web-week-day.today { background: var(--ink); border-color: var(--ink); }
+  .web-week-day .wwd-name {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .web-week-day.today .wwd-name { color: rgba(255,255,255,0.6); }
+  .web-week-day .wwd-num {
+    font-family: var(--serif);
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .web-week-day.today .wwd-num { color: var(--cream); }
+  .web-week-day .wwd-dots {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+  }
+  .web-week-day .wwd-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--clay);
+    display: block;
+  }
+  .web-week-day.today .wwd-dot { background: rgba(255,255,255,0.6); }
+
+  /* ─── day view hero ─── */
+  .plan-day-hero {
+    text-align: center;
+    padding: 24px 0 36px;
+  }
+
   /* ─── today task list ─── */
   .task-list-item {
     display: flex;
