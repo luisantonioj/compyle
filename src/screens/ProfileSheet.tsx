@@ -1,7 +1,9 @@
 // compyle — Profile / Settings sheet
 import React from 'react';
+import type { User } from 'firebase/auth';
 import { Icons } from '../components/Icons';
 import { Sheet, Toggle } from '../components/ui/shared';
+import { IS_CONFIGURED } from '../lib/firebase';
 import type { ViewMode, PrivacySettings } from '../types';
 
 interface ProfileSheetProps {
@@ -12,6 +14,8 @@ interface ProfileSheetProps {
   onPrivacyToggle: (key: keyof PrivacySettings) => void;
   partnerLinked: boolean;
   partnerName: string;
+  user?: User | null;
+  onSignOut?: () => void;
 }
 
 const PRIVACY_ITEMS: { key: keyof PrivacySettings; label: string }[] = [
@@ -30,22 +34,26 @@ const SETTINGS_ROWS = [
   { icon: '✨', label: 'About compyle', detail: 'v3.0' },
 ];
 
-export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPrivacyToggle, partnerLinked, partnerName }: ProfileSheetProps) {
+export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPrivacyToggle, partnerLinked, partnerName, user, onSignOut }: ProfileSheetProps) {
+  const displayName = user?.displayName || user?.email?.split('@')[0] || 'yle';
+  const initial = (viewMode === 'partner' ? partnerName : displayName).charAt(0).toUpperCase();
+  const email = user?.email || 'yle@compyle.app';
+
   return (
     <Sheet onClose={onClose}>
       <div style={{ paddingTop: 8, paddingBottom: 8 }}>
         {/* identity */}
         <div className="row" style={{ gap: 14, marginBottom: 18 }}>
           <div className={`profile-pill${viewMode === 'partner' ? ' partner' : ''}`} style={{ width: 56, height: 56, fontSize: 26 }}>
-            {viewMode === 'partner' ? 'L' : 'y'}
+            {initial}
           </div>
           <div style={{ flex: 1 }}>
             <div className="label">{viewMode === 'partner' ? 'Viewing' : 'Signed in as'}</div>
             <div style={{ fontFamily: 'var(--serif)', fontSize: 26, lineHeight: 1.1, marginTop: 2 }}>
-              {viewMode === 'partner' ? partnerName : 'yle'}
+              {viewMode === 'partner' ? partnerName : displayName}
             </div>
             <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 2 }}>
-              {viewMode === 'partner' ? 'PARTNER · READ-ONLY' : 'yle@compyle.app'}
+              {viewMode === 'partner' ? 'PARTNER · READ-ONLY' : email.toUpperCase()}
             </div>
           </div>
         </div>
@@ -115,6 +123,21 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
             </div>
           ))}
         </div>
+
+        {IS_CONFIGURED && onSignOut && (
+          <button
+            onClick={onSignOut}
+            style={{
+              width: '100%', marginTop: 12, height: 48,
+              border: '1.5px solid var(--hair-strong)', borderRadius: 14,
+              background: 'transparent', fontSize: 14,
+              color: 'var(--clay)', fontFamily: 'var(--sans)',
+              letterSpacing: '0.01em',
+            }}
+          >
+            Sign out
+          </button>
+        )}
 
         <div className="mono" style={{ fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-faint)', textAlign: 'center', marginTop: 18 }}>
           made with ♥ by Luis · for yle

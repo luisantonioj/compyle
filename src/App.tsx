@@ -1,5 +1,6 @@
 // compyle — root app component
 import React, { useEffect, useRef } from 'react';
+import { signOut } from 'firebase/auth';
 import { useAppStore, selectData, selectIsPartner, selectPartnerName } from './store/appStore';
 import { TODAY_KEY } from './lib/seed';
 import { Icons } from './components/Icons';
@@ -15,20 +16,37 @@ import { WebPlanScreen } from './screens/web/WebPlanScreen';
 import { WebHabitsScreen } from './screens/web/WebHabitsScreen';
 import { WebMoneyScreen } from './screens/web/WebMoneyScreen';
 import { ProfileSheet } from './screens/ProfileSheet';
+import { AuthScreen } from './screens/AuthScreen';
 import {
   TaskForm, HabitForm, TransactionForm,
   AccountForm, CategoryForm, BillForm, DebtForm,
 } from './components/forms/Forms';
 import { useIsWeb } from './hooks/useIsWeb';
+import { useAuth } from './hooks/useAuth';
+import { auth, IS_CONFIGURED } from './lib/firebase';
 import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt, PrivacySettings } from './types';
 
 export default function App() {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div className="auth-loading paper-grain" />;
+  if (IS_CONFIGURED && !user) return <AuthScreen />;
+
+  return <AppShell user={user} />;
+}
+
+function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   const store = useAppStore();
   const data = useAppStore(selectData);
   const isPartner = useAppStore(selectIsPartner);
   const partnerName = useAppStore(selectPartnerName);
   const { tab, viewMode, profileOpen, editing, confirm, toast, confettiTrigger, crown } = store;
   const isWeb = useIsWeb();
+
+  const handleSignOut = async () => {
+    if (auth) await signOut(auth);
+    store.setProfileOpen(false);
+  };
 
   const tapRef = useRef({ count: 0, timer: 0 as unknown as ReturnType<typeof setTimeout> });
 
@@ -372,6 +390,8 @@ export default function App() {
           onPrivacyToggle={togglePrivacy}
           partnerLinked={true}
           partnerName={partnerName}
+          user={user}
+          onSignOut={handleSignOut}
         />
       )}
 
