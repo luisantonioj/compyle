@@ -4,16 +4,22 @@ import { useAppStore, selectData, selectIsPartner, selectPartnerName } from './s
 import { TODAY_KEY } from './lib/seed';
 import { Icons } from './components/Icons';
 import { BottomNav } from './components/layout/BottomNav';
+import { Sidebar } from './components/layout/Sidebar';
 import { Confetti, Toast, ConfirmDialog, PartnerBanner } from './components/ui/shared';
 import { TodayScreen } from './screens/TodayScreen';
 import { CalendarScreen } from './screens/CalendarScreen';
 import { HabitsScreen } from './screens/HabitsScreen';
 import { MoneyScreen } from './screens/MoneyScreen';
+import { WebTodayScreen } from './screens/web/WebTodayScreen';
+import { WebPlanScreen } from './screens/web/WebPlanScreen';
+import { WebHabitsScreen } from './screens/web/WebHabitsScreen';
+import { WebMoneyScreen } from './screens/web/WebMoneyScreen';
 import { ProfileSheet } from './screens/ProfileSheet';
 import {
   TaskForm, HabitForm, TransactionForm,
   AccountForm, CategoryForm, BillForm, DebtForm,
 } from './components/forms/Forms';
+import { useIsWeb } from './hooks/useIsWeb';
 import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt, PrivacySettings } from './types';
 
 export default function App() {
@@ -22,6 +28,7 @@ export default function App() {
   const isPartner = useAppStore(selectIsPartner);
   const partnerName = useAppStore(selectPartnerName);
   const { tab, viewMode, profileOpen, editing, confirm, toast, confettiTrigger, crown } = store;
+  const isWeb = useIsWeb();
 
   const tapRef = useRef({ count: 0, timer: 0 as unknown as ReturnType<typeof setTimeout> });
 
@@ -320,71 +327,11 @@ export default function App() {
     onEdit: store.setEditing,
   };
 
-  return (
-    <div className="mobile-shell">
-      {/* partner banner */}
-      {isPartner && (
-        <PartnerBanner name={partnerName} onReturn={store.switchView} />
-      )}
-
-      {/* screens */}
-      <div
-        key={tab + viewMode}
-        className="fade-in"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          top: isPartner ? 48 : 0,
-          zIndex: 1,
-          overflow: 'hidden',
-        }}
-      >
-        {tab === 'today' && (
-          <TodayScreen
-            {...sharedScreenProps}
-            partnerName={partnerName}
-            onCheck={checkTask}
-          />
-        )}
-        {tab === 'cal' && (
-          <CalendarScreen
-            {...sharedScreenProps}
-            onCheck={checkTask}
-          />
-        )}
-        {tab === 'habits' && (
-          <HabitsScreen
-            {...sharedScreenProps}
-            onHabitCheck={checkHabit}
-          />
-        )}
-        {tab === 'money' && (
-          <MoneyScreen
-            {...sharedScreenProps}
-            onMarkPaid={toggleBillPaid}
-            onPayDebt={recordDebtPayment}
-          />
-        )}
-      </div>
-
-      {/* FAB */}
-      {fabAction && !editing && !profileOpen && !confirm && (
-        <button
-          className="fab fade-in"
-          onClick={() => store.setEditing({ type: fabAction as 'task' | 'habit' | 'tx' })}
-          title={fabAction === 'task' ? 'New task' : fabAction === 'habit' ? 'New habit' : 'Log spend'}
-        >
-          {Icons.plus({ stroke: 'var(--cream)' })}
-        </button>
-      )}
-
-      {/* bottom nav */}
-      <BottomNav tab={tab} onTab={store.setTab} partner={isPartner} />
-
-      {/* confetti */}
+  // ─── shared overlays (forms, profile, toast, confirm, confetti) ───
+  const overlays = (
+    <>
       <Confetti trigger={confettiTrigger} />
 
-      {/* easter egg crown */}
       {crown && (
         <div className="crown fade-in">
           <div style={{
@@ -398,7 +345,6 @@ export default function App() {
         </div>
       )}
 
-      {/* toast */}
       {toast && (
         <Toast
           message={toast.message}
@@ -408,7 +354,6 @@ export default function App() {
         />
       )}
 
-      {/* confirm dialog */}
       {confirm && (
         <ConfirmDialog
           title={confirm.title}
@@ -418,7 +363,6 @@ export default function App() {
         />
       )}
 
-      {/* profile sheet */}
       {profileOpen && (
         <ProfileSheet
           onClose={() => store.setProfileOpen(false)}
@@ -431,7 +375,6 @@ export default function App() {
         />
       )}
 
-      {/* edit forms */}
       {editing?.type === 'task' && (
         <TaskForm
           task={editing.item}
@@ -491,6 +434,107 @@ export default function App() {
           onClose={() => store.setEditing(null)}
         />
       )}
+    </>
+  );
+
+  // ─── web layout (≥ 1024px) ───
+  if (isWeb) {
+    return (
+      <div className="web-layout paper-grain">
+        <Sidebar
+          tab={tab}
+          onTab={store.setTab}
+          viewMode={viewMode}
+          onProfile={() => store.setProfileOpen(true)}
+          onSwitchView={store.switchView}
+        />
+        <main className="web-content">
+          {isPartner && (
+            <div className="partner-bar fade-in">
+              <div className="lock">{Icons.lock({ size: 13, stroke: '#fff' })}</div>
+              <div>
+                Viewing <strong style={{ fontWeight: 600 }}>{partnerName}'s</strong> trackers — read only. Nothing here can be edited.
+              </div>
+              <button onClick={store.switchView}>↩ Back to me</button>
+            </div>
+          )}
+          <div key={tab + viewMode} className="fade-in">
+            {tab === 'today' && (
+              <WebTodayScreen
+                data={data} isPartner={isPartner} viewMode={viewMode}
+                onEdit={store.setEditing} onCheckTask={checkTask} onCheckHabit={checkHabit} onMarkPaid={toggleBillPaid}
+              />
+            )}
+            {tab === 'cal' && (
+              <WebPlanScreen
+                data={data} isPartner={isPartner}
+                onEdit={store.setEditing} onCheckTask={checkTask}
+              />
+            )}
+            {tab === 'habits' && (
+              <WebHabitsScreen
+                data={data} isPartner={isPartner}
+                onEdit={store.setEditing} onCheckHabit={checkHabit}
+              />
+            )}
+            {tab === 'money' && (
+              <WebMoneyScreen
+                data={data} isPartner={isPartner}
+                onEdit={store.setEditing} onMarkPaid={toggleBillPaid}
+              />
+            )}
+          </div>
+        </main>
+        {overlays}
+      </div>
+    );
+  }
+
+  // ─── mobile layout (< 1024px) ───
+  return (
+    <div className="mobile-shell">
+      {isPartner && (
+        <PartnerBanner name={partnerName} onReturn={store.switchView} />
+      )}
+
+      <div
+        key={tab + viewMode}
+        className="fade-in"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          top: isPartner ? 48 : 0,
+          zIndex: 1,
+          overflow: 'hidden',
+        }}
+      >
+        {tab === 'today' && (
+          <TodayScreen {...sharedScreenProps} partnerName={partnerName} onCheck={checkTask} />
+        )}
+        {tab === 'cal' && (
+          <CalendarScreen {...sharedScreenProps} onCheck={checkTask} />
+        )}
+        {tab === 'habits' && (
+          <HabitsScreen {...sharedScreenProps} onHabitCheck={checkHabit} />
+        )}
+        {tab === 'money' && (
+          <MoneyScreen {...sharedScreenProps} onMarkPaid={toggleBillPaid} onPayDebt={recordDebtPayment} />
+        )}
+      </div>
+
+      {fabAction && !editing && !profileOpen && !confirm && (
+        <button
+          className="fab fade-in"
+          onClick={() => store.setEditing({ type: fabAction as 'task' | 'habit' | 'tx' })}
+          title={fabAction === 'task' ? 'New task' : fabAction === 'habit' ? 'New habit' : 'Log spend'}
+        >
+          {Icons.plus({ stroke: 'var(--cream)' })}
+        </button>
+      )}
+
+      <BottomNav tab={tab} onTab={store.setTab} partner={isPartner} />
+
+      {overlays}
     </div>
   );
 }

@@ -156,3 +156,56 @@ export function parseKey(k: string): Date {
   const [y, m, d] = k.split('-').map(Number);
   return new Date(y, m - 1, d);
 }
+
+export interface MonthCell {
+  d: number;
+  dateKey?: string;
+  other?: boolean;
+  key: string;
+}
+
+export function buildMonthCells(year: number, month: number): MonthCell[] {
+  const dim = new Date(year, month + 1, 0).getDate();
+  const first = new Date(year, month, 1).getDay();
+  const cells: MonthCell[] = [];
+  const prevDim = new Date(year, month, 0).getDate();
+  for (let i = first - 1; i >= 0; i--) {
+    cells.push({ d: prevDim - i, other: true, key: 'p' + i });
+  }
+  for (let d = 1; d <= dim; d++) {
+    const dk = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    cells.push({ d, dateKey: dk, key: 'd' + d });
+  }
+  let trail = 1;
+  while (cells.length % 7 !== 0) {
+    cells.push({ d: trail++, other: true, key: 'n' + cells.length });
+  }
+  return cells;
+}
+
+export interface HabitCell {
+  d?: number;
+  on?: boolean;
+  in?: boolean;
+  today?: boolean;
+  blank?: boolean;
+  key: string;
+}
+
+export function buildHabitMonth(year: number, month: number, pattern: string): HabitCell[] {
+  const dim = new Date(year, month + 1, 0).getDate();
+  const first = new Date(year, month, 1).getDay();
+  const pat = pattern.split(',');
+  const cells: HabitCell[] = [];
+  const todayDate = new Date();
+  const todayNorm = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+  for (let i = 0; i < first; i++) cells.push({ blank: true, key: 'b' + i });
+  for (let d = 1; d <= dim; d++) {
+    const thisDate = new Date(year, month, d);
+    const diff = Math.round((todayNorm.getTime() - thisDate.getTime()) / (1000 * 60 * 60 * 24));
+    const idx = pat.length - 1 - diff;
+    const inWindow = idx >= 0 && idx < pat.length;
+    cells.push({ d, on: inWindow && pat[idx] === 'on', in: inWindow, today: diff === 0, key: 'd' + d });
+  }
+  return cells;
+}
