@@ -1,6 +1,6 @@
 # compyle
 
-A personal life-management PWA built for yle — calendar, habits, money, and couple collaboration in one elegant mobile-first app.
+A personal life-management PWA built for yle — calendar, habits, money, and collaboration in one elegant mobile-first app.
 
 ---
 
@@ -161,21 +161,4 @@ firebase.json               — Firebase config (hosting + emulators)
 
 ---
 
-## Couple collaboration
-
-The app supports two users — **yle** (primary) and **Luis** (partner).
-
-- Tap the profile pill (top-right) to open the profile sheet
-- Switch to **Luis's view** to browse his data (read-only)
-- Privacy toggles control which categories Luis can see on your profile
-- In demo mode, both users' data is pre-seeded locally
-
----
-
-## Easter egg
-
-Triple-tap any screen's title heading. 🎉
-
----
-
-*made with ♥ by Luis · for yle*
+*made with ♥ by Luis*
