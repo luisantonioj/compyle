@@ -115,11 +115,14 @@ function DayTaskPanel({
   );
 }
 
+interface TooltipState { task: Task; x: number; y: number }
+
 export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanProps) {
   const [view, setView] = useState<View>('month');
   const [selected, setSelected] = useState(TODAY_KEY);
   const [month, setMonth] = useState(() => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1));
   const [showPastWeeks, setShowPastWeeks] = useState(false);
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
   const y = month.getFullYear();
   const m = month.getMonth();
@@ -266,6 +269,11 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
                         e.stopPropagation();
                         if (!isPartner) onEdit({ type: 'task', item: t, dateKey: c.dateKey });
                       }}
+                      onMouseEnter={(e) => {
+                        const r = e.currentTarget.getBoundingClientRect();
+                        setTooltip({ task: t, x: r.left + r.width / 2, y: r.top });
+                      }}
+                      onMouseLeave={() => setTooltip(null)}
                     >
                       {!isPartner && (
                         <button
@@ -339,6 +347,43 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
             showHeader={false}
           />
         </>
+      )}
+
+      {tooltip && (
+        <div style={{
+          position: 'fixed',
+          left: tooltip.x,
+          top: tooltip.y - 8,
+          transform: 'translate(-50%, -100%)',
+          background: 'var(--ink)',
+          color: 'var(--cream)',
+          borderRadius: 10,
+          padding: '8px 12px',
+          maxWidth: 240,
+          zIndex: 9999,
+          pointerEvents: 'none',
+          boxShadow: '0 4px 16px rgba(21,19,15,0.22)',
+          lineHeight: 1.4,
+        }}>
+          <div style={{ fontSize: 12, fontFamily: 'var(--sans)', fontWeight: 500, wordBreak: 'break-word' }}>
+            {tooltip.task.title}
+          </div>
+          {tooltip.task.description && (
+            <div style={{ fontSize: 11, fontFamily: 'var(--sans)', opacity: 0.65, marginTop: 3, wordBreak: 'break-word' }}>
+              {tooltip.task.description}
+            </div>
+          )}
+          <div style={{
+            position: 'absolute',
+            bottom: -5,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 0, height: 0,
+            borderLeft: '5px solid transparent',
+            borderRight: '5px solid transparent',
+            borderTop: '5px solid var(--ink)',
+          }} />
+        </div>
       )}
     </div>
   );
