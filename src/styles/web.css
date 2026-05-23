@@ -239,6 +239,7 @@
   .month-head:last-of-type { border-right: none; }
   .month-cell {
     min-height: 130px;
+    min-width: 0;
     padding: 10px 12px;
     border-right: 1px solid var(--hair);
     border-bottom: 1px solid var(--hair);
@@ -623,10 +624,11 @@
     display: flex; gap: 5px; align-items: center;
     font-size: 11px; line-height: 1.25;
     padding: 2px 0; color: var(--ink-soft);
+    overflow: hidden;
   }
   .month-cell .mini-task.done { text-decoration: line-through; color: var(--ink-mute); }
   .month-cell .mini-task .emoji { font-size: 12px; flex-shrink: 0; }
-  .month-cell .mini-task .ttl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .month-cell .mini-task .ttl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .month-cell .mini-check {
     background: none;
     border: none;
