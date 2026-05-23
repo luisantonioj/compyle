@@ -7,7 +7,8 @@ export const TASK_CATEGORIES = [
   { emoji: '🔔', label: 'Deadline' },
   { emoji: '📌', label: 'Reminder' },
 ];
-export const HABIT_FREQS = ['Daily', 'AM + PM', 'Every 3 days', 'Weekly', 'Bi-weekly', 'Mon/Wed/Fri', 'Wed + Sat', 'Custom'];
+export const HABIT_FREQS_DAYS = ['Daily', 'Every 2 days', 'Every 3 days', 'Weekly', 'Bi-weekly', 'Mon/Wed/Fri', 'Wed + Sat'];
+export const HABIT_FREQS_TIME = ['Morning', 'Afternoon', 'Evening', 'AM + PM', 'After workout', 'Before bed'];
 export const CAT_COLORS = ['#b04a2f','#d68a72','#c08838','#9a6f48','#4a5c3f','#87976f','#6b5e8a','#3d6480','#9e3a4d','#5a544a'];
 export const BANK_COLORS = ['#1b3a6e','#0066cc','#00d68f','#b04a2f','#4a5c3f','#9e3a4d','#0a3d62','#6b5e8a','#c08838','#15130f'];
 

@@ -360,9 +360,31 @@
     border-radius: 5px;
     transition: background 0.16s;
   }
+  .mini-month .mc.before-start { color: var(--ink-faint); }
   .mini-month .mc.in { color: var(--ink-soft); }
-  .mini-month .mc.on { background: var(--ink); color: var(--cream); }
-  .mini-month .mc.today { outline: 1.5px solid var(--clay); outline-offset: -2px; }
+  .mini-month .mc.on { background: var(--moss); color: white; }
+  .mini-month .mc.streak { background: var(--clay); color: var(--cream); }
+  .mini-month .mc.habit-start { position: relative; }
+  .mini-month .mc.habit-start::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--clay);
+  }
+  .mini-month .mc.on.habit-start::after,
+  .mini-month .mc.streak.habit-start::after { background: white; }
+  .mini-month .mc.today {
+    outline: 2.5px solid var(--clay);
+    outline-offset: -2px;
+    font-weight: 700;
+  }
+  .mini-month .mc.streak.today,
+  .mini-month .mc.on.today { outline-color: white; }
   .habit-foot {
     display: flex;
     justify-content: space-between;

@@ -21,7 +21,7 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onCheckHabit }: WebHa
 
   const monthlyPctTotal =
     (habits.reduce((a, h) => {
-      const cells = buildHabitMonth(y, m, h.pattern);
+      const cells = buildHabitMonth(y, m, h.pattern, h.startDate);
       const onCount = cells.filter((c) => !c.blank && c.on).length;
       const inCount = cells.filter((c) => !c.blank && c.in).length;
       return a + (inCount ? onCount / inCount : 0);
@@ -84,7 +84,7 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onCheckHabit }: WebHa
 
       <div className="habits-grid">
         {habits.map((h) => {
-          const cells = buildHabitMonth(y, m, h.pattern);
+          const cells = buildHabitMonth(y, m, h.pattern, h.startDate);
           const onCount = cells.filter((c) => !c.blank && c.on).length;
           const inCount = cells.filter((c) => !c.blank && c.in).length;
           const pct = inCount ? Math.round((onCount / inCount) * 100) : 0;
@@ -106,10 +106,17 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onCheckHabit }: WebHa
                 ))}
                 {cells.map((c) => {
                   if (c.blank) return <div key={c.key} />;
-                  let cls = c.in ? 'in' : '';
-                  if (c.on) cls = 'on';
-                  if (c.today) cls += ' today';
-                  return <div key={c.key} className={`mc ${cls.trim()}`}>{c.d}</div>;
+                  const cls: string[] = ['mc'];
+                  if (c.beforeStart) {
+                    cls.push('before-start');
+                  } else if (c.in) {
+                    cls.push('in');
+                  }
+                  if (c.streak) cls.push('streak');
+                  else if (c.on) cls.push('on');
+                  if (c.start) cls.push('habit-start');
+                  if (c.today) cls.push('today');
+                  return <div key={c.key} className={cls.join(' ')}>{c.d}</div>;
                 })}
               </div>
               <div className="habit-foot">

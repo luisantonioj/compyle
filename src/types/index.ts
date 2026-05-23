@@ -15,6 +15,8 @@ export interface Habit {
   id: string;
   name: string;
   note: string;
+  freqType?: 'days' | 'time';
+  startDate?: string; // "YYYY-MM-DD"
   streak: number;
   doneToday: boolean;
   pattern: string; // comma-separated "on"/"off" for last 28 days

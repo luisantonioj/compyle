@@ -199,23 +199,55 @@ export interface HabitCell {
   in?: boolean;
   today?: boolean;
   blank?: boolean;
+  start?: boolean;
+  beforeStart?: boolean;
+  streak?: boolean;
   key: string;
 }
 
-export function buildHabitMonth(year: number, month: number, pattern: string): HabitCell[] {
+export function buildHabitMonth(year: number, month: number, pattern: string, startDate?: string): HabitCell[] {
   const dim = new Date(year, month + 1, 0).getDate();
   const first = new Date(year, month, 1).getDay();
   const pat = pattern.split(',');
   const cells: HabitCell[] = [];
   const todayDate = new Date();
   const todayNorm = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+
+  // Compute streak: consecutive 'on' entries from the last (today) going backwards
+  const streakIndices = new Set<number>();
+  for (let i = pat.length - 1; i >= 0; i--) {
+    if (pat[i] === 'on') streakIndices.add(i);
+    else break;
+  }
+
+  // Parse start date boundary
+  let startNorm: Date | null = null;
+  if (startDate) {
+    const [sy, sm, sd] = startDate.split('-').map(Number);
+    startNorm = new Date(sy, sm - 1, sd);
+  }
+
   for (let i = 0; i < first; i++) cells.push({ blank: true, key: 'b' + i });
   for (let d = 1; d <= dim; d++) {
     const thisDate = new Date(year, month, d);
     const diff = Math.round((todayNorm.getTime() - thisDate.getTime()) / (1000 * 60 * 60 * 24));
     const idx = pat.length - 1 - diff;
     const inWindow = idx >= 0 && idx < pat.length;
-    cells.push({ d, on: inWindow && pat[idx] === 'on', in: inWindow, today: diff === 0, key: 'd' + d });
+
+    const beforeStart = startNorm ? thisDate < startNorm : false;
+    const isStart = startNorm ? thisDate.getTime() === startNorm.getTime() : false;
+    const isStreak = inWindow && streakIndices.has(idx);
+
+    cells.push({
+      d,
+      on: inWindow && pat[idx] === 'on',
+      in: inWindow && !beforeStart,
+      today: diff === 0,
+      start: isStart,
+      beforeStart,
+      streak: isStreak,
+      key: 'd' + d,
+    });
   }
   return cells;
 }

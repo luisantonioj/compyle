@@ -15,11 +15,19 @@ export function Progress({ value, max, variant }: { value: number; max: number; 
 // ─── Heat grid (last 28 days) ───
 export function HeatGrid({ pattern }: { pattern: string }) {
   const cells = pattern.split(',').slice(0, 28);
+  // Find current streak: consecutive 'on' from the last cell (today) going backwards
+  let streakFrom = cells.length;
+  for (let i = cells.length - 1; i >= 0; i--) {
+    if (cells[i] === 'on') streakFrom = i;
+    else break;
+  }
   return (
     <div className="heat-grid">
       {cells.map((s, i) => {
         const isToday = i === cells.length - 1;
-        const cls = s === 'on' ? 'on' : isToday ? 'faint' : '';
+        let cls = '';
+        if (s === 'on') cls = i >= streakFrom ? 'streak' : 'on';
+        else if (isToday) cls = 'faint';
         return <div key={i} className={`heat-cell${cls ? ' ' + cls : ''}`} />;
       })}
     </div>

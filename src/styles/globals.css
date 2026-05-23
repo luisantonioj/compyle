@@ -486,8 +486,9 @@ input, textarea, select {
   background: var(--cream-deep);
   border-radius: 2px;
 }
-.heat-cell.on { background: var(--ink); }
-.heat-cell.faint { background: rgba(21,19,15,0.4); }
+.heat-cell.on { background: var(--moss); }
+.heat-cell.streak { background: var(--clay); }
+.heat-cell.faint { background: rgba(21,19,15,0.25); }
 
 /* calendar */
 .cal-grid {

@@ -1,6 +1,6 @@
 // compyle — all CRUD form sheets
 import React, { useState, useEffect } from 'react';
-import { FormSheet, FormHead, FormFoot, Field, EmojiPicker, ColorPicker, HABIT_FREQS, CAT_COLORS, BANK_COLORS } from './FormPrimitives';
+import { FormSheet, FormHead, FormFoot, Field, EmojiPicker, ColorPicker, HABIT_FREQS_DAYS, HABIT_FREQS_TIME, CAT_COLORS, BANK_COLORS } from './FormPrimitives';
 import { TODAY_KEY } from '../../lib/seed';
 import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt } from '../../types';
 
@@ -61,14 +61,26 @@ export function HabitForm({ habit, onSave, onDelete, onClose }: {
   onClose: () => void;
 }) {
   const [name, setName] = useState(habit?.name ?? '');
+  const [freqType, setFreqType] = useState<'days' | 'time'>(
+    habit?.freqType ?? (HABIT_FREQS_TIME.includes(habit?.note ?? '') ? 'time' : 'days')
+  );
   const [note, setNote] = useState(habit?.note ?? 'Daily');
+  const [startDate, setStartDate] = useState(habit?.startDate ?? TODAY_KEY);
   const editing = !!habit?.id;
+
+  const freqList = freqType === 'days' ? HABIT_FREQS_DAYS : HABIT_FREQS_TIME;
+
+  const handleFreqType = (t: 'days' | 'time') => {
+    setFreqType(t);
+    const list = t === 'days' ? HABIT_FREQS_DAYS : HABIT_FREQS_TIME;
+    if (!list.includes(note)) setNote(list[0]);
+  };
 
   const handleSave = () => {
     if (!name.trim()) return;
     onSave({
       id: habit?.id ?? 'h_' + Date.now(),
-      name: name.trim(), note,
+      name: name.trim(), note, freqType, startDate,
       streak: habit?.streak ?? 0,
       doneToday: habit?.doneToday ?? false,
       pattern: habit?.pattern ?? 'off,'.repeat(27) + 'off',
@@ -83,11 +95,18 @@ export function HabitForm({ habit, onSave, onDelete, onClose }: {
           <input className="field-input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Floss"/>
         </Field>
         <Field label="Frequency">
+          <div className="type-toggle" style={{ marginBottom: 10 }}>
+            <button className={freqType === 'days' ? 'active' : ''} onClick={() => handleFreqType('days')}>By days</button>
+            <button className={freqType === 'time' ? 'active' : ''} onClick={() => handleFreqType('time')}>By time</button>
+          </div>
           <div className="chips">
-            {HABIT_FREQS.map((f) => (
+            {freqList.map((f) => (
               <button key={f} type="button" className={note === f ? 'selected' : ''} onClick={() => setNote(f)}>{f}</button>
             ))}
           </div>
+        </Field>
+        <Field label="Start date">
+          <input type="date" className="field-input" value={startDate} onChange={(e) => setStartDate(e.target.value)} max={TODAY_KEY}/>
         </Field>
         {editing && (
           <div style={{ background: 'var(--cream-deep)', borderRadius: 12, padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
