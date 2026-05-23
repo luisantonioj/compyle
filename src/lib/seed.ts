@@ -45,18 +45,18 @@ export const SEED_YLE: UserData = {
   banks: [
     { id: 'b1', name: 'BDO Savings', balance: 84320.50, color: '#1b3a6e', last4: '2891', categories: [
       { id: 'c1a', name: 'Emergency fund',  balance: 50000,   color: '#4a5c3f' },
-      { id: 'c1b', name: 'Anniversary trip', balance: 18000, color: '#b04a2f' },
+      { id: 'c1b', name: 'Anniversary trip', balance: 18000, color: '#8f1d2b' },
       { id: 'c1c', name: 'Open',            balance: 16320.50, color: '#5a544a' },
     ]},
     { id: 'b2', name: 'GCash', balance: 8420.25, color: '#0066cc', last4: '4412', categories: [
-      { id: 'c2a', name: 'Groceries',      balance: 2760,   color: '#b04a2f' },
+      { id: 'c2a', name: 'Groceries',      balance: 2760,   color: '#8f1d2b' },
       { id: 'c2b', name: 'Coffee runs',    balance: 680,    color: '#9a6f48' },
-      { id: 'c2c', name: 'Skincare',       balance: 880,    color: '#d68a72' },
+      { id: 'c2c', name: 'Skincare',       balance: 880,    color: '#c04059' },
       { id: 'c2d', name: 'Subscriptions',  balance: 301,    color: '#6b5e8a' },
       { id: 'c2e', name: 'Open',           balance: 3799.25, color: '#5a544a' },
     ]},
     { id: 'b3', name: 'Maya', balance: 12100.00, color: '#00d68f', last4: '0931', categories: [
-      { id: 'c3a', name: 'Splurge fund', balance: 4500, color: '#d68a72' },
+      { id: 'c3a', name: 'Splurge fund', balance: 4500, color: '#c04059' },
       { id: 'c3b', name: 'Transport',    balance: 2260, color: '#4a5c3f' },
       { id: 'c3c', name: 'Open',         balance: 5340, color: '#5a544a' },
     ]},
@@ -104,13 +104,13 @@ export const SEED_LUIS: UserData = {
   banks: [
     { id: 'lb1', name: 'Security Bank', balance: 142800.00, color: '#0a3d62', last4: '7723', categories: [
       { id: 'lc1a', name: 'Emergency',       balance: 100000, color: '#4a5c3f' },
-      { id: 'lc1b', name: 'Wedding fund 💍', balance: 30000,  color: '#d68a72' },
+      { id: 'lc1b', name: 'Wedding fund 💍', balance: 30000,  color: '#c04059' },
       { id: 'lc1c', name: 'Open',            balance: 12800,  color: '#5a544a' },
     ]},
     { id: 'lb2', name: 'GCash', balance: 4280.00, color: '#0066cc', last4: '8819', categories: [
-      { id: 'lc2a', name: 'Food',        balance: 1800, color: '#b04a2f' },
+      { id: 'lc2a', name: 'Food',        balance: 1800, color: '#8f1d2b' },
       { id: 'lc2b', name: 'Gym',         balance: 800,  color: '#4a5c3f' },
-      { id: 'lc2c', name: 'Date nights', balance: 1200, color: '#d68a72' },
+      { id: 'lc2c', name: 'Date nights', balance: 1200, color: '#c04059' },
       { id: 'lc2d', name: 'Open',        balance: 480,  color: '#5a544a' },
     ]},
   ],

@@ -1,7 +1,6 @@
 // compyle — Calendar + Habits screens
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icons } from '../components/Icons';
-import { HeatGrid } from '../components/ui/shared';
 import { TODAY_KEY, daysInMonth, dateKey, parseKey } from '../lib/seed';
 import type { UserData, ViewMode, Task, EditingState } from '../types';
 
@@ -12,13 +11,16 @@ interface CalProps {
   onProfile: () => void;
   onCheck: (id: string, dateKey: string) => void;
   onEdit: (e: EditingState) => void;
+  onSelectedChange?: (dateKey: string) => void;
   defaultView?: 'month' | 'week' | 'day';
 }
 
-export function CalendarScreen({ data, viewMode, isPartner, onProfile, onCheck, onEdit, defaultView = 'day' }: CalProps) {
+export function CalendarScreen({ data, viewMode, isPartner, onProfile, onCheck, onEdit, onSelectedChange, defaultView = 'day' }: CalProps) {
   const [view, setView] = useState<'month' | 'week' | 'day'>(defaultView);
   const [selected, setSelected] = useState(TODAY_KEY);
   const [month, setMonth] = useState(new Date());
+
+  useEffect(() => { onSelectedChange?.(selected); }, [selected]);
 
   const tasksOnSelected = data.tasks[selected] ?? [];
   const done = tasksOnSelected.filter((t) => t.done).length;
@@ -76,8 +78,9 @@ export function CalendarScreen({ data, viewMode, isPartner, onProfile, onCheck, 
               </button>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, color: t.done ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: t.done ? 'line-through' : 'none' }}>
-                  <span style={{ marginRight: 6 }}>{t.emoji}</span>{t.title}
+                  {t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}
                 </div>
+                {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 2 }}>{t.description}</div>}
                 {t.time && <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 3 }}>{t.time}</div>}
               </div>
               {!isPartner && Icons.chevR({ stroke: 'var(--ink-faint)' })}

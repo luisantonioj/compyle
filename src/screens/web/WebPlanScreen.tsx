@@ -90,7 +90,8 @@ function DayTaskPanel({
               {Icons.check()}
             </button>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="title"><span style={{ marginRight: 6 }}>{t.emoji}</span>{t.title}</div>
+              <div className="title">{t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}</div>
+              {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 2 }}>{t.description}</div>}
               {t.time && <div className="time">{t.time}</div>}
             </div>
             {!isPartner && Icons.chevR({ stroke: 'var(--ink-faint)' })}
@@ -192,7 +193,7 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
           <h1>Plan & <em>tasks</em></h1>
         </div>
         {!isPartner && (
-          <button className="btn-add" onClick={() => onEdit({ type: 'task', dateKey: TODAY_KEY })}>
+          <button className="btn-add" onClick={() => onEdit({ type: 'task', dateKey: selected })}>
             {Icons.plus({ size: 14, stroke: 'var(--cream)' })}
             <span>New task</span>
           </button>

@@ -54,6 +54,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   const partnerName = useAppStore(selectPartnerName);
   const { tab, viewMode, profileOpen, editing, confirm, toast, confettiTrigger, crown, dataLoading } = store;
   const isWeb = useIsWeb();
+  const [calDate, setCalDate] = useState(TODAY_KEY);
   useFirestoreSync(user);
 
   const handleSignOut = async () => {
@@ -534,7 +535,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           <div style={{
             fontFamily: 'var(--serif)', fontStyle: 'italic',
             fontSize: 64, color: 'var(--clay)', textAlign: 'center',
-            textShadow: '0 4px 24px rgba(176, 74, 47, 0.4)',
+            textShadow: '0 4px 24px rgba(143, 29, 43, 0.4)',
           }}>
             ♥<br />
             <span style={{ fontSize: 18, color: 'var(--ink)' }}>for yle</span>
@@ -713,7 +714,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           <TodayScreen {...sharedScreenProps} partnerName={partnerName} onCheck={checkTask} />
         )}
         {tab === 'cal' && (
-          <CalendarScreen {...sharedScreenProps} onCheck={checkTask} />
+          <CalendarScreen {...sharedScreenProps} onCheck={checkTask} onSelectedChange={setCalDate} />
         )}
         {tab === 'habits' && (
           <HabitsScreen {...sharedScreenProps} onHabitCheck={checkHabit} />
@@ -726,7 +727,11 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
       {fabAction && !editing && !profileOpen && !confirm && (
         <button
           className="fab fade-in"
-          onClick={() => store.setEditing({ type: fabAction as 'task' | 'habit' | 'tx' })}
+          onClick={() => store.setEditing(
+            fabAction === 'task'
+              ? { type: 'task', dateKey: tab === 'cal' ? calDate : TODAY_KEY }
+              : { type: fabAction as 'habit' | 'tx' }
+          )}
           title={fabAction === 'task' ? 'New task' : fabAction === 'habit' ? 'New habit' : 'Log spend'}
         >
           {Icons.plus({ stroke: 'var(--cream)' })}

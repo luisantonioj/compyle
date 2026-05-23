@@ -12,14 +12,22 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
   onClose: () => void;
 }) {
   const [title, setTitle] = useState(task?.title ?? '');
-  const [emoji, setEmoji] = useState(task?.emoji ?? '⭐');
+  const [description, setDescription] = useState(task?.description ?? '');
+  const [emoji, setEmoji] = useState(task?.emoji ?? '');
   const [time, setTime] = useState(task?.time ?? '');
   const [date, setDate] = useState(dateKey);
   const editing = !!task?.id;
 
   const handleSave = () => {
     if (!title.trim()) return;
-    onSave({ id: task?.id ?? 't_' + Date.now(), title: title.trim(), emoji, time: time || null, done: task?.done ?? false }, date);
+    onSave({
+      id: task?.id ?? 't_' + Date.now(),
+      title: title.trim(),
+      emoji,
+      description: description.trim() || undefined,
+      time: time || null,
+      done: task?.done ?? false,
+    }, date);
   };
 
   return (
@@ -28,6 +36,9 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
       <div className="form-body">
         <Field label="Title">
           <input className="field-input" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What's the task?"/>
+        </Field>
+        <Field label="Description (optional)">
+          <input className="field-input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Add a note or details…"/>
         </Field>
         <Field label="Type">
           <EmojiPicker value={emoji} onChange={setEmoji}/>

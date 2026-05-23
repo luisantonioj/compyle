@@ -4,6 +4,7 @@ export interface Task {
   id: string;
   title: string;
   emoji: string;
+  description?: string;
   time: string | null;
   done: boolean;
   recurrence?: 'daily' | 'weekly' | string | null;
