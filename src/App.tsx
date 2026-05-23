@@ -229,7 +229,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
       const newStreak = flipped ? habit.streak + 1 : Math.max(0, habit.streak - 1);
       if (flipped && (newStreak % 7 === 0 || newStreak >= 30)) maybe();
       else if (flipped) maybe(0.3);
-      void upsertHabit(user!.uid, { ...habit, doneToday: flipped, streak: newStreak, doneDate: TODAY_KEY });
+      const patArr = habit.pattern.split(',');
+      patArr[patArr.length - 1] = flipped ? 'on' : 'off';
+      void upsertHabit(user!.uid, { ...habit, doneToday: flipped, streak: newStreak, doneDate: TODAY_KEY, pattern: patArr.join(',') });
     } else {
       store.setYleData((d) => {
         const habits = d.habits.map((h) => {
@@ -238,7 +240,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           const newStreak = flipped ? h.streak + 1 : Math.max(0, h.streak - 1);
           if (flipped && (newStreak % 7 === 0 || newStreak >= 30)) maybe();
           else if (flipped) maybe(0.3);
-          return { ...h, doneToday: flipped, streak: newStreak };
+          const patArr = h.pattern.split(',');
+          patArr[patArr.length - 1] = flipped ? 'on' : 'off';
+          return { ...h, doneToday: flipped, streak: newStreak, pattern: patArr.join(',') };
         });
         return { ...d, habits };
       });

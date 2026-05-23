@@ -99,12 +99,26 @@ export function subscribeUserData(
     mark('tasks');
   }));
 
-  // habits — reset doneToday when it's a new day
+  // habits — reset doneToday and shift rolling pattern window on a new day
   unsubs.push(onSnapshot(col(uid, 'habits'), (snap) => {
     const habits: Habit[] = snap.docs
       .map((d) => {
         const data = d.data() as Habit;
-        return { ...data, doneToday: data.doneDate === TODAY_KEY ? data.doneToday : false };
+        if (data.doneDate === TODAY_KEY) return data;
+        // New day: shift the 28-day pattern forward so index 27 always = today
+        if (data.doneDate) {
+          const msPerDay = 1000 * 60 * 60 * 24;
+          const daysElapsed = Math.round(
+            (new Date(TODAY_KEY).getTime() - new Date(data.doneDate).getTime()) / msPerDay
+          );
+          if (daysElapsed > 0) {
+            const patArr = data.pattern.split(',');
+            const count = Math.min(daysElapsed, patArr.length);
+            for (let i = 0; i < count; i++) { patArr.shift(); patArr.push('off'); }
+            return { ...data, doneToday: false, pattern: patArr.join(',') };
+          }
+        }
+        return { ...data, doneToday: false };
       })
       .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
     onPartial({ habits });
