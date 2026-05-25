@@ -54,7 +54,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   const partnerName = useAppStore(selectPartnerName);
   const { tab, viewMode, profileOpen, editing, confirm, toast, confettiTrigger, crown, dataLoading } = store;
   const isWeb = useIsWeb();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [calDate, setCalDate] = useState(TODAY_KEY);
   useFirestoreSync(user);
 
