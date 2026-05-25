@@ -54,6 +54,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   const partnerName = useAppStore(selectPartnerName);
   const { tab, viewMode, profileOpen, editing, confirm, toast, confettiTrigger, crown, dataLoading } = store;
   const isWeb = useIsWeb();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [calDate, setCalDate] = useState(TODAY_KEY);
   useFirestoreSync(user);
 
@@ -642,13 +643,15 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   // ─── web layout (≥ 1024px) ───
   if (isWeb) {
     return (
-      <div className="web-layout paper-grain">
+      <div className={`web-layout paper-grain${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
         <Sidebar
           tab={tab}
           onTab={store.setTab}
           viewMode={viewMode}
           onProfile={() => store.setProfileOpen(true)}
           onSwitchView={store.switchView}
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed((v) => !v)}
         />
         <main className="web-content">
           {isPartner && (

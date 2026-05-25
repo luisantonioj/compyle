@@ -9,6 +9,8 @@
   }
 
   /* ─── sidebar ─── */
+  .web-layout.sidebar-collapsed { grid-template-columns: 64px 1fr; }
+
   .sidebar {
     border-right: 1px solid var(--hair-strong);
     padding: 32px 22px;
@@ -18,7 +20,40 @@
     top: 0;
     height: 100vh;
     overflow: hidden;
+    transition: padding 0.18s ease;
   }
+  .sidebar.collapsed { padding: 22px 12px; }
+
+  .sidebar-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .sidebar.collapsed .sidebar-top { justify-content: center; margin-bottom: 24px; }
+  .sidebar.collapsed .brand-block { display: none; }
+
+  .sidebar-toggle {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    border: 1px solid var(--hair-strong);
+    background: none;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-mute);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.12s, color 0.12s;
+  }
+  .sidebar-toggle:hover { background: rgba(21,19,15,0.06); color: var(--ink); }
+
+  .sidebar.collapsed .nav-item .nav-label,
+  .sidebar.collapsed .nav-item .nav-badge,
+  .sidebar.collapsed .profile-card .pc-name,
+  .sidebar.collapsed .profile-card .pc-email,
+  .sidebar.collapsed .partner-switch span { display: none; }
+  .sidebar.collapsed .nav-item { justify-content: center; padding: 12px; }
+  .sidebar.collapsed .partner-switch { justify-content: center; padding: 8px; }
+  .sidebar.collapsed .profile-card { justify-content: center; padding: 6px; }
 
   .brand {
     font-family: var(--serif);
