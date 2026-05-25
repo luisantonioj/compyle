@@ -26,7 +26,7 @@ export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collaps
       <div className="sidebar-top">
         <div className="brand-block">
           <div className="brand">compyle<em>.</em></div>
-          <div className="brand-sub">for yle · v3.0</div>
+          <div className="brand-sub">for yle</div>
         </div>
         <button className="sidebar-toggle" onClick={onToggle} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
           {collapsed ? Icons.chevR({ size: 14, stroke: 'currentColor' }) : Icons.chevL({ size: 14, stroke: 'currentColor' })}
