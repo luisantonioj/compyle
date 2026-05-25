@@ -4,13 +4,17 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signOut,
+  getAdditionalUserInfo,
   updateProfile,
 } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
+import { useAppStore } from '../store/appStore';
 
 type Mode = 'in' | 'up';
 
 export function AuthScreen() {
+  const flash = useAppStore((s) => s.flash);
   const [mode, setMode] = useState<Mode>('in');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -46,7 +50,14 @@ export function AuthScreen() {
     setError('');
     setLoading(true);
     try {
-      await signInWithPopup(auth!, googleProvider);
+      const cred = await signInWithPopup(auth!, googleProvider);
+      if (mode === 'in' && getAdditionalUserInfo(cred)?.isNewUser) {
+        await signOut(auth!);
+        void cred.user.delete();
+        switchMode('up');
+        flash('No account found. Sign up to get started!');
+        return;
+      }
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? '';
       if (code !== 'auth/popup-closed-by-user') setError(mapError(code));
