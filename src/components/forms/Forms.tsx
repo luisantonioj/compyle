@@ -242,14 +242,9 @@ export function AccountForm({ acct, onSave, onDelete, onClose }: {
         <Field label="Bank or wallet">
           <input className="field-input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. BPI Savings"/>
         </Field>
-        <div className="field-row">
-          <Field label="Balance (PHP)">
-            <input className="field-input" type="number" inputMode="decimal" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="0.00"/>
-          </Field>
-          <Field label="Last 4 digits">
-            <input className="field-input" value={last4} onChange={(e) => setLast4(e.target.value.slice(0, 4))} placeholder="1234" maxLength={4}/>
-          </Field>
-        </div>
+        <Field label="Balance (PHP)">
+          <input className="field-input" type="number" inputMode="decimal" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="0.00"/>
+        </Field>
         <Field label="Color">
           <ColorPicker value={color} onChange={setColor} palette={BANK_COLORS}/>
         </Field>
