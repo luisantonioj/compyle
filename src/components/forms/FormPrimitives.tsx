@@ -4,7 +4,7 @@ import React, { useRef, useEffect } from 'react';
 export const TASK_CATEGORIES = [
   { emoji: '', label: 'None' },
   { emoji: '📌', label: 'Reminder' },
-  { emoji: '❗', label: 'Quiz/Exam' },
+  { emoji: '❗', label: 'Exam' },
   { emoji: '🔔', label: 'Deadline' },
   { emoji: '⭐', label: 'Event' },
 ];

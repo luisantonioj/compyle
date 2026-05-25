@@ -105,7 +105,7 @@
 /* emoji category picker */
 .emoji-cats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 6px;
 }
 .emoji-cat {
