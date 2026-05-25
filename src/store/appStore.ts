@@ -53,6 +53,9 @@ interface AppStore {
 
   // data actions (own data only; partner data is read-only)
   setYleData: (updater: (d: UserData) => UserData) => void;
+  setLuisData: (updater: (d: UserData) => UserData) => void;
+  setMeProfile: (p: UserProfile) => void;
+  setPartnerProfile: (p: UserProfile) => void;
 }
 
 export const useAppStore = create<AppStore>((set, get) => ({
@@ -91,8 +94,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
     setTimeout(() => set({ crown: false }), 2200);
   },
 
-  setDataLoading: (dataLoading) => set({ dataLoading }),
-  setYleData: (updater) => set((s) => ({ yleData: updater(s.yleData) })),
+  setDataLoading:    (dataLoading) => set({ dataLoading }),
+  setYleData:        (updater) => set((s) => ({ yleData: updater(s.yleData) })),
+  setLuisData:       (updater) => set((s) => ({ luisData: updater(s.luisData) })),
+  setMeProfile:      (meProfile) => set({ meProfile }),
+  setPartnerProfile: (partnerProfile) => set({ partnerProfile }),
 }));
 
 // Convenience selectors

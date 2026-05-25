@@ -6,6 +6,7 @@ import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import {
   getAuth,
   connectAuthEmulator,
+  GoogleAuthProvider,
   type Auth,
 } from 'firebase/auth';
 import {
@@ -27,6 +28,7 @@ const firebaseConfig = {
 };
 
 export const IS_CONFIGURED = !!firebaseConfig.apiKey && !!firebaseConfig.projectId;
+export const googleProvider = new GoogleAuthProvider();
 
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;

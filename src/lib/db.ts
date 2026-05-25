@@ -1,12 +1,12 @@
 // compyle — Firestore persistence layer
 import {
-  collection, doc, setDoc, deleteDoc,
+  collection, doc, setDoc, deleteDoc, getDoc, writeBatch,
   onSnapshot, serverTimestamp,
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { TODAY_KEY } from './seed';
-import type { Task, Habit, BankAccount, Transaction, Bill, Debt, PrivacySettings, UserData } from '../types';
+import type { Task, Habit, BankAccount, Transaction, Bill, Debt, PrivacySettings, UserData, UserProfile } from '../types';
 
 // ── path helpers ────────────────────────────────────────────────────────────
 const col = (uid: string, name: string) => collection(db!, 'users', uid, name);
@@ -64,6 +64,42 @@ export const savePrivacy = (uid: string, privacy: PrivacySettings) =>
 // ── User profile (merge so it never overwrites existing fields) ───────────────
 export const ensureProfile = (uid: string, displayName: string, email: string) =>
   setDoc(doc(db!, 'users', uid), { displayName, email, created_at: serverTimestamp() }, { merge: true });
+
+// Listen to /users/{uid} root profile doc in real time
+export function subscribeProfile(uid: string, cb: (p: UserProfile) => void): Unsubscribe {
+  return onSnapshot(doc(db!, 'users', uid), (snap) => {
+    if (snap.exists()) cb({ uid, ...snap.data() } as UserProfile);
+  });
+}
+
+// Write /partner_invites/{code} and return the 6-char code
+export async function createInvite(myUid: string): Promise<string> {
+  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  await setDoc(doc(db!, 'partner_invites', code), { inviterId: myUid, createdAt: serverTimestamp() });
+  return code;
+}
+
+// Accept invite — batch-writes partnerId on both profile docs + deletes invite
+export async function acceptInvite(code: string, myUid: string): Promise<void> {
+  const inviteRef = doc(db!, 'partner_invites', code.trim().toUpperCase());
+  const snap = await getDoc(inviteRef);
+  if (!snap.exists()) throw new Error('Invalid or expired code');
+  const { inviterId } = snap.data() as { inviterId: string };
+  if (inviterId === myUid) throw new Error('You cannot link with yourself');
+  const batch = writeBatch(db!);
+  batch.set(doc(db!, 'users', myUid),     { partnerId: inviterId }, { merge: true });
+  batch.set(doc(db!, 'users', inviterId), { partnerId: myUid },     { merge: true });
+  batch.delete(inviteRef);
+  await batch.commit();
+}
+
+// Unlink — clears partnerId on both profiles
+export async function unlinkPartner(myUid: string, partnerUid: string): Promise<void> {
+  const batch = writeBatch(db!);
+  batch.set(doc(db!, 'users', myUid),      { partnerId: null }, { merge: true });
+  batch.set(doc(db!, 'users', partnerUid), { partnerId: null }, { merge: true });
+  await batch.commit();
+}
 
 // ── Push notification summary (written by the client for the Vercel cron to read) ──
 // Stored in a top-level public collection so the cron can read it without admin auth.

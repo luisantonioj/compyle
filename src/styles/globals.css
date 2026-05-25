@@ -688,6 +688,24 @@ input, textarea, select {
 .auth-btn:disabled { opacity: 0.5; }
 .auth-btn:not(:disabled):active { transform: scale(0.98); }
 
+.auth-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 16px 0; color: var(--ink-faint);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+}
+.auth-divider::before, .auth-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--hair-strong);
+}
+.auth-btn-google {
+  width: 100%; height: 48px; border-radius: 14px;
+  border: 1.5px solid var(--hair-strong); background: var(--white);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--sans); font-size: 14px; color: var(--ink);
+  cursor: pointer; transition: background 0.12s;
+}
+.auth-btn-google:hover { background: var(--cream-deep); }
+.auth-btn-google:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .auth-loading {
   position: fixed;
   inset: 0;

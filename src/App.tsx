@@ -35,6 +35,7 @@ import {
   upsertDebt, removeDebt,
   savePrivacy,
   savePushSummary,
+  createInvite, acceptInvite, unlinkPartner,
 } from './lib/db';
 import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt, PrivacySettings } from './types';
 
@@ -569,12 +570,17 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           onSwitchView={store.switchView}
           privacy={store.yleData.privacy}
           onPrivacyToggle={togglePrivacy}
-          partnerLinked={true}
-          partnerName={partnerName}
+          partnerLinked={!!store.meProfile.partnerId}
+          partnerName={store.partnerProfile.displayName || 'Partner'}
           user={user}
           onSignOut={handleSignOut}
           onEnableNotifications={handleEnableNotifications}
           pushEnabled={pushEnabled}
+          onCreateInvite={user ? () => createInvite(user.uid) : undefined}
+          onAcceptInvite={user ? (code) => acceptInvite(code, user.uid) : undefined}
+          onUnlink={user && store.meProfile.partnerId
+            ? () => unlinkPartner(user.uid, store.meProfile.partnerId!)
+            : undefined}
         />
       )}
 

@@ -1,5 +1,5 @@
 // compyle — Profile / Settings sheet
-import React from 'react';
+import { useState } from 'react';
 import type { User } from 'firebase/auth';
 import { Icons } from '../components/Icons';
 import { Sheet, Toggle } from '../components/ui/shared';
@@ -18,6 +18,9 @@ interface ProfileSheetProps {
   onSignOut?: () => void;
   onEnableNotifications?: () => Promise<void>;
   pushEnabled?: boolean;
+  onCreateInvite?: () => Promise<string>;
+  onAcceptInvite?: (code: string) => Promise<void>;
+  onUnlink?: () => Promise<void>;
 }
 
 const PRIVACY_ITEMS: { key: keyof PrivacySettings; label: string }[] = [
@@ -35,10 +38,15 @@ const STATIC_SETTINGS_ROWS = [
   { icon: '✨', label: 'About compyle', detail: 'v3.0' },
 ];
 
-export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPrivacyToggle, partnerLinked, partnerName, user, onSignOut, onEnableNotifications, pushEnabled }: ProfileSheetProps) {
+export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPrivacyToggle, partnerLinked, partnerName, user, onSignOut, onEnableNotifications, pushEnabled, onCreateInvite, onAcceptInvite, onUnlink }: ProfileSheetProps) {
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'yle';
   const initial = (viewMode === 'partner' ? partnerName : displayName).charAt(0).toUpperCase();
   const email = user?.email || 'yle@compyle.app';
+
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [inviteInput, setInviteInput] = useState('');
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [linkError, setLinkError] = useState('');
 
   const notifDetail = IS_CONFIGURED
     ? pushEnabled
@@ -68,18 +76,20 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
           </div>
         </div>
 
-        {/* partner link */}
+        {/* partner section — linked */}
         {partnerLinked && (
           <div className="card white" style={{ padding: 0, marginBottom: 16, overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--hair)' }}>
               <div className="label" style={{ marginBottom: 4 }}>Linked partner</div>
               <div className="row-between">
                 <div className="row" style={{ gap: 10 }}>
-                  <div className="profile-pill partner" style={{ width: 32, height: 32, fontSize: 15 }}>L</div>
+                  <div className="profile-pill partner" style={{ width: 32, height: 32, fontSize: 15 }}>
+                    {partnerName.charAt(0).toUpperCase()}
+                  </div>
                   <div>
                     <div style={{ fontSize: 14 }}>{partnerName}</div>
                     <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 2 }}>
-                      LINKED · 4 MONTHS
+                      PARTNER
                     </div>
                   </div>
                 </div>
@@ -98,6 +108,19 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
                   {viewMode === 'partner' ? 'My view' : `${partnerName}'s view`}
                 </button>
               </div>
+              {onUnlink && (
+                <button
+                  style={{
+                    marginTop: 10, fontFamily: 'var(--mono)', fontSize: 10,
+                    letterSpacing: '0.1em', color: 'var(--clay)',
+                    padding: '4px 8px', border: '1px solid var(--clay)',
+                    borderRadius: 6, background: 'none', cursor: 'pointer',
+                  }}
+                  onClick={async () => { await onUnlink(); }}
+                >
+                  unlink
+                </button>
+              )}
             </div>
 
             {/* privacy controls — only shown in own view */}
@@ -112,6 +135,76 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* partner section — not linked */}
+        {!partnerLinked && IS_CONFIGURED && (
+          <div className="card white" style={{ padding: '14px 18px', marginBottom: 16 }}>
+            <div className="label" style={{ marginBottom: 10 }}>Link a partner</div>
+
+            {/* generate code */}
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 13, color: 'var(--ink-mute)', marginBottom: 8 }}>
+                Share this code with your partner:
+              </div>
+              {inviteCode ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div className="mono" style={{ fontSize: 22, letterSpacing: '0.22em', color: 'var(--ink)', fontWeight: 600 }}>
+                    {inviteCode}
+                  </div>
+                  <button
+                    className="mono"
+                    style={{ fontSize: 10, color: 'var(--clay)', padding: '4px 8px', border: '1px solid var(--hair-strong)', borderRadius: 6, background: 'none', cursor: 'pointer' }}
+                    onClick={() => setInviteCode(null)}
+                  >clear</button>
+                </div>
+              ) : (
+                <button
+                  style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.1em', padding: '8px 14px', borderRadius: 10, border: '1.5px solid var(--hair-strong)', background: 'none', cursor: 'pointer' }}
+                  disabled={linkLoading}
+                  onClick={async () => {
+                    if (!onCreateInvite) return;
+                    setLinkLoading(true); setLinkError('');
+                    try { setInviteCode(await onCreateInvite()); }
+                    catch { setLinkError('Could not generate code.'); }
+                    finally { setLinkLoading(false); }
+                  }}
+                >
+                  {linkLoading ? '···' : 'Generate code'}
+                </button>
+              )}
+            </div>
+
+            {/* enter code */}
+            <div style={{ borderTop: '1px solid var(--hair)', paddingTop: 12 }}>
+              <div style={{ fontSize: 13, color: 'var(--ink-mute)', marginBottom: 8 }}>
+                Or enter your partner's code:
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  style={{ flex: 1, fontSize: 16, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '8px 12px', borderRadius: 10, border: '1.5px solid var(--hair-strong)', background: 'var(--cream)', fontFamily: 'var(--mono)', outline: 'none' }}
+                  placeholder="ABC123"
+                  maxLength={6}
+                  value={inviteInput}
+                  onChange={(e) => { setInviteInput(e.target.value.toUpperCase()); setLinkError(''); }}
+                />
+                <button
+                  style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.1em', padding: '8px 16px', borderRadius: 10, background: 'var(--ink)', color: 'var(--cream)', border: 'none', cursor: 'pointer', opacity: (linkLoading || inviteInput.length < 6) ? 0.4 : 1 }}
+                  disabled={linkLoading || inviteInput.length < 6}
+                  onClick={async () => {
+                    if (!onAcceptInvite) return;
+                    setLinkLoading(true); setLinkError('');
+                    try { await onAcceptInvite(inviteInput); setInviteInput(''); }
+                    catch (err) { setLinkError((err as Error).message ?? 'Invalid code.'); }
+                    finally { setLinkLoading(false); }
+                  }}
+                >
+                  {linkLoading ? '···' : 'Link'}
+                </button>
+              </div>
+              {linkError && <div style={{ fontSize: 12, color: 'var(--clay)', marginTop: 6 }}>{linkError}</div>}
+            </div>
           </div>
         )}
 
