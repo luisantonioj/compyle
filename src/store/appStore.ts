@@ -56,7 +56,7 @@ interface AppStore {
 }
 
 export const useAppStore = create<AppStore>((set, get) => ({
-  tab: 'today',
+  tab: 'cal',
   viewMode: 'me',
   profileOpen: false,
   editing: null,
@@ -77,7 +77,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     viewMode: s.viewMode === 'me' ? 'partner' : 'me',
     profileOpen: false,
     editing: null,
-    tab: 'today',
+    tab: 'cal',
   })),
   setProfileOpen: (profileOpen) => set({ profileOpen }),
   setEditing: (editing) => set({ editing }),

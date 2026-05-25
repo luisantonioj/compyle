@@ -3,7 +3,7 @@ import { Icons } from '../Icons';
 import type { TabId, ViewMode } from '../../types';
 
 const NAV_ITEMS: { id: TabId; label: string; glyph: string }[] = [
-  { id: 'today', label: 'Today', glyph: 'T' },
+  // { id: 'today', label: 'Today', glyph: 'T' }, // hidden — reserved for future use
   { id: 'cal',   label: 'Plan',  glyph: 'P' },
   { id: 'habits', label: 'Habits', glyph: 'H' },
   { id: 'money', label: 'Money', glyph: 'M' },
