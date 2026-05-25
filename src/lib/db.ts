@@ -13,8 +13,11 @@ const col = (uid: string, name: string) => collection(db!, 'users', uid, name);
 const ref = (uid: string, name: string, id: string) => doc(db!, 'users', uid, name, id);
 
 // ── Tasks ────────────────────────────────────────────────────────────────────
+const stripUndefined = (obj: Record<string, unknown>) =>
+  Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
+
 export const upsertTask = (uid: string, task: Task, dateKey: string) =>
-  setDoc(ref(uid, 'tasks', task.id), { ...task, date: dateKey });
+  setDoc(ref(uid, 'tasks', task.id), stripUndefined({ ...task, date: dateKey }));
 
 export const removeTask = (uid: string, id: string) =>
   deleteDoc(ref(uid, 'tasks', id));
