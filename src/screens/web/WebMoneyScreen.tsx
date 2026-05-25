@@ -116,7 +116,7 @@ function WebSavings({
         )}
       </div>
 
-      {/* cash flow strip */}
+      {/* cash flow strip — hidden, reserved for future use
       <div className="card white" style={{ padding: '20px 24px', marginBottom: 24, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 2fr', gap: 24, alignItems: 'center' }}>
         <div>
           <div className="label">Money in</div>
@@ -144,6 +144,7 @@ function WebSavings({
           </div>
         </div>
       </div>
+      */}
 
       {/* categories | transactions */}
       <div className="money-cols">

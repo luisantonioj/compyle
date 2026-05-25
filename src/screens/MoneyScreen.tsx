@@ -136,7 +136,7 @@ function SavingsPanel({ data, hidden, setHidden, isPartner, onEdit }: {
         </div>
       </div>
 
-      {/* cash flow */}
+      {/* cash flow — hidden, reserved for future use
       <div style={{ marginTop: 22 }}>
         <div className="pad-x label" style={{ marginBottom: 10 }}>Cash flow · {monthName}</div>
         <div className="pad-x">
@@ -160,6 +160,7 @@ function SavingsPanel({ data, hidden, setHidden, isPartner, onEdit }: {
           </div>
         </div>
       </div>
+      */}
 
       {/* categories */}
       <div style={{ marginTop: 24 }}>
