@@ -43,6 +43,8 @@ html, body, #root {
   -webkit-font-smoothing: antialiased;
   font-feature-settings: 'ss01', 'cv11';
   height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 html { background: #1c1a16; }
@@ -118,7 +120,7 @@ input, textarea, select {
 .top-bar h1 {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 40px;
+  font-size: clamp(28px, 8vw, 40px);
   line-height: 1;
   letter-spacing: -0.01em;
   margin: 0;
@@ -600,7 +602,8 @@ input, textarea, select {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: clamp(16px, 4vw, 24px);
+  overflow-y: auto;
 }
 
 .auth-card {
@@ -622,7 +625,7 @@ input, textarea, select {
   font-family: var(--serif);
   font-weight: 400;
   font-style: italic;
-  font-size: 52px;
+  font-size: clamp(36px, 8vw, 52px);
   letter-spacing: -0.02em;
   margin: 0 0 6px;
   color: var(--ink);
@@ -725,7 +728,7 @@ input, textarea, select {
 
 /* ─── Web / Desktop sidebar layout ─── */
 @media (min-width: 1024px) {
-  html { background: var(--cream); }
+  html { background: var(--cream); overflow-x: hidden; }
 
   .mobile-shell {
     position: static;
