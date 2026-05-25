@@ -17,7 +17,7 @@ interface MoneyProps {
 
 export function MoneyScreen({ data, viewMode, isPartner, onProfile, onEdit, onMarkPaid, onPayDebt }: MoneyProps) {
   const [tab, setTab] = useState<'savings' | 'payments'>('savings');
-  const [hidden, setHidden] = useState(true);
+  const [hidden, setHidden] = useState(false);
 
   return (
     <div className="screen">

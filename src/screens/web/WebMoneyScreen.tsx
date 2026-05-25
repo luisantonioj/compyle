@@ -12,7 +12,7 @@ interface WebMoneyProps {
 
 export function WebMoneyScreen({ data, isPartner, onEdit, onMarkPaid }: WebMoneyProps) {
   const [tab, setTab] = useState<'savings' | 'payments'>('savings');
-  const [hidden, setHidden] = useState(true);
+  const [hidden, setHidden] = useState(false);
 
   return (
     <div>
