@@ -519,10 +519,16 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     return null;
   })();
 
+  const meInitial = (store.meProfile.displayName || store.meProfile.email || '?').charAt(0).toUpperCase();
+  const profileInitial = isPartner
+    ? (store.partnerProfile.displayName || '?').charAt(0).toUpperCase()
+    : meInitial;
+
   const sharedScreenProps = {
     data,
     viewMode,
     isPartner,
+    profileInitial,
     onProfile: () => store.setProfileOpen(true),
     onEdit: store.setEditing,
   };
@@ -658,6 +664,10 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           onSwitchView={store.switchView}
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed((v) => !v)}
+          meInitial={meInitial}
+          meName={store.meProfile.displayName || store.meProfile.email || 'Me'}
+          meEmail={store.meProfile.email || ''}
+          partnerName={store.partnerProfile.displayName || 'Partner'}
         />
         <main className="web-content">
           {isPartner && (

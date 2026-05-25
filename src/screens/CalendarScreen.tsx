@@ -9,6 +9,7 @@ interface CalProps {
   data: UserData;
   viewMode: ViewMode;
   isPartner: boolean;
+  profileInitial: string;
   onProfile: () => void;
   onCheck: (id: string, dateKey: string) => void;
   onEdit: (e: EditingState) => void;
@@ -16,7 +17,7 @@ interface CalProps {
   defaultView?: 'month' | 'week' | 'day';
 }
 
-export function CalendarScreen({ data, viewMode, isPartner, onProfile, onCheck, onEdit, onSelectedChange, defaultView = 'month' }: CalProps) {
+export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onProfile, onCheck, onEdit, onSelectedChange, defaultView = 'month' }: CalProps) {
   const [view, setView] = useState<'month' | 'week' | 'day'>(defaultView);
   const [selected, setSelected] = useState(TODAY_KEY);
   const [month, setMonth] = useState(new Date());
@@ -39,7 +40,7 @@ export function CalendarScreen({ data, viewMode, isPartner, onProfile, onCheck, 
           <h1>Plan & <em>tasks</em></h1>
         </div>
         <button className={`profile-pill${viewMode === 'partner' ? ' partner' : ''}`} onClick={onProfile}>
-          {viewMode === 'partner' ? 'L' : 'y'}
+          {profileInitial}
           <span className="dot" />
         </button>
       </div>

@@ -9,13 +9,14 @@ interface MoneyProps {
   data: UserData;
   viewMode: ViewMode;
   isPartner: boolean;
+  profileInitial: string;
   onProfile: () => void;
   onEdit: (e: EditingState) => void;
   onMarkPaid: (id: string) => void;
   onPayDebt: (id: string) => void;
 }
 
-export function MoneyScreen({ data, viewMode, isPartner, onProfile, onEdit, onMarkPaid, onPayDebt }: MoneyProps) {
+export function MoneyScreen({ data, viewMode, isPartner, profileInitial, onProfile, onEdit, onMarkPaid, onPayDebt }: MoneyProps) {
   const [tab, setTab] = useState<'savings' | 'payments'>('savings');
   const [hidden, setHidden] = useState(false);
 
@@ -27,7 +28,7 @@ export function MoneyScreen({ data, viewMode, isPartner, onProfile, onEdit, onMa
           <h1>{tab === 'savings' ? 'Spent & ' : 'Bills & '}<em>{tab === 'savings' ? 'saved' : 'owed'}</em></h1>
         </div>
         <button className={`profile-pill${viewMode === 'partner' ? ' partner' : ''}`} onClick={onProfile}>
-          {viewMode === 'partner' ? 'L' : 'y'}
+          {profileInitial}
           <span className="dot" />
         </button>
       </div>

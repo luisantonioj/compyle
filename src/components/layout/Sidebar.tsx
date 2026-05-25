@@ -17,9 +17,13 @@ interface SidebarProps {
   onSwitchView: () => void;
   collapsed?: boolean;
   onToggle?: () => void;
+  meInitial: string;
+  meName: string;
+  meEmail: string;
+  partnerName: string;
 }
 
-export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collapsed = false, onToggle }: SidebarProps) {
+export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collapsed = false, onToggle, meInitial, meName, meEmail, partnerName }: SidebarProps) {
   const isPartner = viewMode === 'partner';
   return (
     <aside className={`sidebar${collapsed ? ' collapsed' : ''}`}>
@@ -47,13 +51,13 @@ export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collaps
       <div className="sidebar-foot">
         <button className="partner-switch" onClick={onSwitchView}>
           {Icons.swap()}
-          <span>{isPartner ? 'Back to my view' : 'Switch to Luis'}</span>
+          <span>{isPartner ? 'Back to my view' : `Switch to ${partnerName}`}</span>
         </button>
         <button className={`profile-card${isPartner ? ' partner' : ''}`} onClick={onProfile}>
-          <div className="pp">{isPartner ? 'L' : 'y'}</div>
+          <div className="pp">{isPartner ? partnerName.charAt(0).toUpperCase() : meInitial}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="pc-name">{isPartner ? 'Luis' : 'yle'}</div>
-            <div className="pc-email">{isPartner ? 'PARTNER · READ-ONLY' : 'yle@compyle.app'}</div>
+            <div className="pc-name">{isPartner ? partnerName : meName}</div>
+            <div className="pc-email">{isPartner ? 'PARTNER · READ-ONLY' : meEmail}</div>
           </div>
         </button>
       </div>

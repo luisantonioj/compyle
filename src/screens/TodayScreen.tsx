@@ -10,13 +10,14 @@ interface TodayProps {
   viewMode: ViewMode;
   partnerName: string;
   isPartner: boolean;
+  profileInitial: string;
   onProfile: () => void;
   onCheck: (id: string, dateKey?: string) => void;
   onEdit: (e: EditingState) => void;
   showLoveNote?: boolean;
 }
 
-export function TodayScreen({ data, viewMode, partnerName, isPartner, onProfile, onCheck, onEdit, showLoveNote = true }: TodayProps) {
+export function TodayScreen({ data, viewMode, partnerName, isPartner, profileInitial, onProfile, onCheck, onEdit, showLoveNote = true }: TodayProps) {
   const today = data.tasks[TODAY_KEY] ?? [];
   const habitsDone = data.habits.filter((h) => h.doneToday).length;
   const tasksDone = today.filter((t) => t.done).length;
@@ -52,7 +53,7 @@ export function TodayScreen({ data, viewMode, partnerName, isPartner, onProfile,
           <h1>{name}<em>.</em></h1>
         </div>
         <button className={`profile-pill${viewMode === 'partner' ? ' partner' : ''}`} onClick={onProfile}>
-          {viewMode === 'partner' ? 'L' : 'y'}
+          {profileInitial}
           <span className="dot" />
         </button>
       </div>

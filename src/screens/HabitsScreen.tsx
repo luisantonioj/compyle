@@ -8,12 +8,13 @@ interface HabitsProps {
   data: UserData;
   viewMode: ViewMode;
   isPartner: boolean;
+  profileInitial: string;
   onProfile: () => void;
   onHabitCheck: (id: string) => void;
   onEdit: (e: EditingState) => void;
 }
 
-export function HabitsScreen({ data, viewMode, isPartner, onProfile, onHabitCheck, onEdit }: HabitsProps) {
+export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProfile, onHabitCheck, onEdit }: HabitsProps) {
   const habits = data.habits;
   const completedToday = habits.filter((h) => h.doneToday).length;
   const longest = habits.length > 0
@@ -28,7 +29,7 @@ export function HabitsScreen({ data, viewMode, isPartner, onProfile, onHabitChec
           <h1>Tiny <em>rituals</em></h1>
         </div>
         <button className={`profile-pill${viewMode === 'partner' ? ' partner' : ''}`} onClick={onProfile}>
-          {viewMode === 'partner' ? 'L' : 'y'}
+          {profileInitial}
           <span className="dot" />
         </button>
       </div>
