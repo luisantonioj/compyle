@@ -7,7 +7,8 @@ export interface Task {
   description?: string;
   time: string | null;
   done: boolean;
-  recurrence?: 'daily' | 'weekly' | string | null;
+  recurrence?: 'daily' | 'weekly' | 'monthly' | 'yearly' | null;
+  recurrenceEnd?: string | null; // "YYYY-MM-DD" — stop expanding after this date
   reminder_time?: string | null;
   created_at?: number;
 }

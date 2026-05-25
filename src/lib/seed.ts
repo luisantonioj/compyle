@@ -1,5 +1,5 @@
 // compyle — seed / demo data (used before Firebase is wired up)
-import type { UserData, UserProfile } from '../types';
+import type { UserData, UserProfile, Task } from '../types';
 
 export const TODAY_KEY = (() => {
   const d = new Date();
@@ -203,6 +203,42 @@ export interface HabitCell {
   beforeStart?: boolean;
   streak?: boolean;
   key: string;
+}
+
+export interface TaskInstance extends Task {
+  _virtual?: boolean;
+  _originKey?: string;
+}
+
+export function occursOn(
+  recurrence: string, originKey: string, targetKey: string, endKey?: string | null
+): boolean {
+  if (targetKey <= originKey) return false;
+  if (endKey && targetKey > endKey) return false;
+  const origin = parseKey(originKey);
+  const target = parseKey(targetKey);
+  const diff = Math.round((target.getTime() - origin.getTime()) / 86_400_000);
+  switch (recurrence) {
+    case 'daily':   return diff > 0;
+    case 'weekly':  return diff > 0 && diff % 7 === 0;
+    case 'monthly': return target.getDate() === origin.getDate();
+    case 'yearly':  return target.getDate() === origin.getDate() && target.getMonth() === origin.getMonth();
+    default:        return false;
+  }
+}
+
+export function getTaskInstances(allTasks: Record<string, Task[]>, targetKey: string): TaskInstance[] {
+  const direct: TaskInstance[] = (allTasks[targetKey] ?? []).map((t) => ({ ...t }));
+  const recurring: TaskInstance[] = [];
+  for (const [originKey, tasks] of Object.entries(allTasks)) {
+    if (originKey === targetKey) continue;
+    for (const task of tasks) {
+      if (task.recurrence && occursOn(task.recurrence, originKey, targetKey, task.recurrenceEnd)) {
+        recurring.push({ ...task, done: false, _virtual: true, _originKey: originKey });
+      }
+    }
+  }
+  return [...direct, ...recurring];
 }
 
 export function buildHabitMonth(year: number, month: number, pattern: string, startDate?: string): HabitCell[] {

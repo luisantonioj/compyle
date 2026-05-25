@@ -16,6 +16,8 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
   const [emoji, setEmoji] = useState(task?.emoji ?? '');
   const [time, setTime] = useState(task?.time ?? '');
   const [date, setDate] = useState(dateKey);
+  const [recurrence, setRecurrence] = useState<string | null>(task?.recurrence ?? null);
+  const [recurrenceEnd, setRecurrenceEnd] = useState<string | null>(task?.recurrenceEnd ?? null);
   const editing = !!task?.id;
 
   const handleSave = () => {
@@ -27,6 +29,8 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
       description: description.trim() || undefined,
       time: time || null,
       done: task?.done ?? false,
+      recurrence: recurrence ? recurrence as Task['recurrence'] : undefined,
+      recurrenceEnd: (recurrence && recurrenceEnd) ? recurrenceEnd : undefined,
     }, date);
   };
 
@@ -43,6 +47,25 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
         <Field label="Type">
           <EmojiPicker value={emoji} onChange={setEmoji}/>
         </Field>
+        <div className="field-row">
+          <Field label="Repeat">
+            <select className="field-input" value={recurrence ?? ''}
+              onChange={(e) => { setRecurrence(e.target.value || null); if (!e.target.value) setRecurrenceEnd(null); }}>
+              <option value="">None</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </Field>
+          {recurrence && (
+            <Field label="Until (optional)">
+              <input type="date" className="field-input"
+                value={recurrenceEnd ?? ''}
+                onChange={(e) => setRecurrenceEnd(e.target.value || null)}/>
+            </Field>
+          )}
+        </div>
         <div className="field-row">
           <Field label="Date">
             <input type="date" className="field-input" value={date} onChange={(e) => setDate(e.target.value)}/>

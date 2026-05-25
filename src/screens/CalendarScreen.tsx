@@ -1,7 +1,8 @@
 // compyle — Calendar + Habits screens
 import React, { useState, useEffect } from 'react';
 import { Icons } from '../components/Icons';
-import { TODAY_KEY, daysInMonth, dateKey, parseKey } from '../lib/seed';
+import { TODAY_KEY, daysInMonth, dateKey, parseKey, getTaskInstances } from '../lib/seed';
+import type { TaskInstance } from '../lib/seed';
 import type { UserData, ViewMode, Task, EditingState } from '../types';
 
 interface CalProps {
@@ -22,7 +23,7 @@ export function CalendarScreen({ data, viewMode, isPartner, onProfile, onCheck, 
 
   useEffect(() => { onSelectedChange?.(selected); }, [selected]);
 
-  const tasksOnSelected = data.tasks[selected] ?? [];
+  const tasksOnSelected = getTaskInstances(data.tasks, selected);
   const done = tasksOnSelected.filter((t) => t.done).length;
 
   function formatDay(k: string) {
@@ -65,27 +66,34 @@ export function CalendarScreen({ data, viewMode, isPartner, onProfile, onCheck, 
           {tasksOnSelected.length === 0 && (
             <div style={{ textAlign: 'center', color: 'var(--ink-mute)', fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 16 }}>Nothing planned. Quiet day.</div>
           )}
-          {tasksOnSelected.map((t: Task) => (
-            <div key={t.id} className={`task-item${!isPartner ? ' row-tap' : ''}`}
-              onClick={(e) => {
-                if (isPartner) return;
-                if ((e.target as HTMLElement).closest('.check')) return;
-                onEdit({ type: 'task', item: t, dateKey: selected });
-              }}>
-              <button className={`check${t.done ? ' checked' : ''}`} disabled={isPartner}
-                onClick={(e) => { e.stopPropagation(); !isPartner && onCheck(t.id, selected); }}>
-                {Icons.check()}
-              </button>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, color: t.done ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: t.done ? 'line-through' : 'none' }}>
-                  {t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}
+          {tasksOnSelected.map((t: Task) => {
+            const ti = t as TaskInstance;
+            const editKey = ti._originKey ?? selected;
+            return (
+              <div key={ti._virtual ? `${t.id}-${selected}` : t.id} className={`task-item${!isPartner ? ' row-tap' : ''}`}
+                onClick={(e) => {
+                  if (isPartner) return;
+                  if ((e.target as HTMLElement).closest('.check')) return;
+                  onEdit({ type: 'task', item: t, dateKey: editKey });
+                }}>
+                <button className={`check${t.done ? ' checked' : ''}`} disabled={isPartner || !!ti._virtual}
+                  onClick={(e) => { e.stopPropagation(); !isPartner && !ti._virtual && onCheck(t.id, editKey); }}>
+                  {Icons.check()}
+                </button>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, color: t.done ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: t.done ? 'line-through' : 'none' }}>
+                    {t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}
+                  </div>
+                  {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 2 }}>{t.description}</div>}
+                  {t.time && <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 3 }}>{t.time}</div>}
+                  {ti._virtual && t.recurrence && (
+                    <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 3 }}>↻ {t.recurrence}</div>
+                  )}
                 </div>
-                {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 2 }}>{t.description}</div>}
-                {t.time && <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 3 }}>{t.time}</div>}
+                {!isPartner && Icons.chevR({ stroke: 'var(--ink-faint)' })}
               </div>
-              {!isPartner && Icons.chevR({ stroke: 'var(--ink-faint)' })}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       <div style={{ height: 40 }}/>
@@ -107,7 +115,7 @@ function MonthView({ month, setMonth, selected, setSelected, data }: {
   for (let i = 0; i < first; i++) cells.push({ blank: true, key: 'b' + i });
   for (let d = 1; d <= dim; d++) {
     const dk = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    cells.push({ d, dateKey: dk, tasks: data.tasks[dk] ?? [], key: 'd' + d });
+    cells.push({ d, dateKey: dk, tasks: getTaskInstances(data.tasks, dk), key: 'd' + d });
   }
   while (cells.length % 7 !== 0) cells.push({ blank: true, key: 'pad' + cells.length });
 
@@ -151,7 +159,7 @@ function WeekView({ selected, setSelected, data }: { selected: string; setSelect
     const d = new Date(start);
     d.setDate(start.getDate() + i);
     const k = dateKey(d);
-    return { d, key: k, tasks: data.tasks[k] ?? [] };
+    return { d, key: k, tasks: getTaskInstances(data.tasks, k) };
   });
 
   return (

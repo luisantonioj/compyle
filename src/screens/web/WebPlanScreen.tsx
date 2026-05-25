@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Icons } from '../../components/Icons';
-import { TODAY_KEY, TODAY, buildMonthCells, dateKey, parseKey } from '../../lib/seed';
-import type { MonthCell } from '../../lib/seed';
+import { TODAY_KEY, TODAY, buildMonthCells, dateKey, parseKey, getTaskInstances } from '../../lib/seed';
+import type { MonthCell, TaskInstance } from '../../lib/seed';
 import type { UserData, EditingState, Task } from '../../types';
 
 type View = 'month' | 'week' | 'day';
@@ -73,30 +73,37 @@ function DayTaskPanel({
             Nothing planned. Quiet day.
           </div>
         )}
-        {tasks.map((t) => (
-          <div
-            key={t.id}
-            className={`task-list-item${t.done ? ' done' : ''}`}
-            onClick={(e) => {
-              if ((e.target as HTMLElement).closest('.check')) return;
-              if (!isPartner) onEdit({ type: 'task', item: t, dateKey: dk });
-            }}
-          >
-            <button
-              className={`check${t.done ? ' checked' : ''}`}
-              onClick={(e) => { e.stopPropagation(); if (!isPartner) onCheck(t.id, dk); }}
-              disabled={isPartner}
+        {tasks.map((t) => {
+          const ti = t as TaskInstance;
+          const editKey = ti._originKey ?? dk;
+          return (
+            <div
+              key={ti._virtual ? `${t.id}-${dk}` : t.id}
+              className={`task-list-item${t.done ? ' done' : ''}`}
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest('.check')) return;
+                if (!isPartner) onEdit({ type: 'task', item: t, dateKey: editKey });
+              }}
             >
-              {Icons.check()}
-            </button>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="title">{t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}</div>
-              {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 2 }}>{t.description}</div>}
-              {t.time && <div className="time">{t.time}</div>}
+              <button
+                className={`check${t.done ? ' checked' : ''}`}
+                onClick={(e) => { e.stopPropagation(); if (!isPartner && !ti._virtual) onCheck(t.id, editKey); }}
+                disabled={isPartner || !!ti._virtual}
+              >
+                {Icons.check()}
+              </button>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="title">{t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}</div>
+                {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 2 }}>{t.description}</div>}
+                {t.time && <div className="time">{t.time}</div>}
+                {ti._virtual && t.recurrence && (
+                  <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 2 }}>↻ {t.recurrence}</div>
+                )}
+              </div>
+              {!isPartner && Icons.chevR({ stroke: 'var(--ink-faint)' })}
             </div>
-            {!isPartner && Icons.chevR({ stroke: 'var(--ink-faint)' })}
-          </div>
-        ))}
+          );
+        })}
       </div>
       {!isPartner && (
         <button
@@ -150,7 +157,7 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = addDays(weekStart, i);
     const k = dateKey(d);
-    return { d, k, tasks: data.tasks[k] ?? [] };
+    return { d, k, tasks: getTaskInstances(data.tasks, k) };
   });
 
   const navLabel = () => {
@@ -186,7 +193,7 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
     }
   };
 
-  const selTasks = data.tasks[selected] ?? [];
+  const selTasks = getTaskInstances(data.tasks, selected);
 
   return (
     <div>
@@ -240,7 +247,7 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
                   </div>
                 );
               }
-              const dayTasks = data.tasks[c.dateKey!] ?? [];
+              const dayTasks = getTaskInstances(data.tasks, c.dateKey!);
               const done = dayTasks.filter((t) => t.done).length;
               const pct = dayTasks.length ? Math.round((done / dayTasks.length) * 100) : 0;
               const isToday = c.dateKey === TODAY_KEY;
@@ -261,32 +268,37 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
                       {pct}%
                     </div>
                   )}
-                  {dayTasks.map((t) => (
-                    <div
-                      key={t.id}
-                      className={`mini-task${t.done ? ' done' : ''}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!isPartner) onEdit({ type: 'task', item: t, dateKey: c.dateKey });
-                      }}
-                      onMouseEnter={(e) => {
-                        const r = e.currentTarget.getBoundingClientRect();
-                        setTooltip({ task: t, x: r.left + r.width / 2, y: r.top });
-                      }}
-                      onMouseLeave={() => setTooltip(null)}
-                    >
-                      {!isPartner && (
-                        <button
-                          className="mini-check"
-                          onClick={(e) => { e.stopPropagation(); onCheckTask(t.id, c.dateKey); }}
-                        >
-                          <MiniCheck done={t.done} />
-                        </button>
-                      )}
-                      <span className="emoji">{t.emoji}</span>
-                      <span className="ttl">{t.title}</span>
-                    </div>
-                  ))}
+                  {dayTasks.map((t) => {
+                    const ti = t as TaskInstance;
+                    const editKey = ti._originKey ?? c.dateKey;
+                    return (
+                      <div
+                        key={ti._virtual ? `${t.id}-${c.dateKey}` : t.id}
+                        className={`mini-task${t.done ? ' done' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!isPartner) onEdit({ type: 'task', item: t, dateKey: editKey });
+                        }}
+                        onMouseEnter={(e) => {
+                          const r = e.currentTarget.getBoundingClientRect();
+                          setTooltip({ task: t, x: r.left + r.width / 2, y: r.top });
+                        }}
+                        onMouseLeave={() => setTooltip(null)}
+                      >
+                        {!isPartner && (
+                          <button
+                            className="mini-check"
+                            onClick={(e) => { e.stopPropagation(); if (!ti._virtual) onCheckTask(t.id, editKey); }}
+                            disabled={!!ti._virtual}
+                          >
+                            <MiniCheck done={t.done} />
+                          </button>
+                        )}
+                        <span className="emoji">{t.emoji}</span>
+                        <span className="ttl">{t.title}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })
