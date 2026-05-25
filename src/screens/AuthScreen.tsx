@@ -39,6 +39,7 @@ export function AuthScreen() {
         await signInWithEmailAndPassword(auth!, email, password);
       }
     } catch (err: unknown) {
+      console.error('[auth]', err);
       const code = (err as { code?: string }).code ?? '';
       setError(mapError(code));
     } finally {
@@ -59,6 +60,7 @@ export function AuthScreen() {
         return;
       }
     } catch (err: unknown) {
+      console.error('[auth]', err);
       const code = (err as { code?: string }).code ?? '';
       if (code !== 'auth/popup-closed-by-user') setError(mapError(code));
     } finally {
@@ -157,6 +159,7 @@ function mapError(code: string): string {
     case 'auth/network-request-failed': return 'Network error — check your connection.';
     case 'auth/popup-blocked':        return 'Popup was blocked — allow popups for this site.';
     case 'auth/account-exists-with-different-credential': return 'An account already exists with this email.';
+    case 'auth/operation-not-allowed': return 'This sign-in method is not enabled.';
     default:                          return 'Something went wrong. Try again.';
   }
 }
