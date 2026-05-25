@@ -39,7 +39,6 @@ export function AuthScreen() {
         await signInWithEmailAndPassword(auth!, email, password);
       }
     } catch (err: unknown) {
-      console.error('[auth]', err);
       const code = (err as { code?: string }).code ?? '';
       setError(mapError(code));
     } finally {
@@ -60,7 +59,6 @@ export function AuthScreen() {
         return;
       }
     } catch (err: unknown) {
-      console.error('[auth]', err);
       const code = (err as { code?: string }).code ?? '';
       if (code !== 'auth/popup-closed-by-user') setError(mapError(code));
     } finally {
