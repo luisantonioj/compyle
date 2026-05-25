@@ -15,7 +15,7 @@ interface CalProps {
   defaultView?: 'month' | 'week' | 'day';
 }
 
-export function CalendarScreen({ data, viewMode, isPartner, onProfile, onCheck, onEdit, onSelectedChange, defaultView = 'day' }: CalProps) {
+export function CalendarScreen({ data, viewMode, isPartner, onProfile, onCheck, onEdit, onSelectedChange, defaultView = 'month' }: CalProps) {
   const [view, setView] = useState<'month' | 'week' | 'day'>(defaultView);
   const [selected, setSelected] = useState(TODAY_KEY);
   const [month, setMonth] = useState(new Date());
