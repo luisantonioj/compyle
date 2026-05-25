@@ -87,7 +87,22 @@ export const TabIcons = {
   ),
   habits: (active: boolean) => (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <path d="M11 4c1.5-3 6-2.5 6 1.5 0 4-6 9-6 9s-6-5-6-9C5 1.5 9.5 1 11 4z" stroke="currentColor" strokeWidth={active ? 1.8 : 1.4} fill={active ? 'currentColor' : 'none'}/>
+      <path
+        d="M11 2C8 5.5 5 9 5 13a6 6 0 0012 0c0-4-3-7.5-6-11z"
+        stroke="currentColor"
+        strokeWidth={active ? 1.8 : 1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill={active ? 'currentColor' : 'none'}
+        fillOpacity={active ? 0.15 : 0}
+      />
+      <path
+        d="M11 13c-1 1.5-1 3.5 0 4.5 1-1 1-3 0-4.5z"
+        stroke="currentColor"
+        strokeWidth={active ? 1.8 : 1.4}
+        strokeLinecap="round"
+        fill={active ? 'currentColor' : 'none'}
+      />
     </svg>
   ),
   money: (active: boolean) => (

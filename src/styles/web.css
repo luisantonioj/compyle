@@ -105,16 +105,16 @@
   }
   .nav-item:hover { background: rgba(21,19,15,0.04); color: var(--ink); }
   .nav-item.active { background: var(--ink); color: var(--cream); }
-  .nav-item .nav-glyph {
-    font-family: var(--serif);
-    font-size: 18px;
-    font-style: italic;
+  .nav-item .nav-icon {
     width: 22px;
-    text-align: center;
-    opacity: 0.5;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    opacity: 0.45;
   }
-  .nav-item.active .nav-glyph { opacity: 1; color: var(--clay-soft); }
+  .nav-item.active .nav-icon { opacity: 1; }
   .nav-item .nav-label { flex: 1; font-family: var(--sans); }
   .nav-item .nav-badge {
     font-family: var(--mono);
@@ -130,7 +130,6 @@
     color: var(--cream);
   }
   .nav-item.partner-nav.active { background: var(--partner); }
-  .nav-item.partner-nav.active .nav-glyph { color: rgba(255,255,255,0.7); }
 
   .sidebar-foot {
     padding-top: 18px;

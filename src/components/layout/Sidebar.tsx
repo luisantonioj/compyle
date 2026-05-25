@@ -1,12 +1,12 @@
 import React from 'react';
-import { Icons } from '../Icons';
+import { Icons, TabIcons } from '../Icons';
 import type { TabId, ViewMode } from '../../types';
 
-const NAV_ITEMS: { id: TabId; label: string; glyph: string }[] = [
-  // { id: 'today', label: 'Today', glyph: 'T' }, // hidden — reserved for future use
-  { id: 'cal',   label: 'Plan',  glyph: 'P' },
-  { id: 'habits', label: 'Habits', glyph: 'H' },
-  { id: 'money', label: 'Money', glyph: 'M' },
+const NAV_ITEMS: { id: TabId; label: string }[] = [
+  // { id: 'today', label: 'Today' }, // hidden — reserved for future use
+  { id: 'cal',    label: 'Plan'   },
+  { id: 'habits', label: 'Habits' },
+  { id: 'money',  label: 'Money'  },
 ];
 
 interface SidebarProps {
@@ -39,7 +39,7 @@ export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collaps
             className={`nav-item${tab === it.id ? ' active' : ''}`}
             onClick={() => onTab(it.id as TabId)}
           >
-            <span className="nav-glyph">{it.glyph}</span>
+            <span className="nav-icon">{TabIcons[it.id](tab === it.id)}</span>
             <span className="nav-label">{it.label}</span>
           </button>
         ))}
