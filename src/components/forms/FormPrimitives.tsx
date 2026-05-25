@@ -3,10 +3,10 @@ import React, { useRef, useEffect } from 'react';
 
 export const TASK_CATEGORIES = [
   { emoji: '', label: 'None' },
-  { emoji: '⭐', label: 'Event' },
+  { emoji: '📌', label: 'Reminder' },
   { emoji: '❗', label: 'Quiz/Exam' },
   { emoji: '🔔', label: 'Deadline' },
-  { emoji: '📌', label: 'Reminder' },
+  { emoji: '⭐', label: 'Event' },
 ];
 export const HABIT_FREQS_DAYS = ['Daily', 'Every 2 days', 'Every 3 days', 'Weekly', 'Bi-weekly', 'Mon/Wed/Fri', 'Wed + Sat'];
 export const HABIT_FREQS_TIME = ['Morning', 'Afternoon', 'Evening', 'AM + PM', 'After workout', 'Before bed'];
