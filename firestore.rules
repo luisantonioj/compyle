@@ -13,12 +13,10 @@ service cloud.firestore {
     }
 
     // Checks whether a confirmed partnership exists between the requester and uid.
-    // Document ID is always "smallerUid_largerUid" (lexicographic sort).
+    // Partnership is stored as partnerId field on each user's profile doc.
     function isLinkedPartner(uid) {
-      let a = request.auth.uid;
-      let b = uid;
-      let id = a < b ? a + '_' + b : b + '_' + a;
-      return isSignedIn() && exists(/databases/$(database)/documents/partnerships/$(id));
+      return isSignedIn()
+        && get(/databases/$(database)/documents/users/$(uid)).data.get('partnerId', null) == request.auth.uid;
     }
 
     // Returns the tracker_visibility/settings doc for a user.
@@ -29,8 +27,19 @@ service cloud.firestore {
     // ── User profile ──────────────────────────────────────────────────────
     // Partners may read the profile (display name, avatar) but never write it.
     match /users/{uid} {
-      allow read:  if isOwner(uid) || isLinkedPartner(uid);
-      allow write: if isOwner(uid);
+      allow read:   if isOwner(uid) || isLinkedPartner(uid);
+      allow write:  if isOwner(uid);
+      // Cross-user partnerId writes for linking and unlinking:
+      // Link:   acceptor sets inviter's partnerId to their own UID (inviter had no partner)
+      // Unlink: linked partner clears the other's partnerId back to null
+      allow update: if isSignedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['partnerId'])
+        && (
+          (resource.data.get('partnerId', null) == null
+           && request.resource.data.partnerId == request.auth.uid)
+          || (resource.data.get('partnerId', null) == request.auth.uid
+              && request.resource.data.get('partnerId', null) == null)
+        );
     }
 
     // ── Tasks ─────────────────────────────────────────────────────────────
@@ -101,26 +110,12 @@ service cloud.firestore {
     }
 
     // ── Partner invites ───────────────────────────────────────────────────
-    // Inviter creates their own invite; anyone signed-in can read (to accept);
-    // only the inviter can delete.
-    match /partner_invites/{inviterId} {
+    // Document ID is a random 6-char code; inviterId is stored as a field.
+    // Any signed-in user can read (to accept) and delete (acceptor cleans up).
+    match /partner_invites/{code} {
       allow read:   if isSignedIn();
-      allow create: if isOwner(inviterId);
-      allow delete: if isOwner(inviterId);
-    }
-
-    // ── Partnerships ──────────────────────────────────────────────────────
-    // Created by a Cloud Function (server-side) on invite acceptance.
-    // Either partner can read or delete (to unlink).
-    // No client-side create — enforced here and by the Cloud Function.
-    match /partnerships/{partnershipId} {
-      allow read:   if isSignedIn()
-                    && (partnershipId.matches(request.auth.uid + '_.*')
-                        || partnershipId.matches('.*_' + request.auth.uid));
-      allow delete: if isSignedIn()
-                    && (partnershipId.matches(request.auth.uid + '_.*')
-                        || partnershipId.matches('.*_' + request.auth.uid));
-      allow create, update: if false; // Cloud Function only
+      allow create: if isSignedIn() && request.resource.data.inviterId == request.auth.uid;
+      allow delete: if isSignedIn();
     }
 
   }
