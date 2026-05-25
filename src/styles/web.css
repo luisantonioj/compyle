@@ -333,10 +333,10 @@
     margin-top: auto;
   }
 
-  /* habits grid */
+  /* habits grid — always 4 columns, cards start from left */
   .habits-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
   }
   .habits-grid > * { min-width: 0; }
@@ -869,6 +869,16 @@
   }
   .web-layout:not(.sidebar-collapsed) .money-cols {
     grid-template-columns: 1fr;
+  }
+  .web-layout:not(.sidebar-collapsed) .habits-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Collapsed sidebar: habits collapse below ~1200px */
+@media (min-width: 1024px) and (max-width: 1200px) {
+  .web-layout.sidebar-collapsed .habits-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
