@@ -159,7 +159,8 @@ function mapError(code: string): string {
     case 'auth/network-request-failed': return 'Network error — check your connection.';
     case 'auth/popup-blocked':        return 'Popup was blocked — allow popups for this site.';
     case 'auth/account-exists-with-different-credential': return 'An account already exists with this email.';
-    case 'auth/operation-not-allowed': return 'This sign-in method is not enabled.';
-    default:                          return 'Something went wrong. Try again.';
+    case 'auth/operation-not-allowed':  return 'This sign-in method is not enabled.';
+    case 'auth/unauthorized-domain':    return 'This domain is not authorized for sign-in.';
+    default:                            return 'Something went wrong. Try again.';
   }
 }
