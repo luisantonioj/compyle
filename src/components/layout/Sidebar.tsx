@@ -21,9 +21,10 @@ interface SidebarProps {
   meName: string;
   meEmail: string;
   partnerName: string;
+  partnerLinked: boolean;
 }
 
-export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collapsed = false, onToggle, meInitial, meName, meEmail, partnerName }: SidebarProps) {
+export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collapsed = false, onToggle, meInitial, meName, meEmail, partnerName, partnerLinked }: SidebarProps) {
   const isPartner = viewMode === 'partner';
   return (
     <aside className={`sidebar${collapsed ? ' collapsed' : ''}`}>
@@ -49,10 +50,12 @@ export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collaps
         ))}
       </nav>
       <div className="sidebar-foot">
-        <button className="partner-switch" onClick={onSwitchView}>
-          {Icons.swap()}
-          <span>{isPartner ? 'Back to my view' : `Switch to ${partnerName}`}</span>
-        </button>
+        {partnerLinked && (
+          <button className="partner-switch" onClick={onSwitchView}>
+            {Icons.swap()}
+            <span>{isPartner ? 'Back to my view' : `Switch to ${partnerName}`}</span>
+          </button>
+        )}
         <button className={`profile-card${isPartner ? ' partner' : ''}`} onClick={onProfile}>
           <div className="pp">{isPartner ? partnerName.charAt(0).toUpperCase() : meInitial}</div>
           <div style={{ flex: 1, minWidth: 0 }}>

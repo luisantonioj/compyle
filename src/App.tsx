@@ -668,6 +668,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           meName={store.meProfile.displayName || store.meProfile.email || 'Me'}
           meEmail={store.meProfile.email || ''}
           partnerName={store.partnerProfile.displayName || 'Partner'}
+          partnerLinked={!!store.meProfile.partnerId}
         />
         <main className="web-content">
           {isPartner && (
