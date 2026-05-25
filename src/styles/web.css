@@ -4,8 +4,10 @@
   .web-layout {
     display: grid;
     grid-template-columns: 240px 1fr;
-    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
     background: var(--cream);
+    overflow-x: hidden;
   }
 
   /* ─── sidebar ─── */
@@ -182,10 +184,9 @@
   /* ─── content area ─── */
   .web-content {
     padding: clamp(24px, 3vw, 40px) clamp(20px, 4vw, 48px) 80px;
-    max-width: 1400px;
     width: 100%;
-    overflow-x: hidden;
     min-width: 0;
+    overflow-x: hidden;
     box-sizing: border-box;
   }
 
@@ -221,7 +222,7 @@
   /* ─── metrics grid ─── */
   .metric-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
     gap: 16px;
     margin-bottom: 28px;
   }
@@ -252,6 +253,7 @@
     margin-bottom: 28px;
   }
   .today-grid > * { min-width: 0; }
+
 
   /* month grid */
   .month-grid {
@@ -334,7 +336,7 @@
   /* habits grid */
   .habits-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
     gap: 20px;
   }
   .habits-grid > * { min-width: 0; }
@@ -455,7 +457,7 @@
   /* money */
   .accounts-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
     gap: 16px;
     margin-bottom: 28px;
   }
@@ -485,7 +487,7 @@
   .money-cols > * { min-width: 0; }
   .pay-cols {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
     gap: 24px;
   }
   .pay-cols > * { min-width: 0; }
@@ -837,25 +839,7 @@
   .pad-x { padding-left: 28px; padding-right: 28px; }
 }
 
-@media (min-width: 1024px) and (max-width: 1280px) {
-  .metric-row { grid-template-columns: repeat(2, 1fr); }
-  .habits-grid { grid-template-columns: repeat(2, 1fr); }
-  .accounts-row { grid-template-columns: repeat(2, 1fr); }
-  .money-cols, .pay-cols { grid-template-columns: 1fr; }
-  .today-grid { grid-template-columns: 1fr 1fr; }
-  .today-grid > :nth-child(3) { grid-column: 1 / -1; }
-}
-
-@media (min-width: 1280px) and (max-width: 1440px) {
-  .metric-row { grid-template-columns: repeat(2, 1fr); }
-  .accounts-row { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (min-width: 1440px) {
-  .metric-row { grid-template-columns: repeat(4, 1fr); }
-  .accounts-row { grid-template-columns: repeat(4, 1fr); }
-}
-
+/* ─── auto-collapse sidebar below 1100px ─── */
 @media (min-width: 1024px) and (max-width: 1100px) {
   .web-layout { grid-template-columns: 64px 1fr; }
   .sidebar { padding: 22px 12px; }
@@ -865,4 +849,45 @@
   .nav-item { justify-content: center; padding: 12px; }
   .partner-switch { justify-content: center; padding: 8px; }
   .profile-card { justify-content: center; padding: 6px; }
+}
+
+/*
+  today-grid & money-cols: sidebar-state-aware collapse.
+  These use fractional ratios so auto-fill doesn't work; instead we
+  track both the viewport width AND whether the sidebar is expanded.
+  Content width ≈ viewport − sidebar − 2×padding.
+  Sidebar expanded = 240px, collapsed = 64px.
+*/
+
+/* Expanded sidebar: content gets tight below ~1260px */
+@media (min-width: 1024px) and (max-width: 1260px) {
+  .web-layout:not(.sidebar-collapsed) .today-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .web-layout:not(.sidebar-collapsed) .today-grid > :nth-child(3) {
+    grid-column: 1 / -1;
+  }
+  .web-layout:not(.sidebar-collapsed) .money-cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Collapsed sidebar: content gets tight below ~1080px */
+@media (min-width: 1024px) and (max-width: 1080px) {
+  .web-layout.sidebar-collapsed .today-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .web-layout.sidebar-collapsed .today-grid > :nth-child(3) {
+    grid-column: 1 / -1;
+  }
+  .web-layout.sidebar-collapsed .money-cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Both states: very narrow (auto-collapsed zone) */
+@media (min-width: 1024px) and (max-width: 1100px) {
+  .today-grid { grid-template-columns: 1fr 1fr; }
+  .today-grid > :nth-child(3) { grid-column: 1 / -1; }
+  .money-cols { grid-template-columns: 1fr; }
 }
