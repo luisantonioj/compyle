@@ -222,7 +222,7 @@
   /* ─── metrics grid ─── */
   .metric-row {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
     gap: 16px;
     margin-bottom: 28px;
   }
@@ -336,7 +336,7 @@
   /* habits grid */
   .habits-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: 20px;
   }
   .habits-grid > * { min-width: 0; }
@@ -457,7 +457,7 @@
   /* money */
   .accounts-row {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
     gap: 16px;
     margin-bottom: 28px;
   }
@@ -487,7 +487,7 @@
   .money-cols > * { min-width: 0; }
   .pay-cols {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
     gap: 24px;
   }
   .pay-cols > * { min-width: 0; }
@@ -853,7 +853,7 @@
 
 /*
   today-grid & money-cols: sidebar-state-aware collapse.
-  These use fractional ratios so auto-fill doesn't work; instead we
+  These use fractional ratios so auto-fit doesn't work; instead we
   track both the viewport width AND whether the sidebar is expanded.
   Content width ≈ viewport − sidebar − 2×padding.
   Sidebar expanded = 240px, collapsed = 64px.
