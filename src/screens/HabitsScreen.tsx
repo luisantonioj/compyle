@@ -39,8 +39,8 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
         </button>
       </div>
 
-      {/* summary card */}
-      <div className="pad-x">
+      {/* summary card — temporarily hidden */}
+      {/* <div className="pad-x">
         <div className="card" style={{ padding: '18px 20px', background: 'var(--ink)', color: 'var(--cream)' }}>
           <div className="label" style={{ color: 'rgba(244,239,228,0.6)' }}>Today's progress</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 8 }}>
@@ -66,7 +66,7 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
             )}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* tracker list */}
       <div className="pad-x" style={{ marginTop: 22 }}>

@@ -53,7 +53,8 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
         )}
       </div>
 
-      <div className="metric-row">
+      {/* metric-row — temporarily hidden */}
+      {/* <div className="metric-row">
         <div className="metric">
           <div className="label">Ticked today</div>
           <div className="value">
@@ -80,7 +81,7 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
           <div className="value">{totalChecks}</div>
           <div className="delta">all time</div>
         </div>
-      </div>
+      </div> */}
 
       <div style={{ fontFamily: 'var(--serif)', fontSize: 36, letterSpacing: '-0.02em', marginBottom: 16 }}>
         {monthName} <em style={{ fontStyle: 'italic', color: 'var(--clay)' }}>{y}</em>
