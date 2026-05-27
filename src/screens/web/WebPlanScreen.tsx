@@ -82,7 +82,7 @@ function DayTaskPanel({
               className={`task-list-item${t.done ? ' done' : ''}`}
               onClick={(e) => {
                 if ((e.target as HTMLElement).closest('.check')) return;
-                if (!isPartner) onEdit({ type: 'task', item: t, dateKey: editKey });
+                if (!isPartner) onEdit({ type: 'task-view', item: t, dateKey: editKey });
               }}
             >
               <button
@@ -263,14 +263,14 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
                   )}
                   {dayTasks.map((t) => {
                     const ti = t as TaskInstance;
-                    const editKey = ti._originKey ?? c.dateKey;
+                    const editKey = ti._originKey ?? c.dateKey!;
                     return (
                       <div
                         key={ti._virtual ? `${t.id}-${c.dateKey}` : t.id}
                         className={`mini-task${t.done ? ' done' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (!isPartner) onEdit({ type: 'task', item: t, dateKey: editKey });
+                          if (!isPartner) onEdit({ type: 'task-view', item: t, dateKey: editKey });
                         }}
                         onMouseEnter={(e) => {
                           const r = e.currentTarget.getBoundingClientRect();

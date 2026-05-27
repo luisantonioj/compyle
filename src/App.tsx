@@ -18,7 +18,7 @@ import { WebMoneyScreen } from './screens/web/WebMoneyScreen';
 import { ProfileSheet } from './screens/ProfileSheet';
 import { AuthScreen } from './screens/AuthScreen';
 import {
-  TaskForm, HabitForm, TransactionForm,
+  TaskForm, TaskViewModal, HabitForm, TransactionForm,
   AccountForm, CategoryForm, BillForm, DebtForm,
 } from './components/forms/Forms';
 import { useIsWeb } from './hooks/useIsWeb';
@@ -606,6 +606,15 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
         />
       )}
 
+      {editing?.type === 'task-view' && (
+        <TaskViewModal
+          task={editing.item}
+          dateKey={editing.dateKey}
+          onEdit={() => store.setEditing({ type: 'task', item: editing.item, dateKey: editing.dateKey })}
+          onDelete={() => confirmDelete('this task', () => deleteTask(editing.item.id, editing.dateKey))}
+          onClose={() => store.setEditing(null)}
+        />
+      )}
       {editing?.type === 'task' && (
         <TaskForm
           task={editing.item}

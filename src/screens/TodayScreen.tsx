@@ -139,7 +139,7 @@ export function TodayScreen({ data, viewMode, partnerName, isPartner, profileIni
               onClick={(e) => {
                 if (isPartner) return;
                 if ((e.target as HTMLElement).closest('.check')) return;
-                onEdit({ type: 'task', item: t, dateKey: TODAY_KEY });
+                onEdit({ type: 'task-view', item: t, dateKey: TODAY_KEY });
               }}
             >
               <button className={`check${t.done ? ' checked' : ''}`} disabled={isPartner}

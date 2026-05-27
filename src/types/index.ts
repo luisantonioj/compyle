@@ -105,6 +105,7 @@ export type ViewMode = 'me' | 'partner';
 
 export type EditingState =
   | { type: 'task'; item?: Task; dateKey?: string }
+  | { type: 'task-view'; item: Task; dateKey: string }
   | { type: 'habit'; item?: Habit }
   | { type: 'tx'; item?: Transaction }
   | { type: 'account'; item?: BankAccount }
