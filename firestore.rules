@@ -19,9 +19,12 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(uid)).data.get('partnerId', null) == request.auth.uid;
     }
 
-    // Returns the tracker_visibility/settings doc for a user.
-    function visibility(uid) {
-      return get(/databases/$(database)/documents/users/$(uid)/tracker_visibility/settings).data;
+    // Returns true if the partner is allowed to see the given key.
+    // get() returns null if the doc doesn't exist OR if the requester lacks read access,
+    // so we default to true (open) in both cases rather than denying all partner reads.
+    function visibilityAllowed(uid, key) {
+      let d = get(/databases/$(database)/documents/users/$(uid)/tracker_visibility/settings);
+      return d == null ? true : d.data.get(key, true) == true;
     }
 
     // ── User profile ──────────────────────────────────────────────────────
@@ -45,49 +48,51 @@ service cloud.firestore {
     // ── Tasks ─────────────────────────────────────────────────────────────
     match /users/{uid}/tasks/{docId} {
       allow read:  if isOwner(uid)
-                   || (isLinkedPartner(uid) && visibility(uid).tasks == true);
+                   || (isLinkedPartner(uid) && visibilityAllowed(uid, 'tasks'));
       allow write: if isOwner(uid) || isLinkedPartner(uid);
     }
 
     // ── Habits ────────────────────────────────────────────────────────────
     match /users/{uid}/habits/{docId} {
       allow read:  if isOwner(uid)
-                   || (isLinkedPartner(uid) && visibility(uid).habits == true);
+                   || (isLinkedPartner(uid) && visibilityAllowed(uid, 'habits'));
       allow write: if isOwner(uid) || isLinkedPartner(uid);
     }
 
     // ── Bank accounts (categories stored as array inside doc) ─────────────
     match /users/{uid}/bank_accounts/{docId} {
       allow read:  if isOwner(uid)
-                   || (isLinkedPartner(uid) && visibility(uid).budget == true);
+                   || (isLinkedPartner(uid) && visibilityAllowed(uid, 'budget'));
       allow write: if isOwner(uid) || isLinkedPartner(uid);
     }
 
     // ── Transactions ──────────────────────────────────────────────────────
     match /users/{uid}/transactions/{docId} {
       allow read:  if isOwner(uid)
-                   || (isLinkedPartner(uid) && visibility(uid).budget == true);
+                   || (isLinkedPartner(uid) && visibilityAllowed(uid, 'budget'));
       allow write: if isOwner(uid) || isLinkedPartner(uid);
     }
 
     // ── Bills (recurring_payments) ────────────────────────────────────────
     match /users/{uid}/recurring_payments/{docId} {
       allow read:  if isOwner(uid)
-                   || (isLinkedPartner(uid) && visibility(uid).payments == true);
+                   || (isLinkedPartner(uid) && visibilityAllowed(uid, 'payments'));
       allow write: if isOwner(uid) || isLinkedPartner(uid);
     }
 
     // ── Debts (pending_payments) ──────────────────────────────────────────
     match /users/{uid}/pending_payments/{docId} {
       allow read:  if isOwner(uid)
-                   || (isLinkedPartner(uid) && visibility(uid).payments == true);
+                   || (isLinkedPartner(uid) && visibilityAllowed(uid, 'payments'));
       allow write: if isOwner(uid) || isLinkedPartner(uid);
     }
 
     // ── Tracker visibility (privacy settings) ─────────────────────────────
-    // Partners cannot read privacy settings — only the owner controls them.
+    // Linked partner can read (needed so the security-rule get() resolves correctly);
+    // only the owner can write.
     match /users/{uid}/tracker_visibility/{docId} {
-      allow read, write: if isOwner(uid);
+      allow read:  if isOwner(uid) || isLinkedPartner(uid);
+      allow write: if isOwner(uid);
     }
 
     // ── Push subscriptions & notification settings ────────────────────────
