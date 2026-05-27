@@ -24,7 +24,7 @@ export const removeTask = (uid: string, id: string) =>
 
 // ── Habits ───────────────────────────────────────────────────────────────────
 export const upsertHabit = (uid: string, habit: Habit) =>
-  setDoc(ref(uid, 'habits', habit.id), habit);
+  setDoc(ref(uid, 'habits', habit.id), stripUndefined(habit as unknown as Record<string, unknown>));
 
 export const removeHabit = (uid: string, id: string) =>
   deleteDoc(ref(uid, 'habits', id));

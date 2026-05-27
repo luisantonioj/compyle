@@ -176,15 +176,16 @@ export function HabitForm({ habit, onSave, onDelete, onClose }: {
 
   const handleSave = () => {
     if (!name.trim()) return;
-    onSave({
+    const saved: Habit = {
       id: habit?.id ?? 'h_' + Date.now(),
       name: name.trim(),
-      note: repeating ? note : (note || ''),
-      freqType: repeating ? freqType : undefined,
+      note: repeating ? note : note.trim(),
       startDate,
       repeating,
       completedDates: habit?.completedDates ?? [],
-    });
+    };
+    if (repeating) saved.freqType = freqType;
+    onSave(saved);
   };
 
   return (
