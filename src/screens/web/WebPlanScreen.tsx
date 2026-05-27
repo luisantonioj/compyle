@@ -242,7 +242,12 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
             week.map((c) => {
               if (c.other) {
                 return (
-                  <div key={c.key} className="month-cell other">
+                  <div
+                    key={c.key}
+                    className="month-cell other"
+                    style={{ cursor: !isPartner ? 'pointer' : undefined }}
+                    onClick={() => !isPartner && c.dateKey && onEdit({ type: 'task', dateKey: c.dateKey })}
+                  >
                     <div className="day-num">{c.d}</div>
                   </div>
                 );

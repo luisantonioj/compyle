@@ -179,8 +179,14 @@ export function buildMonthCells(year: number, month: number): MonthCell[] {
   const first = new Date(year, month, 1).getDay();
   const cells: MonthCell[] = [];
   const prevDim = new Date(year, month, 0).getDate();
+  const prevYear = month === 0 ? year - 1 : year;
+  const prevMonth = month === 0 ? 11 : month - 1;
+  const nextYear = month === 11 ? year + 1 : year;
+  const nextMonth = month === 11 ? 0 : month + 1;
   for (let i = first - 1; i >= 0; i--) {
-    cells.push({ d: prevDim - i, other: true, key: 'p' + i });
+    const day = prevDim - i;
+    const dk = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    cells.push({ d: day, other: true, dateKey: dk, key: 'p' + i });
   }
   for (let d = 1; d <= dim; d++) {
     const dk = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -188,7 +194,8 @@ export function buildMonthCells(year: number, month: number): MonthCell[] {
   }
   let trail = 1;
   while (cells.length % 7 !== 0) {
-    cells.push({ d: trail++, other: true, key: 'n' + cells.length });
+    const dk = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-${String(trail).padStart(2, '0')}`;
+    cells.push({ d: trail++, other: true, dateKey: dk, key: 'n' + cells.length });
   }
   return cells;
 }
