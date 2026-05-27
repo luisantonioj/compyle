@@ -500,7 +500,7 @@ input, textarea, select {
 }
 .cal-head {
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-mute);
@@ -515,7 +515,7 @@ input, textarea, select {
   align-items: center;
   justify-content: center;
   font-family: var(--serif);
-  font-size: 17px;
+  font-size: 19px;
   color: var(--ink);
   position: relative;
   border-radius: 8px;
@@ -530,8 +530,8 @@ input, textarea, select {
   bottom: 6px;
 }
 .cal-day .dots i {
-  width: 3px;
-  height: 3px;
+  width: 4px;
+  height: 4px;
   border-radius: 999px;
   background: var(--clay);
 }

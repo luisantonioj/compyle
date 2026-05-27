@@ -255,7 +255,7 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
                   {!c.other && dayTasks.length > 0 && (
                     <div className="mono" style={{
                       position: 'absolute', top: 10, right: 12,
-                      fontSize: 9, letterSpacing: '0.1em',
+                      fontSize: 10, letterSpacing: '0.1em',
                       color: pct === 0 ? 'var(--ink-mute)' : 'var(--moss)',
                     }}>
                       {pct}%

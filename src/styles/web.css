@@ -266,7 +266,7 @@
   }
   .month-head {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--ink-mute);
@@ -296,9 +296,9 @@
   .month-cell.today .day-num { background: var(--ink); color: var(--cream); }
   .month-cell .day-num {
     font-family: var(--serif);
-    font-size: 18px;
-    width: 26px;
-    height: 26px;
+    font-size: 20px;
+    width: 28px;
+    height: 28px;
     border-radius: 7px;
     display: flex; align-items: center; justify-content: center;
     letter-spacing: -0.02em;
@@ -306,18 +306,18 @@
   }
   .month-cell .mc-pct {
     font-family: var(--mono);
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.1em;
     color: var(--moss);
     margin-left: auto;
-    margin-top: -24px;
+    margin-top: -26px;
   }
   .month-cell .mc-pct.zero { color: var(--ink-mute); }
   .month-cell .mini-task {
     display: flex;
     gap: 5px;
     align-items: center;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.2;
     color: var(--ink-soft);
     overflow: hidden;
@@ -325,7 +325,7 @@
   .month-cell .mini-task.done { text-decoration: line-through; color: var(--ink-mute); }
   .month-cell .mini-more {
     font-family: var(--mono);
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.1em;
     color: var(--clay);
     text-transform: uppercase;
@@ -666,12 +666,12 @@
   .month-cell { position: relative; }
   .month-cell .mini-task {
     display: flex; gap: 5px; align-items: center;
-    font-size: 11px; line-height: 1.25;
+    font-size: 12px; line-height: 1.25;
     padding: 2px 0; color: var(--ink-soft);
     overflow: hidden;
   }
   .month-cell .mini-task.done { text-decoration: line-through; color: var(--ink-mute); }
-  .month-cell .mini-task .emoji { font-size: 12px; flex-shrink: 0; }
+  .month-cell .mini-task .emoji { font-size: 13px; flex-shrink: 0; }
   .month-cell .mini-task .ttl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .month-cell .mini-check {
     background: none;
