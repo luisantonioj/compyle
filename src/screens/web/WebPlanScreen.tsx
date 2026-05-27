@@ -240,18 +240,6 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
           ))}
           {visibleWeeks.flatMap((week) =>
             week.map((c) => {
-              if (c.other) {
-                return (
-                  <div
-                    key={c.key}
-                    className="month-cell other"
-                    style={{ cursor: !isPartner ? 'pointer' : undefined }}
-                    onClick={() => !isPartner && c.dateKey && onEdit({ type: 'task', dateKey: c.dateKey })}
-                  >
-                    <div className="day-num">{c.d}</div>
-                  </div>
-                );
-              }
               const dayTasks = getTaskInstances(data.tasks, c.dateKey!);
               const done = dayTasks.filter((t) => t.done).length;
               const pct = dayTasks.length ? Math.round((done / dayTasks.length) * 100) : 0;
@@ -259,12 +247,12 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
               return (
                 <div
                   key={c.key}
-                  className={`month-cell${isToday ? ' today' : ''}`}
-                  style={{ position: 'relative' }}
-                  onClick={() => !isPartner && onEdit({ type: 'task', dateKey: c.dateKey })}
+                  className={`month-cell${c.other ? ' other' : ''}${isToday ? ' today' : ''}`}
+                  style={{ position: 'relative', cursor: !isPartner ? 'pointer' : undefined }}
+                  onClick={() => !isPartner && c.dateKey && onEdit({ type: 'task', dateKey: c.dateKey })}
                 >
                   <div className="day-num">{c.d}</div>
-                  {dayTasks.length > 0 && (
+                  {!c.other && dayTasks.length > 0 && (
                     <div className="mono" style={{
                       position: 'absolute', top: 10, right: 12,
                       fontSize: 9, letterSpacing: '0.1em',

@@ -116,12 +116,12 @@ function MonthView({ month, setMonth, selected, setSelected, data }: {
   const prevY = m === 0 ? y - 1 : y, prevM = m === 0 ? 11 : m - 1;
   const nextY = m === 11 ? y + 1 : y, nextM = m === 11 ? 0 : m + 1;
 
-  type Cell = { other: true; d: number; key: string; dateKey: string } | { other?: false; d: number; key: string; dateKey: string; tasks: Task[] };
+  type Cell = { other?: boolean; d: number; key: string; dateKey: string; tasks: Task[] };
   const cells: Cell[] = [];
   for (let i = first - 1; i >= 0; i--) {
     const day = prevDim - i;
     const dk = `${prevY}-${String(prevM + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    cells.push({ other: true, d: day, dateKey: dk, key: 'p' + i });
+    cells.push({ other: true, d: day, dateKey: dk, tasks: getTaskInstances(data.tasks, dk), key: 'p' + i });
   }
   for (let d = 1; d <= dim; d++) {
     const dk = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -130,7 +130,7 @@ function MonthView({ month, setMonth, selected, setSelected, data }: {
   let trail = 1;
   while (cells.length % 7 !== 0) {
     const dk = `${nextY}-${String(nextM + 1).padStart(2, '0')}-${String(trail).padStart(2, '0')}`;
-    cells.push({ other: true, d: trail++, dateKey: dk, key: 'n' + cells.length });
+    cells.push({ other: true, d: trail++, dateKey: dk, tasks: getTaskInstances(data.tasks, dk), key: 'n' + cells.length });
   }
 
   return (
@@ -145,23 +145,18 @@ function MonthView({ month, setMonth, selected, setSelected, data }: {
         {cells.map((c) => {
           const isToday = c.dateKey === TODAY_KEY;
           const isSel = c.dateKey === selected;
-          if (c.other) {
-            return (
-              <button key={c.key} className="cal-day other"
-                onClick={() => { setSelected(c.dateKey); setMonth(new Date(parseKey(c.dateKey).getFullYear(), parseKey(c.dateKey).getMonth(), 1)); }}
-                style={{ outline: isSel ? '1.5px solid var(--clay)' : 'none', outlineOffset: -2 }}>
-                {c.d}
-              </button>
-            );
-          }
+          const handleClick = c.other
+            ? () => { setSelected(c.dateKey); setMonth(new Date(parseKey(c.dateKey).getFullYear(), parseKey(c.dateKey).getMonth(), 1)); }
+            : () => setSelected(c.dateKey);
           return (
-            <button key={c.key} className={`cal-day${isToday ? ' today' : ''}`}
-              onClick={() => setSelected(c.dateKey)}
+            <button key={c.key}
+              className={`cal-day${c.other ? ' other' : ''}${isToday ? ' today' : ''}`}
+              onClick={handleClick}
               style={{ outline: isSel && !isToday ? '1.5px solid var(--clay)' : 'none', outlineOffset: -2 }}>
               {c.d}
-              {(c.tasks?.length ?? 0) > 0 && (
+              {c.tasks.length > 0 && (
                 <div className="dots">
-                  {c.tasks!.slice(0, 3).map((_, i) => <i key={i} />)}
+                  {c.tasks.slice(0, 3).map((_, i) => <i key={i} />)}
                 </div>
               )}
             </button>
