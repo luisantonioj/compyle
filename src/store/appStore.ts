@@ -80,7 +80,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
     viewMode: s.viewMode === 'me' ? 'partner' : 'me',
     profileOpen: false,
     editing: null,
-    tab: 'cal',
   })),
   setProfileOpen: (profileOpen) => set({ profileOpen }),
   setEditing: (editing) => set({ editing }),

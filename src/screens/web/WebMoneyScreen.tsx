@@ -26,12 +26,10 @@ export function WebMoneyScreen({ data, isPartner, onEdit, onMarkPaid }: WebMoney
             {hidden ? Icons.eye() : Icons.eyeOff()}
             <span>{hidden ? 'Reveal' : 'Hide'}</span>
           </button>
-          {!isPartner && (
-            <button className="btn-add" onClick={() => onEdit({ type: tab === 'savings' ? 'tx' : 'bill' })}>
+          <button className="btn-add" onClick={() => onEdit({ type: tab === 'savings' ? 'tx' : 'bill' })}>
               {Icons.plus({ size: 14, stroke: 'var(--cream)' })}
               <span>{tab === 'savings' ? 'Log entry' : 'Add bill'}</span>
             </button>
-          )}
         </div>
       </div>
 
@@ -96,7 +94,7 @@ function WebSavings({
       {/* accounts */}
       <div className="accounts-row">
         {data.banks.map((b) => (
-          <div key={b.id} className="account-card" onClick={() => !isPartner && onEdit({ type: 'account', item: b })}>
+          <div key={b.id} className="account-card" onClick={() => onEdit({ type: 'account', item: b })}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
               <div style={{ width: 28, height: 28, borderRadius: 8, background: b.color, flexShrink: 0 }} />
               <div>
@@ -109,11 +107,9 @@ function WebSavings({
             </div>
           </div>
         ))}
-        {!isPartner && (
-          <button className="account-card add" onClick={() => onEdit({ type: 'account' })}>
+        <button className="account-card add" onClick={() => onEdit({ type: 'account' })}>
             + Account
           </button>
-        )}
       </div>
 
       {/* cash flow strip — hidden, reserved for future use
@@ -151,11 +147,9 @@ function WebSavings({
         <div>
           <div className="col-head">
             <h3>Categories</h3>
-            {!isPartner && (
-              <button className="btn-add ghost" onClick={() => onEdit({ type: 'category' })}>
+            <button className="btn-add ghost" onClick={() => onEdit({ type: 'category' })}>
                 {Icons.plus({ size: 14, stroke: 'currentColor' })} Category
               </button>
-            )}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {data.banks.map((b) => {
@@ -176,7 +170,7 @@ function WebSavings({
                     <div
                       key={c.id}
                       className="cat-row"
-                      onClick={() => !isPartner && onEdit({ type: 'category', item: { ...c, bankId: b.id } })}
+                      onClick={() => onEdit({ type: 'category', item: { ...c, bankId: b.id } })}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                         <div className="row" style={{ gap: 10 }}>
@@ -220,7 +214,7 @@ function WebSavings({
                 const isAdd = tx.amt > 0;
                 const date = new Date(tx.date);
                 return (
-                  <tr key={tx.id} onClick={() => !isPartner && onEdit({ type: 'tx', item: tx })}>
+                  <tr key={tx.id} onClick={() => onEdit({ type: 'tx', item: tx })}>
                     <td className="tx-when">
                       {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
                     </td>
@@ -288,11 +282,9 @@ function WebPayments({
         <div>
           <div className="col-head">
             <h3>Recurring bills</h3>
-            {!isPartner && (
-              <button className="btn-add ghost" onClick={() => onEdit({ type: 'bill' })}>
+            <button className="btn-add ghost" onClick={() => onEdit({ type: 'bill' })}>
                 {Icons.plus({ size: 14, stroke: 'currentColor' })} Bill
               </button>
-            )}
           </div>
           <table className="bills-table">
             <thead>
@@ -309,13 +301,13 @@ function WebPayments({
                   <td>
                     <button
                       className={`mark-paid-btn${b.status === 'paid' ? ' checked' : ''}`}
-                      onClick={(e) => { e.stopPropagation(); if (!isPartner) onMarkPaid(b.id); }}
+                      onClick={(e) => { e.stopPropagation(); onMarkPaid(b.id); }}
                     >
                       {Icons.check({ size: 11, stroke: '#fff' })}
                     </button>
                   </td>
                   <td
-                    onClick={() => !isPartner && onEdit({ type: 'bill', item: b })}
+                    onClick={() => onEdit({ type: 'bill', item: b })}
                     style={{ cursor: 'pointer' }}
                   >
                     <div style={{ fontSize: 14 }}>{b.name}</div>
@@ -340,11 +332,9 @@ function WebPayments({
         <div>
           <div className="col-head">
             <h3>Owed & installments</h3>
-            {!isPartner && (
-              <button className="btn-add ghost" onClick={() => onEdit({ type: 'debt' })}>
+            <button className="btn-add ghost" onClick={() => onEdit({ type: 'debt' })}>
                 {Icons.plus({ size: 14, stroke: 'currentColor' })} Debt
               </button>
-            )}
           </div>
           {data.debts.map((d) => {
             const remaining = d.total - d.paid;
@@ -353,7 +343,7 @@ function WebPayments({
             const daysLeft = Math.round((dueDate.getTime() - TODAY.getTime()) / (1000 * 60 * 60 * 24));
             const overdue = daysLeft < 0;
             return (
-              <div key={d.id} className="debt-card" onClick={() => !isPartner && onEdit({ type: 'debt', item: d })}>
+              <div key={d.id} className="debt-card" onClick={() => onEdit({ type: 'debt', item: d })}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, marginBottom: 4 }}>{d.name}</div>

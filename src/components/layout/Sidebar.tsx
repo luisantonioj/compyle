@@ -60,7 +60,7 @@ export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collaps
           <div className="pp">{isPartner ? partnerName.charAt(0).toUpperCase() : meInitial}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="pc-name">{isPartner ? partnerName : meName}</div>
-            <div className="pc-email">{isPartner ? 'PARTNER · READ-ONLY' : meEmail}</div>
+            <div className="pc-email">{isPartner ? 'PARTNER' : meEmail}</div>
           </div>
         </button>
       </div>

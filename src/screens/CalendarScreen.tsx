@@ -71,14 +71,13 @@ export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onPr
             const ti = t as TaskInstance;
             const editKey = ti._originKey ?? selected;
             return (
-              <div key={ti._virtual ? `${t.id}-${selected}` : t.id} className={`task-item${!isPartner ? ' row-tap' : ''}`}
+              <div key={ti._virtual ? `${t.id}-${selected}` : t.id} className="task-item row-tap"
                 onClick={(e) => {
-                  if (isPartner) return;
                   if ((e.target as HTMLElement).closest('.check')) return;
                   onEdit({ type: 'task-view', item: t, dateKey: editKey });
                 }}>
-                <button className={`check${t.done ? ' checked' : ''}`} disabled={isPartner || !!ti._virtual}
-                  onClick={(e) => { e.stopPropagation(); !isPartner && !ti._virtual && onCheck(t.id, editKey); }}>
+                <button className={`check${t.done ? ' checked' : ''}`} disabled={!!ti._virtual}
+                  onClick={(e) => { e.stopPropagation(); !ti._virtual && onCheck(t.id, editKey); }}>
                   {Icons.check()}
                 </button>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -91,7 +90,7 @@ export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onPr
                     <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 3 }}>↻ {t.recurrence}</div>
                   )}
                 </div>
-                {!isPartner && Icons.chevR({ stroke: 'var(--ink-faint)' })}
+                {Icons.chevR({ stroke: 'var(--ink-faint)' })}
               </div>
             );
           })}

@@ -82,8 +82,8 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
               <div key={h.id} className="habit-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div
-                    style={{ flex: 1, minWidth: 0, cursor: isPartner ? 'default' : 'pointer' }}
-                    onClick={() => !isPartner && onEdit({ type: 'habit', item: h })}
+                    style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
+                    onClick={() => onEdit({ type: 'habit', item: h })}
                   >
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                       <div style={{ fontSize: 16, color: 'var(--ink)' }}>{h.name}</div>
@@ -99,12 +99,11 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
                       </div>
                     )}
                   </div>
-                  {!isPartner && Icons.chevR({ stroke: 'var(--ink-faint)' })}
+                  {Icons.chevR({ stroke: 'var(--ink-faint)' })}
                 </div>
                 <DayChecklist
                   completedDates={h.completedDates ?? []}
                   onToggle={(dk) => onTrackDate(h.id, dk)}
-                  disabled={isPartner}
                 />
               </div>
             ))}
@@ -112,8 +111,7 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
         )}
       </div>
 
-      {!isPartner && (
-        <div className="pad-x" style={{ marginTop: 16 }}>
+      <div className="pad-x" style={{ marginTop: 16 }}>
           <button
             onClick={() => onEdit({ type: 'habit' })}
             style={{
@@ -127,7 +125,6 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
             + Add tracker
           </button>
         </div>
-      )}
 
       <div style={{ height: 40 }} />
     </div>

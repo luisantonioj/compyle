@@ -134,16 +134,15 @@ export function TodayScreen({ data, viewMode, partnerName, isPartner, profileIni
           )}
           {today.slice(0, 4).map((t: Task, i: number) => (
             <div key={t.id}
-              className={`task-item${!isPartner ? ' row-tap' : ''}`}
+              className="task-item row-tap"
               style={{ borderBottom: i < Math.min(today.length, 4) - 1 ? '1px solid var(--hair)' : 'none' }}
               onClick={(e) => {
-                if (isPartner) return;
                 if ((e.target as HTMLElement).closest('.check')) return;
                 onEdit({ type: 'task-view', item: t, dateKey: TODAY_KEY });
               }}
             >
-              <button className={`check${t.done ? ' checked' : ''}`} disabled={isPartner}
-                onClick={(e) => { e.stopPropagation(); !isPartner && onCheck(t.id); }}>
+              <button className={`check${t.done ? ' checked' : ''}`}
+                onClick={(e) => { e.stopPropagation(); onCheck(t.id); }}>
                 {Icons.check()}
               </button>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -166,8 +165,8 @@ export function TodayScreen({ data, viewMode, partnerName, isPartner, profileIni
               due day {(dueBill as Bill).due}
             </div>
           </div>
-          <div className="card white" style={{ padding: '16px 18px', borderColor: 'rgba(192,136,56,0.3)', cursor: isPartner ? 'default' : 'pointer' }}
-            onClick={() => !isPartner && onEdit({ type: 'bill', item: dueBill })}>
+          <div className="card white" style={{ padding: '16px 18px', borderColor: 'rgba(192,136,56,0.3)', cursor: 'pointer' }}
+            onClick={() => onEdit({ type: 'bill', item: dueBill })}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div className="label" style={{ color: 'var(--amber)' }}>Bill due · {now.toLocaleString('en-US', { month: 'short' })} {(dueBill as Bill).due}</div>

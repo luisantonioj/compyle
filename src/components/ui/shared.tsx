@@ -67,8 +67,7 @@ export function Sheet({ children, onClose }: { children: React.ReactNode; onClos
 export function PartnerBanner({ name, onReturn }: { name: string; onReturn: () => void }) {
   return (
     <div className="partner-banner fade-in">
-      <div className="lock">{Icons.lock({ size: 11, stroke: '#fff' })}</div>
-      <div>Viewing <strong>{name}'s</strong> trackers — read only</div>
+      <div>Viewing & editing <strong>{name}'s</strong> data</div>
       <button onClick={onReturn}>↩ Me</button>
     </div>
   );

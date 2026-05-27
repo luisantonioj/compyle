@@ -103,12 +103,12 @@ function SavingsPanel({ data, hidden, setHidden, isPartner, onEdit }: {
         <div className="scrollx">
           {data.banks.map((b: BankAccount) => (
             <div key={b.id}
-              onClick={() => !isPartner && onEdit({ type: 'account', item: b })}
+              onClick={() => onEdit({ type: 'account', item: b })}
               style={{
                 flexShrink: 0, width: 200, padding: '14px 16px',
                 borderRadius: 16, background: 'var(--white)', border: '1px solid var(--hair)',
                 display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                minHeight: 100, cursor: isPartner ? 'default' : 'pointer',
+                minHeight: 100, cursor: 'pointer',
               }}>
               <div className="row">
                 <div style={{ width: 28, height: 28, borderRadius: 8, background: b.color }} />
@@ -122,8 +122,7 @@ function SavingsPanel({ data, hidden, setHidden, isPartner, onEdit }: {
               </div>
             </div>
           ))}
-          {!isPartner && (
-            <button onClick={() => onEdit({ type: 'account' })} style={{
+          <button onClick={() => onEdit({ type: 'account' })} style={{
               flexShrink: 0, width: 100, minHeight: 100,
               borderRadius: 16, border: '1px dashed var(--hair-strong)',
               background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -132,7 +131,6 @@ function SavingsPanel({ data, hidden, setHidden, isPartner, onEdit }: {
               <span style={{ fontSize: 22 }}>+</span>
               <span className="mono" style={{ fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Account</span>
             </button>
-          )}
           <div style={{ flexShrink: 0, width: 10 }} />
         </div>
       </div>
@@ -167,17 +165,14 @@ function SavingsPanel({ data, hidden, setHidden, isPartner, onEdit }: {
       <div style={{ marginTop: 24 }}>
         <div className="pad-x row-between" style={{ marginBottom: 10 }}>
           <div className="label">Categories</div>
-          {!isPartner && (
-            <button onClick={() => onEdit({ type: 'category' })} className="mono" style={{
+          <button onClick={() => onEdit({ type: 'category' })} className="mono" style={{
               fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600,
               padding: '4px 10px', borderRadius: 999, color: 'var(--ink)', border: '1px solid var(--hair-strong)',
             }}>+ Add</button>
-          )}
         </div>
         <div className="pad-x" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {data.banks.map((b: BankAccount) => {
             const cats = b.categories ?? [];
-            if (!cats.length && isPartner) return null;
             return (
               <div key={b.id} className="card white" style={{ padding: '14px 18px' }}>
                 <div className="row" style={{ gap: 8, marginBottom: 6, alignItems: 'center' }}>
@@ -187,8 +182,8 @@ function SavingsPanel({ data, hidden, setHidden, isPartner, onEdit }: {
                 </div>
                 {cats.map((c) => (
                   <div key={c.id}
-                    onClick={() => !isPartner && onEdit({ type: 'category', item: { ...c, bankId: b.id } })}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderTop: '1px solid var(--hair)', cursor: isPartner ? 'default' : 'pointer' }}>
+                    onClick={() => onEdit({ type: 'category', item: { ...c, bankId: b.id } })}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderTop: '1px solid var(--hair)', cursor: 'pointer' }}>
                     <div className="row" style={{ gap: 10 }}>
                       <span className="dot" style={{ background: c.color }} />
                       <span style={{ fontSize: 14 }}>{c.name}</span>
@@ -224,8 +219,8 @@ function SavingsPanel({ data, hidden, setHidden, isPartner, onEdit }: {
               const isAdd = tx.amt > 0;
               return (
                 <div key={tx.id} className="row"
-                  onClick={() => !isPartner && onEdit({ type: 'tx', item: tx })}
-                  style={{ padding: '12px 0', borderBottom: '1px solid var(--hair)', gap: 12, cursor: isPartner ? 'default' : 'pointer' }}>
+                  onClick={() => onEdit({ type: 'tx', item: tx })}
+                  style={{ padding: '12px 0', borderBottom: '1px solid var(--hair)', gap: 12, cursor: 'pointer' }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: 10, flexShrink: 0, position: 'relative',
                     background: cat ? cat.color : 'var(--moss)', opacity: 0.15,
@@ -296,12 +291,10 @@ function PaymentsPanel({ data, isPartner, onEdit, onMarkPaid, onPayDebt }: {
       <div style={{ marginTop: 22 }}>
         <div className="pad-x row-between" style={{ marginBottom: 10 }}>
           <div className="label">Recurring bills</div>
-          {!isPartner && (
-            <button onClick={() => onEdit({ type: 'bill' })} className="mono" style={{
+          <button onClick={() => onEdit({ type: 'bill' })} className="mono" style={{
               fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600,
               padding: '4px 10px', borderRadius: 999, color: 'var(--ink)', border: '1px solid var(--hair-strong)',
             }}>+ Bill</button>
-          )}
         </div>
         <div className="pad-x">
           <div className="card white" style={{ padding: '4px 18px' }}>
@@ -316,14 +309,13 @@ function PaymentsPanel({ data, isPartner, onEdit, onMarkPaid, onPayDebt }: {
                 <div key={b.id} className="row" style={{ padding: '13px 0', borderBottom: '1px solid var(--hair)', gap: 12 }}>
                   <button
                     className={`mark-paid-btn${b.status === 'paid' ? ' checked' : ''}`}
-                    disabled={isPartner}
-                    onClick={(e) => { e.stopPropagation(); !isPartner && onMarkPaid(b.id); }}
+                    onClick={(e) => { e.stopPropagation(); onMarkPaid(b.id); }}
                   >
                     {Icons.check({ size: 12 })}
                   </button>
                   <div
-                    style={{ flex: 1, minWidth: 0, cursor: isPartner ? 'default' : 'pointer' }}
-                    onClick={() => !isPartner && onEdit({ type: 'bill', item: b })}
+                    style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
+                    onClick={() => onEdit({ type: 'bill', item: b })}
                   >
                     <div className="row" style={{ gap: 8 }}>
                       <span style={{ fontSize: 15, color: 'var(--ink)' }}>{b.name}</span>
@@ -346,16 +338,13 @@ function PaymentsPanel({ data, isPartner, onEdit, onMarkPaid, onPayDebt }: {
       </div>
 
       {/* debts */}
-      {(data.debts.length > 0 || !isPartner) && (
-        <div style={{ marginTop: 24 }}>
+      <div style={{ marginTop: 24 }}>
           <div className="pad-x row-between" style={{ marginBottom: 10 }}>
             <div className="label">Owed & installments</div>
-            {!isPartner && (
-              <button onClick={() => onEdit({ type: 'debt' })} className="mono" style={{
+            <button onClick={() => onEdit({ type: 'debt' })} className="mono" style={{
                 fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600,
                 padding: '4px 10px', borderRadius: 999, color: 'var(--ink)', border: '1px solid var(--hair-strong)',
               }}>+ Debt</button>
-            )}
           </div>
           <div className="pad-x" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {data.debts.map((d: Debt) => {
@@ -365,8 +354,8 @@ function PaymentsPanel({ data, isPartner, onEdit, onMarkPaid, onPayDebt }: {
               const daysLeft = Math.round((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
               const overdue = daysLeft < 0;
               return (
-                <div key={d.id} className="card white" style={{ padding: '14px 18px', cursor: isPartner ? 'default' : 'pointer' }}
-                  onClick={() => !isPartner && onEdit({ type: 'debt', item: d })}>
+                <div key={d.id} className="card white" style={{ padding: '14px 18px', cursor: 'pointer' }}
+                  onClick={() => onEdit({ type: 'debt', item: d })}>
                   <div className="row-between" style={{ marginBottom: 8 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, color: 'var(--ink)' }}>{d.name}</div>
@@ -387,7 +376,7 @@ function PaymentsPanel({ data, isPartner, onEdit, onMarkPaid, onPayDebt }: {
                     <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em' }}>
                       {pct.toFixed(0)}% PAID
                     </div>
-                    {!isPartner && d.months > 0 && (
+                    {d.months > 0 && (
                       <button
                         onClick={(e) => { e.stopPropagation(); onPayDebt(d.id); }}
                         className="mono"
@@ -406,7 +395,6 @@ function PaymentsPanel({ data, isPartner, onEdit, onMarkPaid, onPayDebt }: {
             })}
           </div>
         </div>
-      )}
-    </>
+      </>
   );
 }

@@ -100,12 +100,12 @@ export function WebTodayScreen({
                 className={`task-list-item${t.done ? ' done' : ''}`}
                 onClick={(e) => {
                   if ((e.target as HTMLElement).closest('.check')) return;
-                  if (!isPartner) onEdit({ type: 'task-view', item: t, dateKey: TODAY_KEY });
+                  onEdit({ type: 'task-view', item: t, dateKey: TODAY_KEY });
                 }}
               >
                 <button
                   className={`check${t.done ? ' checked' : ''}`}
-                  onClick={(e) => { e.stopPropagation(); if (!isPartner) onCheckTask(t.id); }}
+                  onClick={(e) => { e.stopPropagation(); onCheckTask(t.id); }}
                 >
                   {Icons.check()}
                 </button>
@@ -119,8 +119,7 @@ export function WebTodayScreen({
                 Nothing planned. Quiet day.
               </div>
             )}
-            {!isPartner && (
-              <button
+            <button
                 className="task-list-item"
                 style={{ width: '100%', justifyContent: 'center', color: 'var(--ink-mute)', gap: 6, cursor: 'pointer', paddingTop: 14 }}
                 onClick={() => onEdit({ type: 'task', dateKey: TODAY_KEY })}
@@ -128,7 +127,6 @@ export function WebTodayScreen({
                 {Icons.plus({ size: 14, stroke: 'currentColor' })}
                 <span style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Add task</span>
               </button>
-            )}
           </div>
         </div>
 
@@ -145,8 +143,7 @@ export function WebTodayScreen({
                 <div key={hab.id} className="row" style={{ padding: '11px 0', borderBottom: '1px solid var(--hair)', gap: 12 }}>
                   <button
                     className={`check${doneToday ? ' checked' : ''}`}
-                    onClick={() => !isPartner && onTrackDate(hab.id, TODAY_KEY)}
-                    disabled={isPartner}
+                    onClick={() => onTrackDate(hab.id, TODAY_KEY)}
                   >
                     {Icons.check()}
                   </button>
@@ -179,8 +176,8 @@ export function WebTodayScreen({
           {dueBills[0] && (
             <div
               className="card white"
-              style={{ borderColor: 'rgba(192,136,56,0.3)', cursor: isPartner ? 'default' : 'pointer' }}
-              onClick={() => !isPartner && onEdit({ type: 'bill', item: dueBills[0] })}
+              style={{ borderColor: 'rgba(192,136,56,0.3)', cursor: 'pointer' }}
+              onClick={() => onEdit({ type: 'bill', item: dueBills[0] })}
             >
               <div className="label" style={{ color: 'var(--amber)', marginBottom: 6 }}>
                 Bill due · day {dueBills[0].due}

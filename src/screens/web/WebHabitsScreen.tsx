@@ -45,12 +45,10 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
           <div className="kicker">Daily tracker</div>
           <h1>Your <em>track</em></h1>
         </div>
-        {!isPartner && (
-          <button className="btn-add" onClick={() => onEdit({ type: 'habit' })}>
+        <button className="btn-add" onClick={() => onEdit({ type: 'habit' })}>
             {Icons.plus({ size: 14, stroke: 'var(--cream)' })}
             <span>New tracker</span>
           </button>
-        )}
       </div>
 
       {/* metric-row — temporarily hidden */}
@@ -100,8 +98,8 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
             <div key={h.id} className="habit-card">
               <div className="hc-head">
                 <div
-                  onClick={() => !isPartner && onEdit({ type: 'habit', item: h })}
-                  style={{ cursor: isPartner ? 'default' : 'pointer', flex: 1 }}
+                  onClick={() => onEdit({ type: 'habit', item: h })}
+                  style={{ cursor: 'pointer', flex: 1 }}
                 >
                   <div className="hc-name">{h.name}</div>
                   <div className="hc-note">
@@ -127,7 +125,7 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
                   else if (c.on) cls.push('on');
                   if (c.start) cls.push('habit-start');
                   if (c.today) cls.push('today');
-                  const canToggle = !isPartner && !c.beforeStart && !!c.dateKey;
+                  const canToggle = !c.beforeStart && !!c.dateKey;
                   return (
                     <div
                       key={c.key}

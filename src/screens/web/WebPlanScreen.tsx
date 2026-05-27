@@ -82,13 +82,13 @@ function DayTaskPanel({
               className={`task-list-item${t.done ? ' done' : ''}`}
               onClick={(e) => {
                 if ((e.target as HTMLElement).closest('.check')) return;
-                if (!isPartner) onEdit({ type: 'task-view', item: t, dateKey: editKey });
+                onEdit({ type: 'task-view', item: t, dateKey: editKey });
               }}
             >
               <button
                 className={`check${t.done ? ' checked' : ''}`}
-                onClick={(e) => { e.stopPropagation(); if (!isPartner && !ti._virtual) onCheck(t.id, editKey); }}
-                disabled={isPartner || !!ti._virtual}
+                onClick={(e) => { e.stopPropagation(); if (!ti._virtual) onCheck(t.id, editKey); }}
+                disabled={!!ti._virtual}
               >
                 {Icons.check()}
               </button>
@@ -100,13 +100,12 @@ function DayTaskPanel({
                   <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 2 }}>↻ {t.recurrence}</div>
                 )}
               </div>
-              {!isPartner && Icons.chevR({ stroke: 'var(--ink-faint)' })}
+              {Icons.chevR({ stroke: 'var(--ink-faint)' })}
             </div>
           );
         })}
       </div>
-      {!isPartner && (
-        <button
+      <button
           style={{
             marginTop: 12, display: 'flex', alignItems: 'center', gap: 6,
             color: 'var(--ink-mute)', fontFamily: 'var(--mono)', fontSize: 11,
@@ -117,7 +116,6 @@ function DayTaskPanel({
         >
           + Add task
         </button>
-      )}
     </div>
   );
 }
@@ -202,12 +200,10 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
           <div className="kicker">Calendar</div>
           <h1>Plan & <em>tasks</em></h1>
         </div>
-        {!isPartner && (
-          <button className="btn-add" onClick={() => onEdit({ type: 'task', dateKey: selected })}>
+        <button className="btn-add" onClick={() => onEdit({ type: 'task', dateKey: selected })}>
             {Icons.plus({ size: 14, stroke: 'var(--cream)' })}
             <span>New task</span>
           </button>
-        )}
       </div>
 
       <div className="plan-bar">
@@ -248,8 +244,8 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
                 <div
                   key={c.key}
                   className={`month-cell${c.other ? ' other' : ''}${isToday ? ' today' : ''}`}
-                  style={{ position: 'relative', cursor: !isPartner ? 'pointer' : undefined }}
-                  onClick={() => !isPartner && c.dateKey && onEdit({ type: 'task', dateKey: c.dateKey })}
+                  style={{ position: 'relative', cursor: 'pointer' }}
+                  onClick={() => c.dateKey && onEdit({ type: 'task', dateKey: c.dateKey })}
                 >
                   <div className="day-num">{c.d}</div>
                   {!c.other && dayTasks.length > 0 && (
@@ -270,7 +266,7 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
                         className={`mini-task${t.done ? ' done' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (!isPartner) onEdit({ type: 'task-view', item: t, dateKey: editKey });
+                          onEdit({ type: 'task-view', item: t, dateKey: editKey });
                         }}
                         onMouseEnter={(e) => {
                           const r = e.currentTarget.getBoundingClientRect();
@@ -278,15 +274,13 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
                         }}
                         onMouseLeave={() => setTooltip(null)}
                       >
-                        {!isPartner && (
-                          <button
+                        <button
                             className="mini-check"
                             onClick={(e) => { e.stopPropagation(); if (!ti._virtual) onCheckTask(t.id, editKey); }}
                             disabled={!!ti._virtual}
                           >
                             <MiniCheck done={t.done} />
                           </button>
-                        )}
                         <span className="emoji">{t.emoji}</span>
                         <span className="ttl">{t.title}</span>
                       </div>

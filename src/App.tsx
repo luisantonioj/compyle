@@ -83,6 +83,10 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   // true when we should write to Firestore instead of in-memory store
   const fs = IS_CONFIGURED && !!user;
 
+  // When viewing partner, writes target the partner's Firestore collection and local store slice.
+  const activeUid = isPartner ? store.partnerProfile.uid : (user?.uid ?? '');
+  const setActiveData = isPartner ? store.setLuisData : store.setYleData;
+
   const tapRef = useRef({ count: 0, timer: 0 as unknown as ReturnType<typeof setTimeout> });
 
   // easter egg: triple-tap the h1 title
@@ -162,9 +166,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   // ─── Task CRUD ───
   const saveTask = (task: Task, dateKey: string) => {
     if (fs) {
-      void upsertTask(user!.uid, task, dateKey);
+      void upsertTask(activeUid, task, dateKey);
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const day = d.tasks[dateKey] ?? [];
         const existed = day.find((t) => t.id === task.id);
         const newDay = existed ? day.map((t) => (t.id === task.id ? task : t)) : [...day, task];
@@ -176,12 +180,12 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   };
 
   const deleteTask = (taskId: string, dateKey: string) => {
-    const removed = (store.yleData.tasks[dateKey] ?? []).find((t) => t.id === taskId);
+    const removed = (data.tasks[dateKey] ?? []).find((t) => t.id === taskId);
     store.setEditing(null);
     if (fs) {
-      void removeTask(user!.uid, taskId);
+      void removeTask(activeUid, taskId);
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const day = d.tasks[dateKey] ?? [];
         return { ...d, tasks: { ...d.tasks, [dateKey]: day.filter((t) => t.id !== taskId) } };
       });
@@ -194,13 +198,13 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
 
   const checkTask = (taskId: string, dateKey = TODAY_KEY) => {
     if (fs) {
-      const task = (store.yleData.tasks[dateKey] ?? []).find((t) => t.id === taskId);
+      const task = (data.tasks[dateKey] ?? []).find((t) => t.id === taskId);
       if (!task) return;
       const nowDone = !task.done;
       if (nowDone) maybe();
-      void upsertTask(user!.uid, { ...task, done: nowDone }, dateKey);
+      void upsertTask(activeUid, { ...task, done: nowDone }, dateKey);
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const dayTasks = (d.tasks[dateKey] ?? []).map((t) =>
           t.id === taskId ? { ...t, done: !t.done } : t
         );
@@ -214,9 +218,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   // ─── Habit CRUD ───
   const saveHabit = (h: Habit) => {
     if (fs) {
-      void upsertHabit(user!.uid, h);
+      void upsertHabit(activeUid, h);
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const existed = d.habits.find((x) => x.id === h.id);
         const habits = existed ? d.habits.map((x) => (x.id === h.id ? h : x)) : [...d.habits, h];
         return { ...d, habits };
@@ -227,12 +231,12 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   };
 
   const deleteHabit = (id: string) => {
-    const removed = store.yleData.habits.find((h) => h.id === id);
+    const removed = data.habits.find((h) => h.id === id);
     store.setEditing(null);
     if (fs) {
-      void removeHabit(user!.uid, id);
+      void removeHabit(activeUid, id);
     } else {
-      store.setYleData((d) => ({ ...d, habits: d.habits.filter((h) => h.id !== id) }));
+      setActiveData((d) => ({ ...d, habits: d.habits.filter((h) => h.id !== id) }));
     }
     store.flash('Tracker deleted', 'Undo', () => {
       if (removed) saveHabit(removed);
@@ -242,15 +246,15 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
 
   const toggleTrackerDate = (habitId: string, dk: string) => {
     if (fs) {
-      const habit = store.yleData.habits.find((h) => h.id === habitId);
+      const habit = data.habits.find((h) => h.id === habitId);
       if (!habit) return;
       const dates = habit.completedDates ?? [];
       const isOn = dates.includes(dk);
       const newDates = isOn ? dates.filter((d) => d !== dk) : [...dates, dk].sort();
       if (!isOn) maybe(0.3);
-      void upsertHabit(user!.uid, { ...habit, completedDates: newDates });
+      void upsertHabit(activeUid, { ...habit, completedDates: newDates });
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const habits = d.habits.map((h) => {
           if (h.id !== habitId) return h;
           const dates = h.completedDates ?? [];
@@ -276,20 +280,19 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
 
   const saveTx = (tx: Transaction) => {
     if (fs) {
-      const d = store.yleData;
-      const existed = d.transactions.find((t) => t.id === tx.id);
-      let banks = d.banks;
+      const existed = data.transactions.find((t) => t.id === tx.id);
+      let banks = data.banks;
       if (existed) {
         if (existed.bank && existed.cat) banks = applyTx(banks, existed.bank, existed.cat, -existed.amt);
         if (tx.bank && tx.cat) banks = applyTx(banks, tx.bank, tx.cat, tx.amt);
       } else if (tx.bank && tx.cat) {
         banks = applyTx(banks, tx.bank, tx.cat, tx.amt);
       }
-      void upsertTx(user!.uid, tx);
+      void upsertTx(activeUid, tx);
       const affectedIds = new Set([tx.bank, existed?.bank].filter(Boolean) as string[]);
-      banks.filter((b) => affectedIds.has(b.id)).forEach((b) => void upsertBank(user!.uid, b));
+      banks.filter((b) => affectedIds.has(b.id)).forEach((b) => void upsertBank(activeUid, b));
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const existed = d.transactions.find((t) => t.id === tx.id);
         let banks = d.banks;
         if (existed) {
@@ -306,18 +309,18 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   };
 
   const deleteTx = (id: string) => {
-    const removed = store.yleData.transactions.find((t) => t.id === id);
+    const removed = data.transactions.find((t) => t.id === id);
     store.setEditing(null);
     if (fs) {
-      let banks = store.yleData.banks;
+      let banks = data.banks;
       if (removed?.bank && removed?.cat) banks = applyTx(banks, removed.bank, removed.cat, -removed.amt);
-      void removeTx(user!.uid, id);
+      void removeTx(activeUid, id);
       if (removed?.bank) {
         const affected = banks.find((b) => b.id === removed!.bank);
-        if (affected) void upsertBank(user!.uid, affected);
+        if (affected) void upsertBank(activeUid, affected);
       }
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const rem = d.transactions.find((t) => t.id === id);
         let banks = d.banks;
         if (rem?.bank && rem?.cat) banks = applyTx(banks, rem.bank, rem.cat, -rem.amt);
@@ -330,9 +333,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   // ─── Account CRUD ───
   const saveAccount = (acct: BankAccount) => {
     if (fs) {
-      void upsertBank(user!.uid, acct);
+      void upsertBank(activeUid, acct);
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const existed = d.banks.find((b) => b.id === acct.id);
         const banks = existed ? d.banks.map((b) => (b.id === acct.id ? acct : b)) : [...d.banks, acct];
         return { ...d, banks };
@@ -343,12 +346,12 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   };
 
   const deleteAccount = (id: string) => {
-    const removed = store.yleData.banks.find((b) => b.id === id);
+    const removed = data.banks.find((b) => b.id === id);
     store.setEditing(null);
     if (fs) {
-      void removeBank(user!.uid, id);
+      void removeBank(activeUid, id);
     } else {
-      store.setYleData((d) => ({ ...d, banks: d.banks.filter((b) => b.id !== id) }));
+      setActiveData((d) => ({ ...d, banks: d.banks.filter((b) => b.id !== id) }));
     }
     store.flash('Account removed', 'Undo', () => { if (removed) saveAccount(removed); store.setToast(null); });
   };
@@ -357,7 +360,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   const saveCategory = (cat: Category & { bankId?: string }) => {
     const { bankId, ...rest } = cat;
     if (fs) {
-      let banks = store.yleData.banks.map((b) => {
+      let banks = data.banks.map((b) => {
         if ((b.categories ?? []).some((c) => c.id === cat.id)) {
           return { ...b, categories: (b.categories ?? []).filter((c) => c.id !== cat.id) };
         }
@@ -368,9 +371,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           b.id === bankId ? { ...b, categories: [...(b.categories ?? []), rest] } : b
         );
       }
-      void Promise.all(banks.map((b) => upsertBank(user!.uid, b)));
+      void Promise.all(banks.map((b) => upsertBank(activeUid, b)));
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         let banks = d.banks.map((b) => {
           if ((b.categories ?? []).some((c) => c.id === cat.id)) {
             return { ...b, categories: (b.categories ?? []).filter((c) => c.id !== cat.id) };
@@ -392,18 +395,18 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   const deleteCategory = (id: string) => {
     let removed: Category | undefined;
     let removedBankId: string | undefined;
-    store.yleData.banks.forEach((b) => {
+    data.banks.forEach((b) => {
       const found = (b.categories ?? []).find((c) => c.id === id);
       if (found) { removed = found; removedBankId = b.id; }
     });
     store.setEditing(null);
     if (fs) {
-      const banks = store.yleData.banks.map((b) => ({
+      const banks = data.banks.map((b) => ({
         ...b, categories: (b.categories ?? []).filter((c) => c.id !== id),
       }));
-      void Promise.all(banks.map((b) => upsertBank(user!.uid, b)));
+      void Promise.all(banks.map((b) => upsertBank(activeUid, b)));
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const banks = d.banks.map((b) => ({
           ...b, categories: (b.categories ?? []).filter((c) => c.id !== id),
         }));
@@ -419,9 +422,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   // ─── Bill CRUD ───
   const saveBill = (b: Bill) => {
     if (fs) {
-      void upsertBill(user!.uid, b);
+      void upsertBill(activeUid, b);
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const existed = d.bills.find((x) => x.id === b.id);
         return { ...d, bills: existed ? d.bills.map((x) => (x.id === b.id ? b : x)) : [...d.bills, b] };
       });
@@ -431,25 +434,25 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   };
 
   const deleteBill = (id: string) => {
-    const removed = store.yleData.bills.find((b) => b.id === id);
+    const removed = data.bills.find((b) => b.id === id);
     store.setEditing(null);
     if (fs) {
-      void removeBill(user!.uid, id);
+      void removeBill(activeUid, id);
     } else {
-      store.setYleData((d) => ({ ...d, bills: d.bills.filter((b) => b.id !== id) }));
+      setActiveData((d) => ({ ...d, bills: d.bills.filter((b) => b.id !== id) }));
     }
     store.flash('Bill removed', 'Undo', () => { if (removed) saveBill(removed); store.setToast(null); });
   };
 
   const toggleBillPaid = (id: string) => {
     if (fs) {
-      const bill = store.yleData.bills.find((b) => b.id === id);
+      const bill = data.bills.find((b) => b.id === id);
       if (!bill) return;
       const next = bill.status === 'paid' ? 'due' : 'paid';
       if (next === 'paid') maybe(0.6);
-      void upsertBill(user!.uid, { ...bill, status: next });
+      void upsertBill(activeUid, { ...bill, status: next });
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const bills = d.bills.map((b) => {
           if (b.id !== id) return b;
           const next = b.status === 'paid' ? 'due' : 'paid';
@@ -464,9 +467,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   // ─── Debt CRUD ───
   const saveDebt = (debt: Debt) => {
     if (fs) {
-      void upsertDebt(user!.uid, debt);
+      void upsertDebt(activeUid, debt);
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const existed = d.debts.find((x) => x.id === debt.id);
         const debts = existed ? d.debts.map((x) => (x.id === debt.id ? debt : x)) : [...d.debts, debt];
         return { ...d, debts };
@@ -477,27 +480,27 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   };
 
   const deleteDebt = (id: string) => {
-    const removed = store.yleData.debts.find((b) => b.id === id);
+    const removed = data.debts.find((b) => b.id === id);
     store.setEditing(null);
     if (fs) {
-      void removeDebt(user!.uid, id);
+      void removeDebt(activeUid, id);
     } else {
-      store.setYleData((d) => ({ ...d, debts: d.debts.filter((b) => b.id !== id) }));
+      setActiveData((d) => ({ ...d, debts: d.debts.filter((b) => b.id !== id) }));
     }
     store.flash('Debt removed', 'Undo', () => { if (removed) saveDebt(removed); store.setToast(null); });
   };
 
   const recordDebtPayment = (id: string) => {
     if (fs) {
-      const debt = store.yleData.debts.find((d) => d.id === id);
+      const debt = data.debts.find((d) => d.id === id);
       if (!debt) return;
       const monthlyAmt = debt.months > 0 ? debt.total / debt.months : 0;
       const newPaid = Math.min(debt.total, debt.paid + monthlyAmt);
       const newPaidMonths = Math.min(debt.months, debt.paidMonths + 1);
       if (newPaid >= debt.total) maybe();
-      void upsertDebt(user!.uid, { ...debt, paid: newPaid, paidMonths: newPaidMonths });
+      void upsertDebt(activeUid, { ...debt, paid: newPaid, paidMonths: newPaidMonths });
     } else {
-      store.setYleData((d) => {
+      setActiveData((d) => {
         const debts = d.debts.map((deb) => {
           if (deb.id !== id) return deb;
           const monthlyAmt = deb.months > 0 ? deb.total / deb.months : 0;
@@ -524,7 +527,6 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
 
   // ─── FAB action ───
   const fabAction = (() => {
-    if (isPartner) return null;
     if (tab === 'today' || tab === 'cal') return 'task';
     if (tab === 'habits') return 'habit';
     if (tab === 'money') return 'tx';
@@ -631,7 +633,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
       {editing?.type === 'tx' && (
         <TransactionForm
           tx={editing.item}
-          banks={store.yleData.banks}
+          banks={data.banks}
           onSave={saveTx}
           onDelete={(id) => confirmDelete('this entry', () => deleteTx(id))}
           onClose={() => store.setEditing(null)}
@@ -648,7 +650,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
       {editing?.type === 'category' && (
         <CategoryForm
           cat={editing.item}
-          banks={store.yleData.banks}
+          banks={data.banks}
           onSave={saveCategory}
           onDelete={(id) => confirmDelete('this category', () => deleteCategory(id))}
           onClose={() => store.setEditing(null)}
@@ -694,9 +696,8 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
         <main className="web-content">
           {isPartner && (
             <div className="partner-bar fade-in">
-              <div className="lock">{Icons.lock({ size: 13, stroke: '#fff' })}</div>
               <div>
-                Viewing <strong style={{ fontWeight: 600 }}>{partnerName}'s</strong> trackers — read only. Nothing here can be edited.
+                Viewing & editing <strong style={{ fontWeight: 600 }}>{partnerName}'s</strong> data
               </div>
               <button onClick={store.switchView}>↩ Back to me</button>
             </div>
