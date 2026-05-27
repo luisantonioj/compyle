@@ -1,5 +1,5 @@
 // compyle — all CRUD form sheets
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FormSheet, FormHead, FormFoot, Field, EmojiPicker, ColorPicker, HABIT_FREQS_DAYS, HABIT_FREQS_TIME, CAT_COLORS, BANK_COLORS } from './FormPrimitives';
 import { TODAY_KEY } from '../../lib/seed';
 import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt } from '../../types';
@@ -14,6 +14,13 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
   const [title, setTitle] = useState(task?.title ?? '');
   const [description, setDescription] = useState(task?.description ?? '');
   const [emoji, setEmoji] = useState(task?.emoji ?? '');
+  const descRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }, [description]);
   const [time, setTime] = useState(task?.time ?? '');
   const [date, setDate] = useState(dateKey);
   const [recurrence, setRecurrence] = useState<string | null>(task?.recurrence ?? null);
@@ -42,7 +49,7 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
           <input className="field-input" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What's the task?"/>
         </Field>
         <Field label="Description (optional)">
-          <input className="field-input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Add a note or details…"/>
+          <textarea ref={descRef} className="field-input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Add a note or details…" rows={1} style={{ resize: 'none', overflow: 'hidden', lineHeight: 1.5 }}/>
         </Field>
         <Field label="Type">
           <EmojiPicker value={emoji} onChange={setEmoji}/>
