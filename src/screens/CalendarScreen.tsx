@@ -1,5 +1,5 @@
 // compyle — Calendar + Habits screens
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Icons } from '../components/Icons';
 import { TODAY_KEY, daysInMonth, dateKey, parseKey, getTaskInstances } from '../lib/seed';
 import type { TaskInstance } from '../lib/seed';
@@ -133,8 +133,20 @@ function MonthView({ month, setMonth, selected, setSelected, data }: {
     cells.push({ other: true, d: trail++, dateKey: dk, tasks: getTaskInstances(data.tasks, dk), key: 'n' + cells.length });
   }
 
+  const touchX = useRef<number | null>(null);
+  const swipe = {
+    onTouchStart: (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; },
+    onTouchEnd: (e: React.TouchEvent) => {
+      if (touchX.current === null) return;
+      const dx = e.changedTouches[0].clientX - touchX.current;
+      touchX.current = null;
+      if (Math.abs(dx) < 50) return;
+      setMonth(new Date(y, dx < 0 ? m + 1 : m - 1, 1));
+    },
+  };
+
   return (
-    <div className="pad-x">
+    <div className="pad-x" {...swipe}>
       <div className="row-between" style={{ marginBottom: 6 }}>
         <button style={{ padding: 6 }} onClick={() => setMonth(new Date(y, m - 1, 1))}>{Icons.chevL({ stroke: 'var(--ink-soft)' })}</button>
         <div style={{ fontFamily: 'var(--serif)', fontSize: 22 }}>{monthName} <em style={{ fontStyle: 'italic', color: 'var(--clay)' }}>{y}</em></div>
@@ -179,18 +191,28 @@ function WeekView({ selected, setSelected, data }: { selected: string; setSelect
     return { d, key: k, tasks: getTaskInstances(data.tasks, k) };
   });
 
+  const touchX = useRef<number | null>(null);
+  const prevWeek = () => setSelected(dateKey(new Date(parseKey(selected).setDate(parseKey(selected).getDate() - 7))));
+  const nextWeek = () => setSelected(dateKey(new Date(parseKey(selected).setDate(parseKey(selected).getDate() + 7))));
+  const swipe = {
+    onTouchStart: (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; },
+    onTouchEnd: (e: React.TouchEvent) => {
+      if (touchX.current === null) return;
+      const dx = e.changedTouches[0].clientX - touchX.current;
+      touchX.current = null;
+      if (Math.abs(dx) < 50) return;
+      dx < 0 ? nextWeek() : prevWeek();
+    },
+  };
+
   return (
-    <div className="pad-x">
+    <div className="pad-x" {...swipe}>
       <div className="row-between" style={{ marginBottom: 12 }}>
-        <button style={{ padding: 6 }} onClick={() => setSelected(dateKey(new Date(parseKey(selected).setDate(parseKey(selected).getDate() - 7))))}>
-          {Icons.chevL({ stroke: 'var(--ink-soft)' })}
-        </button>
+        <button style={{ padding: 6 }} onClick={prevWeek}>{Icons.chevL({ stroke: 'var(--ink-soft)' })}</button>
         <div style={{ fontFamily: 'var(--serif)', fontSize: 18 }}>
           {days[0].d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — {days[6].d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         </div>
-        <button style={{ padding: 6 }} onClick={() => setSelected(dateKey(new Date(parseKey(selected).setDate(parseKey(selected).getDate() + 7))))}>
-          {Icons.chevR({ stroke: 'var(--ink-soft)' })}
-        </button>
+        <button style={{ padding: 6 }} onClick={nextWeek}>{Icons.chevR({ stroke: 'var(--ink-soft)' })}</button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
         {days.map(({ d, key, tasks }) => {
@@ -224,9 +246,20 @@ function DayView({ selected, setSelected }: { selected: string; setSelected: (k:
   const d = parseKey(selected);
   const prev = () => { const n = new Date(d); n.setDate(d.getDate() - 1); setSelected(dateKey(n)); };
   const next = () => { const n = new Date(d); n.setDate(d.getDate() + 1); setSelected(dateKey(n)); };
+  const touchX = useRef<number | null>(null);
+  const swipe = {
+    onTouchStart: (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; },
+    onTouchEnd: (e: React.TouchEvent) => {
+      if (touchX.current === null) return;
+      const dx = e.changedTouches[0].clientX - touchX.current;
+      touchX.current = null;
+      if (Math.abs(dx) < 50) return;
+      dx < 0 ? next() : prev();
+    },
+  };
 
   return (
-    <div className="pad-x">
+    <div className="pad-x" {...swipe}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0 6px' }}>
         <button style={{ padding: 6 }} onClick={prev}>{Icons.chevL({ stroke: 'var(--ink-soft)' })}</button>
         <div style={{ textAlign: 'center' }}>
