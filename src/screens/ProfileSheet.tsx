@@ -25,7 +25,7 @@ interface ProfileSheetProps {
 
 const PRIVACY_ITEMS: { key: keyof PrivacySettings; label: string }[] = [
   { key: 'tasks', label: 'Tasks & calendar' },
-  { key: 'habits', label: 'Habit tracker' },
+  { key: 'habits', label: 'Tracker' },
   { key: 'budget', label: 'Savings & budget' },
   { key: 'payments', label: 'Bills & payments' },
   { key: 'reminders', label: 'Reminders summary' },

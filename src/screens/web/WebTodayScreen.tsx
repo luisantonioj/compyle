@@ -9,17 +9,17 @@ interface WebTodayProps {
   viewMode: ViewMode;
   onEdit: (e: EditingState) => void;
   onCheckTask: (id: string, dateKey?: string) => void;
-  onCheckHabit: (id: string) => void;
+  onTrackDate: (id: string, dk: string) => void;
   onMarkPaid?: (id: string) => void;
   showLoveNote?: boolean;
 }
 
 export function WebTodayScreen({
-  data, isPartner, onEdit, onCheckTask, onCheckHabit, showLoveNote = true,
+  data, isPartner, onEdit, onCheckTask, onTrackDate, showLoveNote = true,
 }: WebTodayProps) {
   const tasks = data.tasks[TODAY_KEY] ?? [];
   const tasksDone = tasks.filter((t) => t.done).length;
-  const habitsDone = data.habits.filter((h) => h.doneToday).length;
+  const habitsDone = data.habits.filter((h) => (h.completedDates ?? []).includes(TODAY_KEY)).length;
   const totalBalance = data.banks.reduce((a, b) => a + b.balance, 0);
   const tm = data.transactions.filter((tx) => {
     const d = new Date(tx.date);
@@ -66,7 +66,7 @@ export function WebTodayScreen({
           </div>
         </div>
         <div className="metric">
-          <div className="label">Habits done</div>
+          <div className="label">Tracked today</div>
           <div className="value">
             {habitsDone}<span style={{ fontSize: 18, color: 'var(--ink-mute)' }}>/{data.habits.length}</span>
           </div>
@@ -135,28 +135,28 @@ export function WebTodayScreen({
         {/* habits / rituals */}
         <div className="card white">
           <div className="row-between" style={{ marginBottom: 14 }}>
-            <div style={{ fontFamily: 'var(--serif)', fontSize: 24, letterSpacing: '-0.01em' }}>Rituals</div>
+            <div style={{ fontFamily: 'var(--serif)', fontSize: 24, letterSpacing: '-0.01em' }}>Trackers</div>
             <div className="label">{habitsDone}/{data.habits.length}</div>
           </div>
           <div>
-            {data.habits.map((hab) => (
-              <div key={hab.id} className="row" style={{ padding: '11px 0', borderBottom: '1px solid var(--hair)', gap: 12 }}>
-                <button
-                  className={`check${hab.doneToday ? ' checked' : ''}`}
-                  onClick={() => !isPartner && onCheckHabit(hab.id)}
-                  disabled={isPartner}
-                >
-                  {Icons.check()}
-                </button>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14 }}>{hab.name}</div>
-                  <div className="mono" style={{ fontSize: 9, color: 'var(--ink-mute)', letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 2 }}>{hab.note}</div>
+            {data.habits.map((hab) => {
+              const doneToday = (hab.completedDates ?? []).includes(TODAY_KEY);
+              return (
+                <div key={hab.id} className="row" style={{ padding: '11px 0', borderBottom: '1px solid var(--hair)', gap: 12 }}>
+                  <button
+                    className={`check${doneToday ? ' checked' : ''}`}
+                    onClick={() => !isPartner && onTrackDate(hab.id, TODAY_KEY)}
+                    disabled={isPartner}
+                  >
+                    {Icons.check()}
+                  </button>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14 }}>{hab.name}</div>
+                    {hab.note && <div className="mono" style={{ fontSize: 9, color: 'var(--ink-mute)', letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 2 }}>{hab.note}</div>}
+                  </div>
                 </div>
-                {hab.streak > 0 && (
-                  <div className="mono" style={{ fontSize: 11, color: 'var(--clay)', fontWeight: 600 }}>🔥 {hab.streak}d</div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

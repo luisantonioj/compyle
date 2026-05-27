@@ -122,7 +122,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     if (dataLoading || !fs || !user) return;
     const own = store.yleData;
     const openTasks     = (own.tasks[TODAY_KEY] ?? []).filter((t) => !t.done).length;
-    const pendingHabits = own.habits.filter((h) => !h.doneToday).length;
+    const pendingHabits = own.habits.filter((h) => !(h.completedDates ?? []).includes(TODAY_KEY)).length;
     const dueBills      = own.bills.filter((b) => b.status !== 'paid').length;
     const parts: string[] = [];
     if (openTasks     > 0) parts.push(`${openTasks} task${openTasks > 1 ? 's' : ''}`);
@@ -223,7 +223,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
       });
     }
     store.setEditing(null);
-    store.flash(editing && 'item' in editing && editing.item ? 'Habit updated' : 'New habit started 🌱');
+    store.flash(editing && 'item' in editing && editing.item ? 'Tracker updated' : 'New tracker created 🌱');
   };
 
   const deleteHabit = (id: string) => {
@@ -234,34 +234,30 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     } else {
       store.setYleData((d) => ({ ...d, habits: d.habits.filter((h) => h.id !== id) }));
     }
-    store.flash('Habit deleted', 'Undo', () => {
+    store.flash('Tracker deleted', 'Undo', () => {
       if (removed) saveHabit(removed);
       store.setToast(null);
     });
   };
 
-  const checkHabit = (habitId: string) => {
+  const toggleTrackerDate = (habitId: string, dk: string) => {
     if (fs) {
       const habit = store.yleData.habits.find((h) => h.id === habitId);
       if (!habit) return;
-      const flipped = !habit.doneToday;
-      const newStreak = flipped ? habit.streak + 1 : Math.max(0, habit.streak - 1);
-      if (flipped && (newStreak % 7 === 0 || newStreak >= 30)) maybe();
-      else if (flipped) maybe(0.3);
-      const patArr = habit.pattern.split(',');
-      patArr[patArr.length - 1] = flipped ? 'on' : 'off';
-      void upsertHabit(user!.uid, { ...habit, doneToday: flipped, streak: newStreak, doneDate: TODAY_KEY, pattern: patArr.join(',') });
+      const dates = habit.completedDates ?? [];
+      const isOn = dates.includes(dk);
+      const newDates = isOn ? dates.filter((d) => d !== dk) : [...dates, dk].sort();
+      if (!isOn) maybe(0.3);
+      void upsertHabit(user!.uid, { ...habit, completedDates: newDates });
     } else {
       store.setYleData((d) => {
         const habits = d.habits.map((h) => {
           if (h.id !== habitId) return h;
-          const flipped = !h.doneToday;
-          const newStreak = flipped ? h.streak + 1 : Math.max(0, h.streak - 1);
-          if (flipped && (newStreak % 7 === 0 || newStreak >= 30)) maybe();
-          else if (flipped) maybe(0.3);
-          const patArr = h.pattern.split(',');
-          patArr[patArr.length - 1] = flipped ? 'on' : 'off';
-          return { ...h, doneToday: flipped, streak: newStreak, pattern: patArr.join(',') };
+          const dates = h.completedDates ?? [];
+          const isOn = dates.includes(dk);
+          const newDates = isOn ? dates.filter((x) => x !== dk) : [...dates, dk].sort();
+          if (!isOn) maybe(0.3);
+          return { ...h, completedDates: newDates };
         });
         return { ...d, habits };
       });
@@ -628,7 +624,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
         <HabitForm
           habit={editing.item}
           onSave={saveHabit}
-          onDelete={(id) => confirmDelete('this habit', () => deleteHabit(id))}
+          onDelete={(id) => confirmDelete('this tracker', () => deleteHabit(id))}
           onClose={() => store.setEditing(null)}
         />
       )}
@@ -709,7 +705,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
             {tab === 'today' && (
               <WebTodayScreen
                 data={data} isPartner={isPartner} viewMode={viewMode}
-                onEdit={store.setEditing} onCheckTask={checkTask} onCheckHabit={checkHabit} onMarkPaid={toggleBillPaid}
+                onEdit={store.setEditing} onCheckTask={checkTask} onTrackDate={toggleTrackerDate} onMarkPaid={toggleBillPaid}
               />
             )}
             {tab === 'cal' && (
@@ -721,7 +717,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
             {tab === 'habits' && (
               <WebHabitsScreen
                 data={data} isPartner={isPartner}
-                onEdit={store.setEditing} onCheckHabit={checkHabit}
+                onEdit={store.setEditing} onTrackDate={toggleTrackerDate}
               />
             )}
             {tab === 'money' && (
@@ -762,7 +758,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           <CalendarScreen {...sharedScreenProps} onCheck={checkTask} onSelectedChange={setCalDate} />
         )}
         {tab === 'habits' && (
-          <HabitsScreen {...sharedScreenProps} onHabitCheck={checkHabit} />
+          <HabitsScreen {...sharedScreenProps} onTrackDate={toggleTrackerDate} />
         )}
         {tab === 'money' && (
           <MoneyScreen {...sharedScreenProps} onMarkPaid={toggleBillPaid} onPayDebt={recordDebtPayment} />
@@ -777,7 +773,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
               ? { type: 'task', dateKey: tab === 'cal' ? calDate : TODAY_KEY }
               : { type: fabAction as 'habit' | 'tx' }
           )}
-          title={fabAction === 'task' ? 'New task' : fabAction === 'habit' ? 'New habit' : 'Log spend'}
+          title={fabAction === 'task' ? 'New task' : fabAction === 'habit' ? 'New tracker' : 'Log spend'}
         >
           {Icons.plus({ stroke: 'var(--cream)' })}
         </button>

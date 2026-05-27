@@ -150,7 +150,7 @@ export function TaskViewModal({ task, dateKey, onEdit, onDelete, onClose }: {
   );
 }
 
-// ─── Habit form ───
+// ─── Tracker form ───
 export function HabitForm({ habit, onSave, onDelete, onClose }: {
   habit?: Habit;
   onSave: (h: Habit) => void;
@@ -158,6 +158,7 @@ export function HabitForm({ habit, onSave, onDelete, onClose }: {
   onClose: () => void;
 }) {
   const [name, setName] = useState(habit?.name ?? '');
+  const [repeating, setRepeating] = useState(habit?.repeating ?? true);
   const [freqType, setFreqType] = useState<'days' | 'time'>(
     habit?.freqType ?? (HABIT_FREQS_TIME.includes(habit?.note ?? '') ? 'time' : 'days')
   );
@@ -177,48 +178,54 @@ export function HabitForm({ habit, onSave, onDelete, onClose }: {
     if (!name.trim()) return;
     onSave({
       id: habit?.id ?? 'h_' + Date.now(),
-      name: name.trim(), note, freqType, startDate,
-      streak: habit?.streak ?? 0,
-      doneToday: habit?.doneToday ?? false,
-      pattern: habit?.pattern ?? 'off,'.repeat(27) + 'off',
+      name: name.trim(),
+      note: repeating ? note : (note || ''),
+      freqType: repeating ? freqType : undefined,
+      startDate,
+      repeating,
+      completedDates: habit?.completedDates ?? [],
     });
   };
 
   return (
     <FormSheet onClose={onClose}>
-      <FormHead kicker={editing ? 'Edit habit' : 'New habit'} title={editing ? 'Update' : 'Build a'} accent={editing ? '' : 'habit'} onClose={onClose}/>
+      <FormHead kicker={editing ? 'Edit tracker' : 'New tracker'} title={editing ? 'Update' : 'Create a'} accent={editing ? '' : 'tracker'} onClose={onClose}/>
       <div className="form-body">
-        <Field label="Habit name">
-          <input className="field-input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Floss"/>
+        <Field label="Tracker name">
+          <input className="field-input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Floss, Gym, Read"/>
         </Field>
-        <Field label="Frequency">
-          <div className="type-toggle" style={{ marginBottom: 10 }}>
-            <button className={freqType === 'days' ? 'active' : ''} onClick={() => handleFreqType('days')}>By days</button>
-            <button className={freqType === 'time' ? 'active' : ''} onClick={() => handleFreqType('time')}>By time</button>
-          </div>
-          <div className="chips">
-            {freqList.map((f) => (
-              <button key={f} type="button" className={note === f ? 'selected' : ''} onClick={() => setNote(f)}>{f}</button>
-            ))}
+        <Field label="Repetition">
+          <div className="type-toggle">
+            <button className={repeating ? 'active' : ''} onClick={() => setRepeating(true)}>Repeating</button>
+            <button className={!repeating ? 'active' : ''} onClick={() => setRepeating(false)}>No repetition</button>
           </div>
         </Field>
+        {repeating && (
+          <Field label="Frequency">
+            <div className="type-toggle" style={{ marginBottom: 10 }}>
+              <button className={freqType === 'days' ? 'active' : ''} onClick={() => handleFreqType('days')}>By days</button>
+              <button className={freqType === 'time' ? 'active' : ''} onClick={() => handleFreqType('time')}>By time</button>
+            </div>
+            <div className="chips">
+              {freqList.map((f) => (
+                <button key={f} type="button" className={note === f ? 'selected' : ''} onClick={() => setNote(f)}>{f}</button>
+              ))}
+            </div>
+          </Field>
+        )}
+        {!repeating && (
+          <Field label="Note (optional)">
+            <input className="field-input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. One-time goal"/>
+          </Field>
+        )}
         <Field label="Start date">
           <input type="date" className="field-input" value={startDate} onChange={(e) => setStartDate(e.target.value)} max={TODAY_KEY}/>
         </Field>
-        {editing && (
-          <div style={{ background: 'var(--cream-deep)', borderRadius: 12, padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div className="field-label" style={{ marginBottom: 2 }}>Current streak</div>
-              <div className="amount" style={{ fontSize: 22 }}>🔥 {habit!.streak} days</div>
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--ink-mute)', fontFamily: 'var(--mono)', letterSpacing: '0.08em', textAlign: 'right' }}>KEEP IT GOING</div>
-          </div>
-        )}
       </div>
       <FormFoot
         onSave={handleSave} onCancel={onClose}
         onDelete={editing && onDelete ? () => onDelete(habit!.id) : undefined}
-        canSave={!!name.trim()} saveLabel={editing ? 'Save' : 'Start habit'}
+        canSave={!!name.trim()} saveLabel={editing ? 'Save' : 'Create tracker'}
       />
     </FormSheet>
   );

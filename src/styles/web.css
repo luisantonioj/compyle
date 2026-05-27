@@ -405,8 +405,11 @@
   }
   .mini-month .mc.before-start { color: var(--ink-faint); }
   .mini-month .mc.in { color: var(--ink-soft); }
+  .mini-month .mc.in:not(.before-start):hover { background: var(--cream-deep); }
   .mini-month .mc.on { background: var(--moss); color: white; }
+  .mini-month .mc.on:hover { background: var(--moss-soft); }
   .mini-month .mc.streak { background: var(--clay); color: var(--cream); }
+  .mini-month .mc.streak:hover { background: var(--clay-soft); }
   .mini-month .mc.habit-start { position: relative; }
   .mini-month .mc.habit-start::after {
     content: '';

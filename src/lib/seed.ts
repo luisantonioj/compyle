@@ -23,6 +23,20 @@ export const SEED_USER_PARTNER: UserProfile = {
   partnerId: 'yle',
 };
 
+// Convert old-style 28-day pattern string to completedDates array relative to today
+function patternToDates(pattern: string): string[] {
+  const parts = pattern.split(',');
+  const result: string[] = [];
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i] === 'on') {
+      const daysAgo = parts.length - 1 - i;
+      const d = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() - daysAgo);
+      result.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+    }
+  }
+  return result;
+}
+
 export const SEED_YLE: UserData = {
   tasks: {
     [TODAY_KEY]: [
@@ -35,12 +49,12 @@ export const SEED_YLE: UserData = {
     ],
   },
   habits: [
-    { id: 'h1', name: 'Double Cleanse', note: 'AM + PM', streak: 23, doneToday: true, pattern: 'on,on,on,on,on,on,on,on,on,on,on,on,on,off,on,on,on,on,on,on,on,on,on,on,on,on,on,on' },
-    { id: 'h2', name: 'Bath',           note: 'Daily',  streak: 47, doneToday: true, pattern: 'on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on' },
-    { id: 'h3', name: 'Towel change',   note: 'Every 3 days', streak: 4, doneToday: false, pattern: 'off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off' },
-    { id: 'h4', name: 'Bed sheet',      note: 'Weekly Sun', streak: 6, doneToday: false, pattern: 'off,off,off,off,off,off,on,off,off,off,off,off,off,on,off,off,off,off,off,off,on,off,off,off,off,off,off,off' },
-    { id: 'h5', name: 'Blanket wash',   note: 'Bi-weekly', streak: 2, doneToday: false, pattern: 'off,off,off,off,off,off,off,off,off,off,off,off,off,on,off,off,off,off,off,off,off,off,off,off,off,off,on,off' },
-    { id: 'h6', name: 'Laundry',        note: 'Wed + Sat', streak: 12, doneToday: false, pattern: 'off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off' },
+    { id: 'h1', name: 'Double Cleanse', note: 'AM + PM', repeating: true, completedDates: patternToDates('on,on,on,on,on,on,on,on,on,on,on,on,on,off,on,on,on,on,on,on,on,on,on,on,on,on,on,on') },
+    { id: 'h2', name: 'Bath',           note: 'Daily',   repeating: true, completedDates: patternToDates('on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on') },
+    { id: 'h3', name: 'Towel change',   note: 'Every 3 days', repeating: true, completedDates: patternToDates('off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off') },
+    { id: 'h4', name: 'Bed sheet',      note: 'Weekly Sun', repeating: true, completedDates: patternToDates('off,off,off,off,off,off,on,off,off,off,off,off,off,on,off,off,off,off,off,off,on,off,off,off,off,off,off,off') },
+    { id: 'h5', name: 'Blanket wash',   note: 'Bi-weekly', repeating: true, completedDates: patternToDates('off,off,off,off,off,off,off,off,off,off,off,off,off,on,off,off,off,off,off,off,off,off,off,off,off,off,on,off') },
+    { id: 'h6', name: 'Laundry',        note: 'Wed + Sat', repeating: true, completedDates: patternToDates('off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off') },
   ],
   banks: [
     { id: 'b1', name: 'BDO Savings', balance: 84320.50, color: '#1b3a6e', last4: '2891', categories: [
@@ -96,10 +110,10 @@ export const SEED_LUIS: UserData = {
     ],
   },
   habits: [
-    { id: 'lh1', name: 'Morning workout',     note: '6:30 AM',    streak: 31, doneToday: true,  pattern: 'on,on,on,off,on,on,on,on,on,off,on,on,on,on,on,on,off,on,on,on,on,on,on,on,off,on,on,on' },
-    { id: 'lh2', name: 'Protein shake',       note: 'After gym',  streak: 12, doneToday: true,  pattern: 'on,on,on,off,on,on,on,on,on,off,on,on,on,on,on,on,off,on,on,on,on,on,on,on,off,on,on,on' },
-    { id: 'lh3', name: 'Read 30 min',         note: 'Evening',    streak: 4,  doneToday: false, pattern: 'on,on,off,on,on,on,off,on,on,off,on,on,off,on,on,on,off,on,on,off,on,on,on,on,off,on,on,off' },
-    { id: 'lh4', name: 'No phone before bed', note: '11pm',       streak: 2,  doneToday: false, pattern: 'off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,on,off' },
+    { id: 'lh1', name: 'Morning workout',     note: '6:30 AM',   repeating: true, completedDates: patternToDates('on,on,on,off,on,on,on,on,on,off,on,on,on,on,on,on,off,on,on,on,on,on,on,on,off,on,on,on') },
+    { id: 'lh2', name: 'Protein shake',       note: 'After gym', repeating: true, completedDates: patternToDates('on,on,on,off,on,on,on,on,on,off,on,on,on,on,on,on,off,on,on,on,on,on,on,on,off,on,on,on') },
+    { id: 'lh3', name: 'Read 30 min',         note: 'Evening',   repeating: true, completedDates: patternToDates('on,on,off,on,on,on,off,on,on,off,on,on,off,on,on,on,off,on,on,off,on,on,on,on,off,on,on,off') },
+    { id: 'lh4', name: 'No phone before bed', note: '11pm',      repeating: true, completedDates: patternToDates('off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,on,off') },
   ],
   banks: [
     { id: 'lb1', name: 'Security Bank', balance: 142800.00, color: '#0a3d62', last4: '7723', categories: [
@@ -202,6 +216,7 @@ export function buildMonthCells(year: number, month: number): MonthCell[] {
 
 export interface HabitCell {
   d?: number;
+  dateKey?: string; // "YYYY-MM-DD" — used for click-to-toggle
   on?: boolean;
   in?: boolean;
   today?: boolean;
@@ -210,6 +225,18 @@ export interface HabitCell {
   beforeStart?: boolean;
   streak?: boolean;
   key: string;
+}
+
+export function computeStreak(completedDates: string[]): number {
+  let count = 0;
+  const t = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+  for (let i = 0; ; i++) {
+    const d = new Date(t.getFullYear(), t.getMonth(), t.getDate() - i);
+    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    if (completedDates.includes(k)) count++;
+    else break;
+  }
+  return count;
 }
 
 export interface TaskInstance extends Task {
@@ -248,22 +275,21 @@ export function getTaskInstances(allTasks: Record<string, Task[]>, targetKey: st
   return [...direct, ...recurring];
 }
 
-export function buildHabitMonth(year: number, month: number, pattern: string, startDate?: string): HabitCell[] {
+export function buildHabitMonth(year: number, month: number, completedDates: string[], startDate?: string): HabitCell[] {
   const dim = new Date(year, month + 1, 0).getDate();
   const first = new Date(year, month, 1).getDay();
-  const pat = pattern.split(',');
   const cells: HabitCell[] = [];
-  const todayDate = new Date();
-  const todayNorm = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+  const todayNorm = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
 
-  // Compute streak: consecutive 'on' entries from the last (today) going backwards
-  const streakIndices = new Set<number>();
-  for (let i = pat.length - 1; i >= 0; i--) {
-    if (pat[i] === 'on') streakIndices.add(i);
+  // Build streak set — consecutive completed days ending at today going backwards
+  const streakKeys = new Set<string>();
+  for (let i = 0; ; i++) {
+    const d = new Date(todayNorm.getFullYear(), todayNorm.getMonth(), todayNorm.getDate() - i);
+    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    if (completedDates.includes(k)) streakKeys.add(k);
     else break;
   }
 
-  // Parse start date boundary
   let startNorm: Date | null = null;
   if (startDate) {
     const [sy, sm, sd] = startDate.split('-').map(Number);
@@ -273,22 +299,23 @@ export function buildHabitMonth(year: number, month: number, pattern: string, st
   for (let i = 0; i < first; i++) cells.push({ blank: true, key: 'b' + i });
   for (let d = 1; d <= dim; d++) {
     const thisDate = new Date(year, month, d);
+    const dk = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const diff = Math.round((todayNorm.getTime() - thisDate.getTime()) / (1000 * 60 * 60 * 24));
-    const idx = pat.length - 1 - diff;
-    const inWindow = idx >= 0 && idx < pat.length;
 
     const beforeStart = startNorm ? thisDate < startNorm : false;
     const isStart = startNorm ? thisDate.getTime() === startNorm.getTime() : false;
-    const isStreak = inWindow && streakIndices.has(idx);
+    const isOn = completedDates.includes(dk);
+    const isInWindow = !beforeStart;
 
     cells.push({
       d,
-      on: inWindow && pat[idx] === 'on',
-      in: inWindow && !beforeStart,
+      dateKey: dk,
+      on: isOn,
+      in: isInWindow,
       today: diff === 0,
       start: isStart,
       beforeStart,
-      streak: isStreak,
+      streak: isOn && streakKeys.has(dk),
       key: 'd' + d,
     });
   }

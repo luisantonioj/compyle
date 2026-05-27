@@ -19,7 +19,7 @@ interface TodayProps {
 
 export function TodayScreen({ data, viewMode, partnerName, isPartner, profileInitial, onProfile, onCheck, onEdit, showLoveNote = true }: TodayProps) {
   const today = data.tasks[TODAY_KEY] ?? [];
-  const habitsDone = data.habits.filter((h) => h.doneToday).length;
+  const habitsDone = data.habits.filter((h) => (h.completedDates ?? []).includes(TODAY_KEY)).length;
   const tasksDone = today.filter((t) => t.done).length;
   const dueBill = data.bills.find((b) => b.status === 'due');
   const now = new Date();
@@ -86,7 +86,7 @@ export function TodayScreen({ data, viewMode, partnerName, isPartner, profileIni
             <div style={{ marginTop: 10 }}><Progress value={tasksDone} max={today.length || 1}/></div>
           </div>
           <div className="card white" style={{ padding: '14px 16px' }}>
-            <div className="label">Habits</div>
+            <div className="label">Tracked</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 6 }}>
               <span className="amount" style={{ fontSize: 32 }}>{habitsDone}</span>
               <span style={{ fontSize: 13, color: 'var(--ink-mute)' }}>of {data.habits.length}</span>

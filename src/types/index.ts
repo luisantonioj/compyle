@@ -19,11 +19,9 @@ export interface Habit {
   note: string;
   freqType?: 'days' | 'time';
   startDate?: string; // "YYYY-MM-DD"
-  streak: number;
-  doneToday: boolean;
-  pattern: string; // comma-separated "on"/"off" for last 28 days
+  completedDates: string[]; // "YYYY-MM-DD" — each day this tracker was ticked
+  repeating: boolean; // false = no-repetition / one-time tracker
   sort_order?: number;
-  doneDate?: string; // "YYYY-MM-DD" — used to reset doneToday on a new day
 }
 
 export interface Category {

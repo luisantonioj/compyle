@@ -12,7 +12,7 @@ interface BottomNavProps {
 const TABS: { id: TabId; label: string }[] = [
   // { id: 'today', label: 'Today' }, // hidden — reserved for future use
   { id: 'cal', label: 'Plan' },
-  { id: 'habits', label: 'Habits' },
+  { id: 'habits', label: 'Track' },
   { id: 'money', label: 'Money' },
 ];
 

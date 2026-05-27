@@ -1,6 +1,7 @@
 // compyle — shared UI primitives
 import React, { useEffect, useState } from 'react';
 import { Icons } from '../Icons';
+import { TODAY_KEY, dateKey } from '../../lib/seed';
 
 // ─── Progress bar ───
 export function Progress({ value, max, variant }: { value: number; max: number; variant?: 'clay' | 'moss' | 'amber' }) {
@@ -12,23 +13,38 @@ export function Progress({ value, max, variant }: { value: number; max: number; 
   );
 }
 
-// ─── Heat grid (last 28 days) ───
-export function HeatGrid({ pattern }: { pattern: string }) {
-  const cells = pattern.split(',').slice(0, 28);
-  // Find current streak: consecutive 'on' from the last cell (today) going backwards
-  let streakFrom = cells.length;
-  for (let i = cells.length - 1; i >= 0; i--) {
-    if (cells[i] === 'on') streakFrom = i;
-    else break;
-  }
+// ─── Day checklist (last 7 days — each independently tickable) ───
+const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+export function DayChecklist({ completedDates, onToggle, disabled }: {
+  completedDates: string[];
+  onToggle: (dk: string) => void;
+  disabled?: boolean;
+}) {
+  const today = new Date();
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const offset = 6 - i;
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - offset);
+    const dk = dateKey(d);
+    return { dk, dayLetter: DAY_LETTERS[d.getDay()], dayNum: d.getDate(), isToday: dk === TODAY_KEY };
+  });
+
   return (
-    <div className="heat-grid">
-      {cells.map((s, i) => {
-        const isToday = i === cells.length - 1;
-        let cls = '';
-        if (s === 'on') cls = i >= streakFrom ? 'streak' : 'on';
-        else if (isToday) cls = 'faint';
-        return <div key={i} className={`heat-cell${cls ? ' ' + cls : ''}`} />;
+    <div className="day-check-row">
+      {days.map(({ dk, dayLetter, dayNum, isToday }) => {
+        const checked = completedDates.includes(dk);
+        return (
+          <button
+            key={dk}
+            className={`day-tile${checked ? ' checked' : ''}${isToday ? ' today' : ''}`}
+            disabled={disabled}
+            onClick={() => !disabled && onToggle(dk)}
+            title={dk}
+          >
+            <span className="dt-letter">{dayLetter}</span>
+            <span className="dt-num">{dayNum}</span>
+          </button>
+        );
       })}
     </div>
   );

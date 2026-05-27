@@ -1,62 +1,66 @@
 import React from 'react';
 import { Icons } from '../../components/Icons';
-import { buildHabitMonth, TODAY } from '../../lib/seed';
+import { buildHabitMonth, TODAY, TODAY_KEY, computeStreak } from '../../lib/seed';
 import type { UserData, EditingState } from '../../types';
 
 interface WebHabitsProps {
   data: UserData;
   isPartner: boolean;
   onEdit: (e: EditingState) => void;
-  onCheckHabit: (id: string) => void;
+  onTrackDate: (id: string, dk: string) => void;
 }
 
-export function WebHabitsScreen({ data, isPartner, onEdit, onCheckHabit }: WebHabitsProps) {
-  const habits = data.habits;
+export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHabitsProps) {
+  const trackers = data.habits;
   const y = TODAY.getFullYear();
   const m = TODAY.getMonth();
   const monthName = TODAY.toLocaleString('en-US', { month: 'long' });
 
-  const completedToday = habits.filter((h) => h.doneToday).length;
-  const longest = habits.length > 0 ? habits.reduce((a, h) => (h.streak > a.streak ? h : a), habits[0]) : null;
+  const doneToday = trackers.filter((h) => (h.completedDates ?? []).includes(TODAY_KEY)).length;
+
+  const longest = trackers.length > 0
+    ? trackers.reduce<{ name: string; streak: number }>((best, h) => {
+        const s = computeStreak(h.completedDates ?? []);
+        return s > best.streak ? { name: h.name, streak: s } : best;
+      }, { name: '', streak: 0 })
+    : null;
+
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const daysSoFar = Math.min(TODAY.getDate(), daysInMonth);
 
   const monthlyPctTotal =
-    (habits.reduce((a, h) => {
-      const cells = buildHabitMonth(y, m, h.pattern, h.startDate);
-      const onCount = cells.filter((c) => !c.blank && c.on).length;
-      const inCount = cells.filter((c) => !c.blank && c.in).length;
-      return a + (inCount ? onCount / inCount : 0);
-    }, 0) /
-      (habits.length || 1)) *
-    100;
+    trackers.reduce((a, h) => {
+      const datesThisMonth = (h.completedDates ?? []).filter((dk) =>
+        dk.startsWith(`${y}-${String(m + 1).padStart(2, '0')}-`)
+      ).length;
+      return a + (datesThisMonth / daysSoFar);
+    }, 0) / (trackers.length || 1) * 100;
 
-  const totalChecks = habits.reduce(
-    (a, h) => a + h.pattern.split(',').filter((s) => s === 'on').length,
-    0
-  );
+  const totalChecks = trackers.reduce((a, h) => a + (h.completedDates ?? []).length, 0);
 
   return (
     <div>
       <div className="page-head">
         <div>
-          <div className="kicker">Habit tracker</div>
-          <h1>Tiny <em>rituals</em></h1>
+          <div className="kicker">Daily tracker</div>
+          <h1>Your <em>track</em></h1>
         </div>
         {!isPartner && (
           <button className="btn-add" onClick={() => onEdit({ type: 'habit' })}>
             {Icons.plus({ size: 14, stroke: 'var(--cream)' })}
-            <span>New habit</span>
+            <span>New tracker</span>
           </button>
         )}
       </div>
 
       <div className="metric-row">
         <div className="metric">
-          <div className="label">Done today</div>
+          <div className="label">Ticked today</div>
           <div className="value">
-            {completedToday}<span style={{ fontSize: 18, color: 'var(--ink-mute)' }}>/{habits.length}</span>
+            {doneToday}<span style={{ fontSize: 18, color: 'var(--ink-mute)' }}>/{trackers.length}</span>
           </div>
           <div className="progress clay" style={{ marginTop: 10 }}>
-            <div style={{ width: `${(completedToday / (habits.length || 1)) * 100}%` }} />
+            <div style={{ width: `${(doneToday / (trackers.length || 1)) * 100}%` }} />
           </div>
         </div>
         <div className="metric">
@@ -69,12 +73,12 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onCheckHabit }: WebHa
           <div className="value">
             {monthlyPctTotal.toFixed(0)}<span style={{ fontSize: 18, color: 'var(--ink-mute)' }}>%</span>
           </div>
-          <div className="delta">across {habits.length} habits</div>
+          <div className="delta">across {trackers.length} trackers</div>
         </div>
         <div className="metric">
           <div className="label">Total checks</div>
           <div className="value">{totalChecks}</div>
-          <div className="delta">last 28 days</div>
+          <div className="delta">all time</div>
         </div>
       </div>
 
@@ -83,11 +87,14 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onCheckHabit }: WebHa
       </div>
 
       <div className="habits-grid">
-        {habits.map((h) => {
-          const cells = buildHabitMonth(y, m, h.pattern, h.startDate);
+        {trackers.map((h) => {
+          const completedDates = h.completedDates ?? [];
+          const cells = buildHabitMonth(y, m, completedDates, h.startDate);
           const onCount = cells.filter((c) => !c.blank && c.on).length;
-          const inCount = cells.filter((c) => !c.blank && c.in).length;
+          const inCount = cells.filter((c) => !c.blank && !c.beforeStart).length;
           const pct = inCount ? Math.round((onCount / inCount) * 100) : 0;
+          const streak = computeStreak(completedDates);
+
           return (
             <div key={h.id} className="habit-card">
               <div className="hc-head">
@@ -96,9 +103,12 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onCheckHabit }: WebHa
                   style={{ cursor: isPartner ? 'default' : 'pointer', flex: 1 }}
                 >
                   <div className="hc-name">{h.name}</div>
-                  <div className="hc-note">{h.note}</div>
+                  <div className="hc-note">
+                    {h.note}
+                    {!h.repeating && <span style={{ marginLeft: 6, color: 'var(--ink-faint)' }}>· once</span>}
+                  </div>
                 </div>
-                <div className="hc-streak">🔥 {h.streak}</div>
+                {streak > 0 && <div className="hc-streak">🔥 {streak}</div>}
               </div>
               <div className="mini-month">
                 {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
@@ -109,28 +119,31 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onCheckHabit }: WebHa
                   const cls: string[] = ['mc'];
                   if (c.beforeStart) {
                     cls.push('before-start');
-                  } else if (c.in) {
+                  } else {
                     cls.push('in');
                   }
                   if (c.streak) cls.push('streak');
                   else if (c.on) cls.push('on');
                   if (c.start) cls.push('habit-start');
                   if (c.today) cls.push('today');
-                  return <div key={c.key} className={cls.join(' ')}>{c.d}</div>;
+                  const canToggle = !isPartner && !c.beforeStart && !!c.dateKey;
+                  return (
+                    <div
+                      key={c.key}
+                      className={cls.join(' ')}
+                      style={{ cursor: canToggle ? 'pointer' : 'default' }}
+                      onClick={() => canToggle && onTrackDate(h.id, c.dateKey!)}
+                      title={canToggle ? (c.on ? 'Untick' : 'Tick') : undefined}
+                    >
+                      {c.d}
+                    </div>
+                  );
                 })}
               </div>
               <div className="habit-foot">
                 <div className="mono" style={{ fontSize: 10, letterSpacing: '0.1em', color: 'var(--ink-mute)', textTransform: 'uppercase' }}>
                   {onCount}/{inCount} · {pct}% this month
                 </div>
-                {!isPartner && (
-                  <button
-                    className={`habit-toggle${h.doneToday ? ' done' : ''}`}
-                    onClick={() => onCheckHabit(h.id)}
-                  >
-                    {h.doneToday ? '✓ Done' : 'Mark done'}
-                  </button>
-                )}
               </div>
             </div>
           );
