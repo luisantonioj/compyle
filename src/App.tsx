@@ -531,6 +531,15 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   };
 
   // ─── Link categories ───
+  const reorderLinkCategories = (cats: LinkCategory[]) => {
+    const reordered = cats.map((c, i) => ({ ...c, sort_order: i }));
+    if (fs) {
+      reordered.forEach((c) => void upsertLinkCategory(activeUid, c));
+    } else {
+      setActiveData((d) => ({ ...d, linkCategories: reordered }));
+    }
+  };
+
   const saveLinkCategory = (cat: LinkCategory) => {
     if (fs) {
       void upsertLinkCategory(activeUid, cat);
@@ -808,6 +817,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
               <WebLinksScreen
                 data={data} isPartner={isPartner}
                 onEdit={store.setEditing}
+                onReorder={reorderLinkCategories}
               />
             )}
           </div>
@@ -848,7 +858,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           <MoneyScreen {...sharedScreenProps} onMarkPaid={toggleBillPaid} onPayDebt={recordDebtPayment} />
         )}
         {tab === 'links' && (
-          <LinksScreen {...sharedScreenProps} />
+          <LinksScreen {...sharedScreenProps} onReorder={reorderLinkCategories} />
         )}
       </div>
 
