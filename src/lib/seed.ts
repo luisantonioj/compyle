@@ -98,6 +98,15 @@ export const SEED_YLE: UserData = {
     { id: 'd3', name: 'Tita Bea — loan',          total: 8000, paid: 3000, due: '2026-07-15', months: 0, paidMonths: 0 },
   ],
   privacy: { tasks: true, habits: true, budget: true, payments: true, reminders: true },
+  linkCategories: [
+    { id: 'ylc1', name: 'School', color: '#8f1d2b', sort_order: 0 },
+    { id: 'ylc2', name: 'Socials', color: '#6b5e8a', sort_order: 1 },
+  ],
+  links: [
+    { id: 'yli1', categoryId: 'ylc1', title: 'DLSL Portal', url: 'https://dlsl.edu.ph' },
+    { id: 'yli2', categoryId: 'ylc1', title: 'Canvas LMS', url: 'https://canvas.instructure.com' },
+    { id: 'yli3', categoryId: 'ylc2', title: 'Instagram', url: 'https://instagram.com' },
+  ],
 };
 
 export const SEED_LUIS: UserData = {
@@ -142,6 +151,15 @@ export const SEED_LUIS: UserData = {
     { id: 'ld1', name: 'Home Credit — laptop', total: 65000, paid: 26000, due: '2026-09-15', months: 12, paidMonths: 4 },
   ],
   privacy: { tasks: true, habits: true, budget: true, payments: true, reminders: false },
+  linkCategories: [
+    { id: 'llc1', name: 'Work', color: '#3d6480', sort_order: 0 },
+    { id: 'llc2', name: 'Resources', color: '#4a5c3f', sort_order: 1 },
+  ],
+  links: [
+    { id: 'lli1', categoryId: 'llc1', title: 'GitHub', url: 'https://github.com' },
+    { id: 'lli2', categoryId: 'llc1', title: 'Linear', url: 'https://linear.app' },
+    { id: 'lli3', categoryId: 'llc2', title: 'MDN Web Docs', url: 'https://developer.mozilla.org' },
+  ],
 };
 
 export const EMPTY_DATA: UserData = {
@@ -152,6 +170,8 @@ export const EMPTY_DATA: UserData = {
   bills: [],
   debts: [],
   privacy: { tasks: true, habits: true, budget: true, payments: true, reminders: true },
+  linkCategories: [],
+  links: [],
 };
 
 // ─── helpers ───

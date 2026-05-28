@@ -6,7 +6,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { TODAY_KEY } from './seed';
-import type { Task, Habit, BankAccount, Transaction, Bill, Debt, PrivacySettings, UserData, UserProfile } from '../types';
+import type { Task, Habit, BankAccount, Transaction, Bill, Debt, PrivacySettings, UserData, UserProfile, LinkCategory, LinkItem } from '../types';
 
 // ── path helpers ────────────────────────────────────────────────────────────
 const col = (uid: string, name: string) => collection(db!, 'users', uid, name);
@@ -56,6 +56,20 @@ export const upsertDebt = (uid: string, debt: Debt) =>
 
 export const removeDebt = (uid: string, id: string) =>
   deleteDoc(ref(uid, 'pending_payments', id));
+
+// ── Link Categories ──────────────────────────────────────────────────────────
+export const upsertLinkCategory = (uid: string, cat: LinkCategory) =>
+  setDoc(ref(uid, 'link_categories', cat.id), stripUndefined(cat as unknown as Record<string, unknown>));
+
+export const removeLinkCategory = (uid: string, id: string) =>
+  deleteDoc(ref(uid, 'link_categories', id));
+
+// ── Links ────────────────────────────────────────────────────────────────────
+export const upsertLink = (uid: string, link: LinkItem) =>
+  setDoc(ref(uid, 'links', link.id), stripUndefined(link as unknown as Record<string, unknown>));
+
+export const removeLink = (uid: string, id: string) =>
+  deleteDoc(ref(uid, 'links', id));
 
 // ── Privacy settings ─────────────────────────────────────────────────────────
 export const savePrivacy = (uid: string, privacy: PrivacySettings) =>
@@ -121,7 +135,7 @@ export function subscribeUserData(
   const fired = new Set<string>();
   const mark = (key: string) => {
     fired.add(key);
-    if (fired.size === 7) onReady();
+    if (fired.size === 9) onReady();
   };
 
   const unsubs: Unsubscribe[] = [];
@@ -189,6 +203,21 @@ export function subscribeUserData(
   unsubs.push(onSnapshot(doc(db!, 'users', uid, 'tracker_visibility', 'settings'), (snap) => {
     if (snap.exists()) onPartial({ privacy: snap.data() as PrivacySettings });
     mark('privacy');
+  }));
+
+  // link categories
+  unsubs.push(onSnapshot(col(uid, 'link_categories'), (snap) => {
+    const linkCategories = snap.docs
+      .map((d) => d.data() as LinkCategory)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    onPartial({ linkCategories });
+    mark('link_categories');
+  }));
+
+  // links
+  unsubs.push(onSnapshot(col(uid, 'links'), (snap) => {
+    onPartial({ links: snap.docs.map((d) => d.data() as LinkItem) });
+    mark('links');
   }));
 
   return () => unsubs.forEach((u) => u());

@@ -72,6 +72,21 @@ export interface Debt {
   is_archived?: boolean;
 }
 
+export interface LinkCategory {
+  id: string;
+  name: string;
+  color: string;
+  sort_order?: number;
+}
+
+export interface LinkItem {
+  id: string;
+  categoryId: string;
+  title: string;
+  url: string;
+  description?: string;
+}
+
 export interface PrivacySettings {
   tasks: boolean;
   habits: boolean;
@@ -88,6 +103,8 @@ export interface UserData {
   bills: Bill[];
   debts: Debt[];
   privacy: PrivacySettings;
+  linkCategories: LinkCategory[];
+  links: LinkItem[];
 }
 
 export interface UserProfile {
@@ -98,7 +115,7 @@ export interface UserProfile {
   initial?: string;
 }
 
-export type TabId = 'today' | 'cal' | 'habits' | 'money';
+export type TabId = 'today' | 'cal' | 'habits' | 'money' | 'links';
 export type ViewMode = 'me' | 'partner';
 
 export type EditingState =
@@ -110,4 +127,6 @@ export type EditingState =
   | { type: 'category'; item?: Category & { bankId?: string } }
   | { type: 'bill'; item?: Bill }
   | { type: 'debt'; item?: Debt }
+  | { type: 'link-category'; item?: LinkCategory }
+  | { type: 'link-item'; item?: LinkItem; categoryId?: string }
   | null;

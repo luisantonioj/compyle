@@ -87,6 +87,18 @@ service cloud.firestore {
       allow write: if isOwner(uid) || isLinkedPartner(uid);
     }
 
+    // ── Link categories ───────────────────────────────────────────────────
+    match /users/{uid}/link_categories/{docId} {
+      allow read:  if isOwner(uid) || isLinkedPartner(uid);
+      allow write: if isOwner(uid) || isLinkedPartner(uid);
+    }
+
+    // ── Links ─────────────────────────────────────────────────────────────
+    match /users/{uid}/links/{docId} {
+      allow read:  if isOwner(uid) || isLinkedPartner(uid);
+      allow write: if isOwner(uid) || isLinkedPartner(uid);
+    }
+
     // ── Tracker visibility (privacy settings) ─────────────────────────────
     // Linked partner can read (needed so the security-rule get() resolves correctly);
     // only the owner can write.

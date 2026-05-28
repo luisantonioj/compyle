@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FormSheet, FormHead, FormFoot, Field, EmojiPicker, ColorPicker, HABIT_FREQS_DAYS, HABIT_FREQS_TIME, CAT_COLORS, BANK_COLORS } from './FormPrimitives';
 import { TODAY_KEY, parseKey } from '../../lib/seed';
-import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt } from '../../types';
+import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt, LinkCategory, LinkItem } from '../../types';
 
 // ─── Task form ───
 export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
@@ -497,6 +497,90 @@ export function DebtForm({ debt, onSave, onDelete, onClose }: {
         onSave={handleSave} onCancel={onClose}
         onDelete={editing && onDelete ? () => onDelete(debt!.id) : undefined}
         canSave={!!name.trim() && !!total} saveLabel={editing ? 'Save' : 'Track'}
+      />
+    </FormSheet>
+  );
+}
+
+// ─── Link Category form ───
+export function LinkCategoryForm({ cat, onSave, onDelete, onClose }: {
+  cat?: LinkCategory;
+  onSave: (cat: LinkCategory) => void;
+  onDelete?: (id: string) => void;
+  onClose: () => void;
+}) {
+  const editing = !!cat?.id;
+  const [name, setName] = useState(cat?.name ?? '');
+  const [color, setColor] = useState(cat?.color ?? CAT_COLORS[0]);
+
+  const handleSave = () => {
+    if (!name.trim()) return;
+    onSave({ id: cat?.id ?? 'lc_' + Date.now(), name: name.trim(), color, sort_order: cat?.sort_order });
+  };
+
+  return (
+    <FormSheet onClose={onClose}>
+      <FormHead kicker={editing ? 'Edit category' : 'New category'} title={editing ? 'Update' : 'Add a'} accent="category" onClose={onClose} />
+      <div className="form-body">
+        <Field label="Category name">
+          <input className="field-input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. School, Hobbies" />
+        </Field>
+        <Field label="Color">
+          <ColorPicker value={color} onChange={setColor} palette={CAT_COLORS} />
+        </Field>
+      </div>
+      <FormFoot
+        onSave={handleSave} onCancel={onClose}
+        onDelete={editing && onDelete ? () => onDelete(cat!.id) : undefined}
+        canSave={!!name.trim()} saveLabel={editing ? 'Save' : 'Create'}
+      />
+    </FormSheet>
+  );
+}
+
+// ─── Link Item form ───
+export function LinkItemForm({ link, categoryId, onSave, onDelete, onClose }: {
+  link?: LinkItem;
+  categoryId: string;
+  onSave: (link: LinkItem) => void;
+  onDelete?: (id: string) => void;
+  onClose: () => void;
+}) {
+  const editing = !!link?.id;
+  const [title, setTitle] = useState(link?.title ?? '');
+  const [url, setUrl] = useState(link?.url ?? '');
+  const [description, setDescription] = useState(link?.description ?? '');
+
+  const handleSave = () => {
+    if (!title.trim() || !url.trim()) return;
+    const normalizedUrl = url.trim().match(/^https?:\/\//) ? url.trim() : 'https://' + url.trim();
+    onSave({
+      id: link?.id ?? 'li_' + Date.now(),
+      categoryId: link?.categoryId ?? categoryId,
+      title: title.trim(),
+      url: normalizedUrl,
+      description: description.trim() || undefined,
+    });
+  };
+
+  return (
+    <FormSheet onClose={onClose}>
+      <FormHead kicker={editing ? 'Edit link' : 'New link'} title={editing ? 'Update' : 'Add a'} accent="link" onClose={onClose} />
+      <div className="form-body">
+        <Field label="Title">
+          <input className="field-input" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. DLSL Portal" />
+        </Field>
+        <Field label="URL">
+          <input className="field-input" type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
+        </Field>
+        <Field label="Description (optional)">
+          <input className="field-input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short note about this link" />
+        </Field>
+      </div>
+      <FormFoot
+        onSave={handleSave} onCancel={onClose}
+        onDelete={editing && onDelete ? () => onDelete(link!.id) : undefined}
+        canSave={!!title.trim() && !!url.trim()} saveLabel={editing ? 'Save' : 'Add link'}
       />
     </FormSheet>
   );

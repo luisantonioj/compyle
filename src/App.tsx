@@ -11,15 +11,18 @@ import { TodayScreen } from './screens/TodayScreen';
 import { CalendarScreen } from './screens/CalendarScreen';
 import { HabitsScreen } from './screens/HabitsScreen';
 import { MoneyScreen } from './screens/MoneyScreen';
+import { LinksScreen } from './screens/LinksScreen';
 import { WebTodayScreen } from './screens/web/WebTodayScreen';
 import { WebPlanScreen } from './screens/web/WebPlanScreen';
 import { WebHabitsScreen } from './screens/web/WebHabitsScreen';
 import { WebMoneyScreen } from './screens/web/WebMoneyScreen';
+import { WebLinksScreen } from './screens/web/WebLinksScreen';
 import { ProfileSheet } from './screens/ProfileSheet';
 import { AuthScreen } from './screens/AuthScreen';
 import {
   TaskForm, TaskViewModal, HabitForm, TransactionForm,
   AccountForm, CategoryForm, BillForm, DebtForm,
+  LinkCategoryForm, LinkItemForm,
 } from './components/forms/Forms';
 import { useIsWeb } from './hooks/useIsWeb';
 import { useAuth } from './hooks/useAuth';
@@ -33,11 +36,13 @@ import {
   upsertBank, removeBank,
   upsertBill, removeBill,
   upsertDebt, removeDebt,
+  upsertLinkCategory, removeLinkCategory,
+  upsertLink, removeLink,
   savePrivacy,
   savePushSummary,
   createInvite, acceptInvite, unlinkPartner,
 } from './lib/db';
-import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt, PrivacySettings } from './types';
+import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt, PrivacySettings, LinkCategory, LinkItem } from './types';
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -525,11 +530,66 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     }
   };
 
+  // ─── Link categories ───
+  const saveLinkCategory = (cat: LinkCategory) => {
+    if (fs) {
+      void upsertLinkCategory(activeUid, cat);
+    } else {
+      setActiveData((d) => {
+        const existed = d.linkCategories.find((c) => c.id === cat.id);
+        return { ...d, linkCategories: existed ? d.linkCategories.map((c) => c.id === cat.id ? cat : c) : [...d.linkCategories, cat] };
+      });
+    }
+    store.setEditing(null);
+    store.flash('Category saved');
+  };
+
+  const deleteLinkCategory = (id: string) => {
+    store.setEditing(null);
+    if (fs) {
+      void removeLinkCategory(activeUid, id);
+      // orphan links will remain in Firestore until explicitly removed; clean them up
+      data.links.filter((l) => l.categoryId === id).forEach((l) => void removeLink(activeUid, l.id));
+    } else {
+      setActiveData((d) => ({
+        ...d,
+        linkCategories: d.linkCategories.filter((c) => c.id !== id),
+        links: d.links.filter((l) => l.categoryId !== id),
+      }));
+    }
+    store.flash('Category deleted');
+  };
+
+  // ─── Links ───
+  const saveLink = (link: LinkItem) => {
+    if (fs) {
+      void upsertLink(activeUid, link);
+    } else {
+      setActiveData((d) => {
+        const existed = d.links.find((l) => l.id === link.id);
+        return { ...d, links: existed ? d.links.map((l) => l.id === link.id ? link : l) : [...d.links, link] };
+      });
+    }
+    store.setEditing(null);
+    store.flash('Link saved');
+  };
+
+  const deleteLink = (id: string) => {
+    store.setEditing(null);
+    if (fs) {
+      void removeLink(activeUid, id);
+    } else {
+      setActiveData((d) => ({ ...d, links: d.links.filter((l) => l.id !== id) }));
+    }
+    store.flash('Link deleted');
+  };
+
   // ─── FAB action ───
   const fabAction = (() => {
     if (tab === 'today' || tab === 'cal') return 'task';
     if (tab === 'habits') return 'habit';
     if (tab === 'money') return 'tx';
+    if (tab === 'links') return 'link-category';
     return null;
   })();
 
@@ -672,6 +732,23 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           onClose={() => store.setEditing(null)}
         />
       )}
+      {editing?.type === 'link-category' && (
+        <LinkCategoryForm
+          cat={editing.item}
+          onSave={saveLinkCategory}
+          onDelete={(id) => confirmDelete('this category', () => deleteLinkCategory(id))}
+          onClose={() => store.setEditing(null)}
+        />
+      )}
+      {editing?.type === 'link-item' && (
+        <LinkItemForm
+          link={editing.item}
+          categoryId={editing.categoryId ?? ''}
+          onSave={saveLink}
+          onDelete={(id) => confirmDelete('this link', () => deleteLink(id))}
+          onClose={() => store.setEditing(null)}
+        />
+      )}
     </>
   );
 
@@ -727,6 +804,12 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
                 onEdit={store.setEditing} onMarkPaid={toggleBillPaid}
               />
             )}
+            {tab === 'links' && (
+              <WebLinksScreen
+                data={data} isPartner={isPartner}
+                onEdit={store.setEditing}
+              />
+            )}
           </div>
         </main>
         {overlays}
@@ -764,6 +847,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
         {tab === 'money' && (
           <MoneyScreen {...sharedScreenProps} onMarkPaid={toggleBillPaid} onPayDebt={recordDebtPayment} />
         )}
+        {tab === 'links' && (
+          <LinksScreen {...sharedScreenProps} />
+        )}
       </div>
 
       {fabAction && !editing && !profileOpen && !confirm && (
@@ -772,7 +858,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           onClick={() => store.setEditing(
             fabAction === 'task'
               ? { type: 'task', dateKey: tab === 'cal' ? calDate : TODAY_KEY }
-              : { type: fabAction as 'habit' | 'tx' }
+              : { type: fabAction as 'habit' | 'tx' | 'link-category' }
           )}
           title={fabAction === 'task' ? 'New task' : fabAction === 'habit' ? 'New tracker' : 'Log spend'}
         >

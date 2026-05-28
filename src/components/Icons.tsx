@@ -112,4 +112,10 @@ export const TabIcons = {
       <circle cx="11" cy="13.5" r="1.5" fill="currentColor" opacity={active ? 1 : 0.5}/>
     </svg>
   ),
+  links: (active: boolean) => (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M9 13a4 4 0 005.66 0l2-2a4 4 0 00-5.66-5.66L9.88 6.5" stroke="currentColor" strokeWidth={active ? 1.8 : 1.4} strokeLinecap="round"/>
+      <path d="M13 9a4 4 0 00-5.66 0l-2 2a4 4 0 005.66 5.66l1.12-1.12" stroke="currentColor" strokeWidth={active ? 1.8 : 1.4} strokeLinecap="round"/>
+    </svg>
+  ),
 };
