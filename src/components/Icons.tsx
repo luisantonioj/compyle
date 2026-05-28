@@ -118,4 +118,19 @@ export const TabIcons = {
       <path d="M13 9a4 4 0 00-5.66 0l-2 2a4 4 0 005.66 5.66l1.12-1.12" stroke="currentColor" strokeWidth={active ? 1.8 : 1.4} strokeLinecap="round"/>
     </svg>
   ),
+  notes: (active: boolean) => (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path
+        d="M5 3h9l3 3v13a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z"
+        stroke="currentColor"
+        strokeWidth={active ? 1.8 : 1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill={active ? 'currentColor' : 'none'}
+        fillOpacity={active ? 0.1 : 0}
+      />
+      <path d="M14 3v4h4" stroke="currentColor" strokeWidth={active ? 1.8 : 1.4} strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M7 9h8M7 12h8M7 15h5" stroke="currentColor" strokeWidth={active ? 1.8 : 1.4} strokeLinecap="round"/>
+    </svg>
+  ),
 };

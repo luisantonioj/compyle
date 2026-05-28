@@ -8,6 +8,7 @@ const NAV_ITEMS: { id: TabId; label: string }[] = [
   { id: 'habits', label: 'Track' },
   { id: 'money',  label: 'Money'  },
   { id: 'links',  label: 'Links'  },
+  { id: 'notes',  label: 'Notes'  },
 ];
 
 interface SidebarProps {

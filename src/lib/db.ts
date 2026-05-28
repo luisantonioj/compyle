@@ -6,7 +6,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { TODAY_KEY } from './seed';
-import type { Task, Habit, BankAccount, Transaction, Bill, Debt, PrivacySettings, UserData, UserProfile, LinkCategory, LinkItem } from '../types';
+import type { Task, Habit, BankAccount, Transaction, Bill, Debt, PrivacySettings, UserData, UserProfile, LinkCategory, LinkItem, Note } from '../types';
 
 // ── path helpers ────────────────────────────────────────────────────────────
 const col = (uid: string, name: string) => collection(db!, 'users', uid, name);
@@ -71,6 +71,13 @@ export const upsertLink = (uid: string, link: LinkItem) =>
 export const removeLink = (uid: string, id: string) =>
   deleteDoc(ref(uid, 'links', id));
 
+// ── Notes ────────────────────────────────────────────────────────────────────
+export const upsertNote = (uid: string, note: Note) =>
+  setDoc(ref(uid, 'notes', note.id), stripUndefined(note as unknown as Record<string, unknown>));
+
+export const removeNote = (uid: string, id: string) =>
+  deleteDoc(ref(uid, 'notes', id));
+
 // ── Privacy settings ─────────────────────────────────────────────────────────
 export const savePrivacy = (uid: string, privacy: PrivacySettings) =>
   setDoc(doc(db!, 'users', uid, 'tracker_visibility', 'settings'), privacy);
@@ -126,7 +133,7 @@ export const savePushSummary = (uid: string, summary: string) =>
 
 // ── Real-time subscription ────────────────────────────────────────────────────
 // Calls onPartial whenever any subcollection changes.
-// Calls onReady once all 7 listeners have fired at least once (initial load done).
+// Calls onReady once all 10 listeners have fired at least once (initial load done).
 export function subscribeUserData(
   uid: string,
   onPartial: (data: Partial<UserData>) => void,
@@ -135,7 +142,7 @@ export function subscribeUserData(
   const fired = new Set<string>();
   const mark = (key: string) => {
     fired.add(key);
-    if (fired.size === 9) onReady();
+    if (fired.size === 10) onReady();
   };
 
   const unsubs: Unsubscribe[] = [];
@@ -218,6 +225,15 @@ export function subscribeUserData(
   unsubs.push(onSnapshot(col(uid, 'links'), (snap) => {
     onPartial({ links: snap.docs.map((d) => d.data() as LinkItem) });
     mark('links');
+  }));
+
+  // notes — sorted newest first
+  unsubs.push(onSnapshot(col(uid, 'notes'), (snap) => {
+    const notes = snap.docs
+      .map((d) => d.data() as Note)
+      .sort((a, b) => b.updated_at - a.updated_at);
+    onPartial({ notes });
+    mark('notes');
   }));
 
   return () => unsubs.forEach((u) => u());

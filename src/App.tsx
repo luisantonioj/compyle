@@ -12,11 +12,13 @@ import { CalendarScreen } from './screens/CalendarScreen';
 import { HabitsScreen } from './screens/HabitsScreen';
 import { MoneyScreen } from './screens/MoneyScreen';
 import { LinksScreen } from './screens/LinksScreen';
+import { NotesScreen } from './screens/NotesScreen';
 import { WebTodayScreen } from './screens/web/WebTodayScreen';
 import { WebPlanScreen } from './screens/web/WebPlanScreen';
 import { WebHabitsScreen } from './screens/web/WebHabitsScreen';
 import { WebMoneyScreen } from './screens/web/WebMoneyScreen';
 import { WebLinksScreen } from './screens/web/WebLinksScreen';
+import { WebNotesScreen } from './screens/web/WebNotesScreen';
 import { ProfileSheet } from './screens/ProfileSheet';
 import { AuthScreen } from './screens/AuthScreen';
 import {
@@ -24,6 +26,7 @@ import {
   AccountForm, CategoryForm, BillForm, DebtForm,
   LinkCategoryForm, LinkItemForm,
 } from './components/forms/Forms';
+import { NoteForm } from './components/forms/NoteForm';
 import { useIsWeb } from './hooks/useIsWeb';
 import { useAuth } from './hooks/useAuth';
 import { useFirestoreSync } from './hooks/useFirestoreSync';
@@ -38,11 +41,12 @@ import {
   upsertDebt, removeDebt,
   upsertLinkCategory, removeLinkCategory,
   upsertLink, removeLink,
+  upsertNote, removeNote,
   savePrivacy,
   savePushSummary,
   createInvite, acceptInvite, unlinkPartner,
 } from './lib/db';
-import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt, PrivacySettings, LinkCategory, LinkItem } from './types';
+import type { Task, Habit, Transaction, BankAccount, Category, Bill, Debt, PrivacySettings, LinkCategory, LinkItem, Note } from './types';
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -593,12 +597,40 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     store.flash('Link deleted');
   };
 
+  // ─── Note CRUD ───
+  const saveNote = (note: Note) => {
+    if (fs) {
+      void upsertNote(activeUid, note);
+    } else {
+      setActiveData((d) => {
+        const existed = d.notes.find((n) => n.id === note.id);
+        const notes = existed
+          ? d.notes.map((n) => (n.id === note.id ? note : n))
+          : [note, ...d.notes];
+        return { ...d, notes };
+      });
+    }
+    store.setEditing(null);
+    store.flash(editing && 'item' in editing && editing.item ? 'Note saved' : 'Note created');
+  };
+
+  const deleteNote = (id: string) => {
+    store.setEditing(null);
+    if (fs) {
+      void removeNote(activeUid, id);
+    } else {
+      setActiveData((d) => ({ ...d, notes: d.notes.filter((n) => n.id !== id) }));
+    }
+    store.flash('Note deleted');
+  };
+
   // ─── FAB action ───
   const fabAction = (() => {
     if (tab === 'today' || tab === 'cal') return 'task';
     if (tab === 'habits') return 'habit';
     if (tab === 'money') return 'tx';
     if (tab === 'links') return 'link-category';
+    if (tab === 'notes') return 'note';
     return null;
   })();
 
@@ -758,6 +790,14 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           onClose={() => store.setEditing(null)}
         />
       )}
+      {editing?.type === 'note' && (
+        <NoteForm
+          note={editing.item}
+          onSave={saveNote}
+          onDelete={(id) => confirmDelete('this note', () => deleteNote(id))}
+          onClose={() => store.setEditing(null)}
+        />
+      )}
     </>
   );
 
@@ -820,6 +860,12 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
                 onReorder={reorderLinkCategories}
               />
             )}
+            {tab === 'notes' && (
+              <WebNotesScreen
+                data={data} isPartner={isPartner}
+                onEdit={store.setEditing}
+              />
+            )}
           </div>
         </main>
         {overlays}
@@ -860,6 +906,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
         {tab === 'links' && (
           <LinksScreen {...sharedScreenProps} onReorder={reorderLinkCategories} />
         )}
+        {tab === 'notes' && (
+          <NotesScreen {...sharedScreenProps} />
+        )}
       </div>
 
       {fabAction && !editing && !profileOpen && !confirm && (
@@ -868,9 +917,11 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           onClick={() => store.setEditing(
             fabAction === 'task'
               ? { type: 'task', dateKey: tab === 'cal' ? calDate : TODAY_KEY }
+              : fabAction === 'note'
+              ? { type: 'note' }
               : { type: fabAction as 'habit' | 'tx' | 'link-category' }
           )}
-          title={fabAction === 'task' ? 'New task' : fabAction === 'habit' ? 'New tracker' : 'Log spend'}
+          title={fabAction === 'task' ? 'New task' : fabAction === 'habit' ? 'New tracker' : fabAction === 'note' ? 'New note' : 'Log spend'}
         >
           {Icons.plus({ stroke: 'var(--cream)' })}
         </button>

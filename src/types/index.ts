@@ -87,6 +87,13 @@ export interface LinkItem {
   description?: string;
 }
 
+export interface Note {
+  id: string;
+  title: string;
+  content: string;   // Tiptap JSON stringified
+  updated_at: number; // Unix ms
+}
+
 export interface PrivacySettings {
   tasks: boolean;
   habits: boolean;
@@ -105,6 +112,7 @@ export interface UserData {
   privacy: PrivacySettings;
   linkCategories: LinkCategory[];
   links: LinkItem[];
+  notes: Note[];
 }
 
 export interface UserProfile {
@@ -115,7 +123,7 @@ export interface UserProfile {
   initial?: string;
 }
 
-export type TabId = 'today' | 'cal' | 'habits' | 'money' | 'links';
+export type TabId = 'today' | 'cal' | 'habits' | 'money' | 'links' | 'notes';
 export type ViewMode = 'me' | 'partner';
 
 export type EditingState =
@@ -129,4 +137,5 @@ export type EditingState =
   | { type: 'debt'; item?: Debt }
   | { type: 'link-category'; item?: LinkCategory }
   | { type: 'link-item'; item?: LinkItem; categoryId?: string }
+  | { type: 'note'; item?: Note }
   | null;

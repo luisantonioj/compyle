@@ -1,5 +1,5 @@
 // compyle — seed / demo data (used before Firebase is wired up)
-import type { UserData, UserProfile, Task } from '../types';
+import type { UserData, UserProfile, Task, Note } from '../types';
 
 export const TODAY_KEY = (() => {
   const d = new Date();
@@ -107,6 +107,34 @@ export const SEED_YLE: UserData = {
     { id: 'yli2', categoryId: 'ylc1', title: 'Canvas LMS', url: 'https://canvas.instructure.com' },
     { id: 'yli3', categoryId: 'ylc2', title: 'Instagram', url: 'https://instagram.com' },
   ],
+  notes: [
+    {
+      id: 'yn1',
+      title: 'Anniversary ideas',
+      content: JSON.stringify({ type: 'doc', content: [
+        { type: 'paragraph', content: [{ type: 'text', text: 'Dinner at Mecha Uma — make a reservation early' }] },
+        { type: 'taskList', content: [
+          { type: 'taskItem', attrs: { checked: false }, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Book the restaurant' }] }] },
+          { type: 'taskItem', attrs: { checked: false }, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Order flowers' }] }] },
+          { type: 'taskItem', attrs: { checked: true },  content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Pick out outfit' }] }] },
+        ]},
+      ] as unknown as Note[] }),
+      updated_at: Date.now() - 7_200_000,
+    },
+    {
+      id: 'yn2',
+      title: 'Grocery list',
+      content: JSON.stringify({ type: 'doc', content: [
+        { type: 'bulletList', content: [
+          { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Eggs' }] }] },
+          { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Oat milk' }] }] },
+          { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Greek yogurt' }] }] },
+          { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Baby spinach' }] }] },
+        ]},
+      ] as unknown as Note[] }),
+      updated_at: Date.now() - 86_400_000,
+    },
+  ],
 };
 
 export const SEED_LUIS: UserData = {
@@ -160,6 +188,7 @@ export const SEED_LUIS: UserData = {
     { id: 'lli2', categoryId: 'llc1', title: 'Linear', url: 'https://linear.app' },
     { id: 'lli3', categoryId: 'llc2', title: 'MDN Web Docs', url: 'https://developer.mozilla.org' },
   ],
+  notes: [],
 };
 
 export const EMPTY_DATA: UserData = {
@@ -172,6 +201,7 @@ export const EMPTY_DATA: UserData = {
   privacy: { tasks: true, habits: true, budget: true, payments: true, reminders: true },
   linkCategories: [],
   links: [],
+  notes: [],
 };
 
 // ─── helpers ───
