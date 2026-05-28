@@ -84,12 +84,7 @@ export function WebLinksScreen({ data, onEdit, onReorder, onReorderLinks }: WebL
           onDragCancel={() => setActiveId(null)}
         >
           <SortableContext items={linkCategories.map((c) => c.id)} strategy={rectSortingStrategy}>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-              gap: 20,
-              alignItems: 'start',
-            }}>
+            <div style={{ columns: '300px 3', columnGap: '20px' }}>
               {linkCategories.map((cat) => (
                 <SortableWebCard
                   key={cat.id}
@@ -136,6 +131,8 @@ function SortableWebCard({ cat, links, onEdit, onReorderLinks }: {
         opacity: isDragging ? 0.35 : 1,
         zIndex: isDragging ? 1 : 0,
         position: 'relative',
+        breakInside: 'avoid',
+        marginBottom: 20,
       }}
     >
       <WebCardContent cat={cat} links={links} onEdit={onEdit} onReorderLinks={onReorderLinks} dragListeners={listeners} dragAttributes={attributes} />
