@@ -230,11 +230,16 @@ export function subscribeUserData(
     mark('links');
   }));
 
-  // notes — sorted newest first
+  // notes — sorted by sort_order if set, otherwise by updated_at desc
   unsubs.push(onSnapshot(col(uid, 'notes'), (snap) => {
     const notes = snap.docs
       .map((d) => d.data() as Note)
-      .sort((a, b) => b.updated_at - a.updated_at);
+      .sort((a, b) => {
+        if (a.sort_order !== undefined && b.sort_order !== undefined) return a.sort_order - b.sort_order;
+        if (a.sort_order !== undefined) return -1;
+        if (b.sort_order !== undefined) return 1;
+        return b.updated_at - a.updated_at;
+      });
     onPartial({ notes });
     mark('notes');
   }));

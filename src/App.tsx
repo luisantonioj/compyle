@@ -609,6 +609,24 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     store.flash('Link deleted');
   };
 
+  // ─── Note reorder / inline update ───
+  const reorderNotes = (reorderedNotes: Note[]) => {
+    const ordered = reorderedNotes.map((n, i) => ({ ...n, sort_order: i }));
+    if (fs) {
+      ordered.forEach((n) => void upsertNote(activeUid, n));
+    } else {
+      setActiveData((d) => ({ ...d, notes: ordered }));
+    }
+  };
+
+  const updateNoteContent = (note: Note) => {
+    if (fs) {
+      void upsertNote(activeUid, note);
+    } else {
+      setActiveData((d) => ({ ...d, notes: d.notes.map((n) => (n.id === note.id ? note : n)) }));
+    }
+  };
+
   // ─── Note CRUD ───
   const saveNote = (note: Note) => {
     if (fs) {
@@ -877,6 +895,8 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
               <WebNotesScreen
                 data={data} isPartner={isPartner}
                 onEdit={store.setEditing}
+                onReorder={reorderNotes}
+                onUpdateNote={updateNoteContent}
               />
             )}
           </div>

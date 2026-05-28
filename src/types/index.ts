@@ -93,6 +93,7 @@ export interface Note {
   title: string;
   content: string;   // Tiptap JSON stringified
   updated_at: number; // Unix ms
+  sort_order?: number;
 }
 
 export interface PrivacySettings {
