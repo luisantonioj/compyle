@@ -574,6 +574,18 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   };
 
   // ─── Links ───
+  const reorderLinks = (reorderedCatLinks: LinkItem[]) => {
+    const ordered = reorderedCatLinks.map((l, i) => ({ ...l, sort_order: i }));
+    if (fs) {
+      ordered.forEach((l) => void upsertLink(activeUid, l));
+    } else {
+      setActiveData((d) => {
+        const updated = new Map(ordered.map((l) => [l.id, l]));
+        return { ...d, links: d.links.map((l) => updated.get(l.id) ?? l) };
+      });
+    }
+  };
+
   const saveLink = (link: LinkItem) => {
     if (fs) {
       void upsertLink(activeUid, link);
@@ -858,6 +870,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
                 data={data} isPartner={isPartner}
                 onEdit={store.setEditing}
                 onReorder={reorderLinkCategories}
+                onReorderLinks={reorderLinks}
               />
             )}
             {tab === 'notes' && (
@@ -904,7 +917,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           <MoneyScreen {...sharedScreenProps} onMarkPaid={toggleBillPaid} onPayDebt={recordDebtPayment} />
         )}
         {tab === 'links' && (
-          <LinksScreen {...sharedScreenProps} onReorder={reorderLinkCategories} />
+          <LinksScreen {...sharedScreenProps} onReorder={reorderLinkCategories} onReorderLinks={reorderLinks} />
         )}
         {tab === 'notes' && (
           <NotesScreen {...sharedScreenProps} />

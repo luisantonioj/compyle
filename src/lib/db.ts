@@ -223,7 +223,10 @@ export function subscribeUserData(
 
   // links
   unsubs.push(onSnapshot(col(uid, 'links'), (snap) => {
-    onPartial({ links: snap.docs.map((d) => d.data() as LinkItem) });
+    const links = snap.docs
+      .map((d) => d.data() as LinkItem)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    onPartial({ links });
     mark('links');
   }));
 

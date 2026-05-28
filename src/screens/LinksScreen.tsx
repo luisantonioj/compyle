@@ -33,9 +33,10 @@ interface LinksScreenProps {
   onProfile: () => void;
   onEdit: (state: EditingState) => void;
   onReorder: (cats: LinkCategory[]) => void;
+  onReorderLinks: (links: LinkItem[]) => void;
 }
 
-export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit, onReorder }: LinksScreenProps) {
+export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit, onReorder, onReorderLinks }: LinksScreenProps) {
   const { linkCategories, links } = data;
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -94,6 +95,7 @@ export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit
                   cat={cat}
                   links={links.filter((l) => l.categoryId === cat.id)}
                   onEdit={onEdit}
+                  onReorderLinks={onReorderLinks}
                 />
               ))}
             </SortableContext>
@@ -105,7 +107,7 @@ export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit
             >
               {activeCat && (
                 <div style={{ transform: 'scale(1.02)', boxShadow: '0 16px 40px rgba(21,19,15,0.18)', borderRadius: 18 }}>
-                  <CategoryCardContent cat={activeCat} links={activeLinks} onEdit={onEdit} isOverlay />
+                  <CategoryCardContent cat={activeCat} links={activeLinks} onEdit={onEdit} onReorderLinks={onReorderLinks} isOverlay />
                 </div>
               )}
             </DragOverlay>
@@ -132,10 +134,11 @@ export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit
   );
 }
 
-function SortableCategoryCard({ cat, links, onEdit }: {
+function SortableCategoryCard({ cat, links, onEdit, onReorderLinks }: {
   cat: LinkCategory;
   links: LinkItem[];
   onEdit: (state: EditingState) => void;
+  onReorderLinks: (links: LinkItem[]) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: cat.id });
 
@@ -154,6 +157,7 @@ function SortableCategoryCard({ cat, links, onEdit }: {
         cat={cat}
         links={links}
         onEdit={onEdit}
+        onReorderLinks={onReorderLinks}
         dragListeners={listeners}
         dragAttributes={attributes}
       />
@@ -161,14 +165,33 @@ function SortableCategoryCard({ cat, links, onEdit }: {
   );
 }
 
-function CategoryCardContent({ cat, links, onEdit, dragListeners, dragAttributes, isOverlay }: {
+function CategoryCardContent({ cat, links, onEdit, onReorderLinks, dragListeners, dragAttributes, isOverlay }: {
   cat: LinkCategory;
   links: LinkItem[];
   onEdit: (state: EditingState) => void;
+  onReorderLinks: (links: LinkItem[]) => void;
   dragListeners?: ReturnType<typeof useSortable>['listeners'];
   dragAttributes?: ReturnType<typeof useSortable>['attributes'];
   isOverlay?: boolean;
 }) {
+  const [activeLinkId, setActiveLinkId] = useState<string | null>(null);
+
+  const linkSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 220, tolerance: 6 } }),
+  );
+
+  const handleLinkDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveLinkId(null);
+    if (!over || active.id === over.id) return;
+    const oldIndex = links.findIndex((l) => l.id === active.id);
+    const newIndex = links.findIndex((l) => l.id === over.id);
+    onReorderLinks(arrayMove(links, oldIndex, newIndex));
+  };
+
+  const activeLink = activeLinkId ? links.find((l) => l.id === activeLinkId) ?? null : null;
+
   return (
     <div className="card white" style={{ marginBottom: 12, padding: '14px 18px' }}>
       <div style={{
@@ -204,14 +227,46 @@ function CategoryCardContent({ cat, links, onEdit, dragListeners, dragAttributes
       {links.length > 0 && (
         <>
           <div className="hr" />
-          {links.map((link, idx) => (
-            <LinkRow
-              key={link.id}
-              link={link}
-              isLast={idx === links.length - 1}
-              onEdit={() => !isOverlay && onEdit({ type: 'link-item', item: link, categoryId: cat.id })}
-            />
-          ))}
+          {isOverlay ? (
+            links.map((link, idx) => (
+              <LinkRow
+                key={link.id}
+                link={link}
+                isLast={idx === links.length - 1}
+                onEdit={() => {}}
+              />
+            ))
+          ) : (
+            <DndContext
+              sensors={linkSensors}
+              collisionDetection={closestCenter}
+              onDragStart={(e) => setActiveLinkId(e.active.id as string)}
+              onDragEnd={handleLinkDragEnd}
+              onDragCancel={() => setActiveLinkId(null)}
+            >
+              <SortableContext items={links.map((l) => l.id)} strategy={verticalListSortingStrategy}>
+                {links.map((link, idx) => (
+                  <SortableLinkRow
+                    key={link.id}
+                    link={link}
+                    isLast={idx === links.length - 1}
+                    onEdit={() => onEdit({ type: 'link-item', item: link, categoryId: cat.id })}
+                  />
+                ))}
+              </SortableContext>
+              <DragOverlay
+                dropAnimation={{
+                  sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.35' } } }),
+                }}
+              >
+                {activeLink && (
+                  <div style={{ boxShadow: '0 8px 24px rgba(21,19,15,0.14)', borderRadius: 8, background: 'var(--cream)' }}>
+                    <LinkRow link={activeLink} isLast onEdit={() => {}} />
+                  </div>
+                )}
+              </DragOverlay>
+            </DndContext>
+          )}
         </>
       )}
 
@@ -229,6 +284,26 @@ function CategoryCardContent({ cat, links, onEdit, dragListeners, dragAttributes
           + Add link
         </button>
       )}
+    </div>
+  );
+}
+
+function SortableLinkRow({ link, isLast, onEdit }: { link: LinkItem; isLast: boolean; onEdit: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.35 : 1,
+        touchAction: 'none',
+      }}
+      {...listeners}
+      {...attributes}
+    >
+      <LinkRow link={link} isLast={isLast} onEdit={onEdit} />
     </div>
   );
 }

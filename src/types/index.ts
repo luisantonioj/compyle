@@ -85,6 +85,7 @@ export interface LinkItem {
   title: string;
   url: string;
   description?: string;
+  sort_order?: number;
 }
 
 export interface Note {
