@@ -50,31 +50,33 @@
 .note-editor-body ul[data-type="taskList"] {
   list-style: none;
   padding-left: 0;
-  margin: 4px 0;
+  margin: 2px 0;
 }
 .note-editor-body ul[data-type="taskList"] li {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
-  margin: 3px 0;
+  padding: 3px 0;
+  margin: 0;
 }
 .note-editor-body ul[data-type="taskList"] li > label {
   flex-shrink: 0;
-  margin-top: 3px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 .note-editor-body ul[data-type="taskList"] li > label > input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   border: 1.5px solid var(--ink-faint);
   border-radius: 4px;
   background: transparent;
   cursor: pointer;
   position: relative;
   transition: background 0.15s, border-color 0.15s;
-  display: block;
+  flex-shrink: 0;
 }
 .note-editor-body ul[data-type="taskList"] li > label > input[type="checkbox"]:checked {
   background: var(--clay);
@@ -85,8 +87,8 @@
   position: absolute;
   left: 4px;
   top: 1px;
-  width: 5px;
-  height: 9px;
+  width: 4px;
+  height: 8px;
   border: 2px solid white;
   border-top: none;
   border-left: none;
@@ -98,6 +100,10 @@
 }
 .note-editor-body ul[data-type="taskList"] li > div {
   flex: 1;
+}
+.note-editor-body ul[data-type="taskList"] li > div > p {
+  margin: 0;
+  line-height: 1.5;
 }
 
 /* Formatting toolbar */
