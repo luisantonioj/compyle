@@ -306,7 +306,7 @@ function NoteCardContent({
             <GripIcon />
           </button>
           <span style={{
-            fontFamily: 'var(--serif)', fontStyle: 'italic',
+            fontFamily: 'var(--serif)',
             fontSize: 18, letterSpacing: '-0.01em', color: 'var(--ink)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>

@@ -186,7 +186,6 @@
 /* Note card title */
 .note-card-title {
   font-family: var(--serif);
-  font-style: italic;
   font-size: 17px;
   color: var(--ink);
   line-height: 1.3;
