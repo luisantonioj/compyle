@@ -1,5 +1,5 @@
 // compyle — Track screen (mobile)
-import React from 'react';
+import React, { useState } from 'react';
 import { Icons } from '../components/Icons';
 import { DayChecklist } from '../components/ui/shared';
 import { TODAY_KEY, computeStreak } from '../lib/seed';
@@ -16,7 +16,9 @@ interface HabitsProps {
 }
 
 export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProfile, onTrackDate, onEdit }: HabitsProps) {
-  const trackers = data.habits;
+  const trackers = data.habits.filter((h) => !h.archived);
+  const archivedTrackers = data.habits.filter((h) => h.archived);
+  const [showArchived, setShowArchived] = useState(false);
   const doneToday = trackers.filter((h) => h.completedDates?.includes(TODAY_KEY)).length;
 
   const longestStreak = trackers.length > 0
@@ -125,6 +127,50 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
             + Add tracker
           </button>
         </div>
+
+      {archivedTrackers.length > 0 && (
+        <div className="pad-x" style={{ marginTop: 8 }}>
+          <button
+            onClick={() => setShowArchived((v) => !v)}
+            style={{
+              width: '100%', padding: '10px', borderRadius: 12,
+              border: '1px dashed var(--hair-strong)', background: 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              color: 'var(--ink-mute)', fontFamily: 'var(--mono)', fontSize: 10,
+              letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600,
+            }}
+          >
+            {showArchived ? '↑ Hide archived' : `📦 ${archivedTrackers.length} archived`}
+          </button>
+          {showArchived && (
+            <div className="card white" style={{ padding: '4px 18px', marginTop: 8, opacity: 0.6 }}>
+              {archivedTrackers.map((h: Habit) => (
+                <div key={h.id} className="habit-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div
+                      style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
+                      onClick={() => onEdit({ type: 'habit', item: h })}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                        <div style={{ fontSize: 16, color: 'var(--ink)' }}>{h.name}</div>
+                        <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--ink-faint)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                          archived
+                        </span>
+                      </div>
+                      {h.note && (
+                        <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2 }}>
+                          {h.note}
+                        </div>
+                      )}
+                    </div>
+                    {Icons.chevR({ stroke: 'var(--ink-faint)' })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ height: 40 }} />
     </div>

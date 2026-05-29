@@ -69,6 +69,7 @@
 .form-foot .save:disabled { opacity: 0.4; }
 .form-foot .cancel { background: transparent; color: var(--ink-soft); border: 1px solid var(--hair-strong); flex: 0 0 90px; }
 .form-foot .del { background: rgba(143, 29, 43, 0.08); color: var(--clay); flex: 0 0 50px; font-size: 16px; }
+.form-foot .arch { background: rgba(60, 100, 128, 0.08); color: var(--ink-soft); flex: 0 0 50px; font-size: 16px; }
 
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field-label {

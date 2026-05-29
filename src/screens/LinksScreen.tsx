@@ -37,8 +37,11 @@ interface LinksScreenProps {
 }
 
 export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit, onReorder, onReorderLinks }: LinksScreenProps) {
-  const { linkCategories, links } = data;
+  const activeCategories = data.linkCategories.filter((c) => !c.archived);
+  const activeLinks = data.links.filter((l) => !l.archived);
+  const archivedCategories = data.linkCategories.filter((c) => c.archived);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -49,13 +52,13 @@ export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit
     const { active, over } = event;
     setActiveId(null);
     if (!over || active.id === over.id) return;
-    const oldIndex = linkCategories.findIndex((c) => c.id === active.id);
-    const newIndex = linkCategories.findIndex((c) => c.id === over.id);
-    onReorder(arrayMove(linkCategories, oldIndex, newIndex));
+    const oldIndex = activeCategories.findIndex((c) => c.id === active.id);
+    const newIndex = activeCategories.findIndex((c) => c.id === over.id);
+    onReorder(arrayMove(activeCategories, oldIndex, newIndex));
   };
 
-  const activeCat = activeId ? linkCategories.find((c) => c.id === activeId) ?? null : null;
-  const activeLinks = activeId ? links.filter((l) => l.categoryId === activeId) : [];
+  const activeCat = activeId ? activeCategories.find((c) => c.id === activeId) ?? null : null;
+  const activeDragLinks = activeId ? activeLinks.filter((l) => l.categoryId === activeId) : [];
 
   return (
     <div className="screen">
@@ -74,7 +77,7 @@ export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit
       </div>
 
       <div className="pad-x" style={{ marginTop: 8 }}>
-        {linkCategories.length === 0 ? (
+        {activeCategories.length === 0 && archivedCategories.length === 0 ? (
           <div className="card white" style={{ padding: '28px 18px', textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', color: 'var(--ink-mute)', fontSize: 16 }}>
               No categories yet. Add one to get started.
@@ -88,12 +91,12 @@ export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit
             onDragEnd={handleDragEnd}
             onDragCancel={() => setActiveId(null)}
           >
-            <SortableContext items={linkCategories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-              {linkCategories.map((cat) => (
+            <SortableContext items={activeCategories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+              {activeCategories.map((cat) => (
                 <SortableCategoryCard
                   key={cat.id}
                   cat={cat}
-                  links={links.filter((l) => l.categoryId === cat.id)}
+                  links={activeLinks.filter((l) => l.categoryId === cat.id)}
                   onEdit={onEdit}
                   onReorderLinks={onReorderLinks}
                 />
@@ -107,11 +110,38 @@ export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit
             >
               {activeCat && (
                 <div style={{ transform: 'scale(1.02)', boxShadow: '0 16px 40px rgba(21,19,15,0.18)', borderRadius: 18 }}>
-                  <CategoryCardContent cat={activeCat} links={activeLinks} onEdit={onEdit} onReorderLinks={onReorderLinks} isOverlay />
+                  <CategoryCardContent cat={activeCat} links={activeDragLinks} onEdit={onEdit} onReorderLinks={onReorderLinks} isOverlay />
                 </div>
               )}
             </DragOverlay>
           </DndContext>
+        )}
+
+        {archivedCategories.length > 0 && (
+          <>
+            <button
+              onClick={() => setShowArchived((v) => !v)}
+              style={{
+                width: '100%', padding: '10px', borderRadius: 12, marginTop: 8,
+                border: '1px dashed var(--hair-strong)', background: 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                color: 'var(--ink-mute)', fontFamily: 'var(--mono)', fontSize: 10,
+                letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600,
+              }}
+            >
+              {showArchived ? '↑ Hide archived' : `📦 ${archivedCategories.length} archived`}
+            </button>
+            {showArchived && archivedCategories.map((cat) => (
+              <div key={cat.id} style={{ opacity: 0.6 }}>
+                <CategoryCardContent
+                  cat={cat}
+                  links={data.links.filter((l) => l.categoryId === cat.id)}
+                  onEdit={onEdit}
+                  onReorderLinks={onReorderLinks}
+                />
+              </div>
+            ))}
+          </>
         )}
 
         <button

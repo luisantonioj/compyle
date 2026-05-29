@@ -22,6 +22,7 @@ export interface Habit {
   completedDates: string[]; // "YYYY-MM-DD" — each day this tracker was ticked
   repeating: boolean; // false = no-repetition / one-time tracker
   sort_order?: number;
+  archived?: boolean;
 }
 
 export interface Category {
@@ -77,6 +78,7 @@ export interface LinkCategory {
   name: string;
   color: string;
   sort_order?: number;
+  archived?: boolean;
 }
 
 export interface LinkItem {
@@ -86,6 +88,7 @@ export interface LinkItem {
   url: string;
   description?: string;
   sort_order?: number;
+  archived?: boolean;
 }
 
 export interface Note {
@@ -94,6 +97,7 @@ export interface Note {
   content: string;   // Tiptap JSON stringified
   updated_at: number; // Unix ms
   sort_order?: number;
+  archived?: boolean;
 }
 
 export interface PrivacySettings {

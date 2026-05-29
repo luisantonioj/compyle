@@ -156,8 +156,10 @@ interface WebNotesScreenProps {
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export function WebNotesScreen({ data, isPartner, onEdit, onReorder, onUpdateNote }: WebNotesScreenProps) {
-  const { notes } = data;
+  const activeNotes = data.notes.filter((n) => !n.archived);
+  const archivedNotes = data.notes.filter((n) => n.archived);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -167,12 +169,12 @@ export function WebNotesScreen({ data, isPartner, onEdit, onReorder, onUpdateNot
     const { active, over } = event;
     setActiveId(null);
     if (!over || active.id === over.id) return;
-    const oldIndex = notes.findIndex((n) => n.id === active.id);
-    const newIndex = notes.findIndex((n) => n.id === over.id);
-    onReorder(arrayMove(notes, oldIndex, newIndex));
+    const oldIndex = activeNotes.findIndex((n) => n.id === active.id);
+    const newIndex = activeNotes.findIndex((n) => n.id === over.id);
+    onReorder(arrayMove(activeNotes, oldIndex, newIndex));
   };
 
-  const activeNote = activeId ? notes.find((n) => n.id === activeId) ?? null : null;
+  const activeNote = activeId ? activeNotes.find((n) => n.id === activeId) ?? null : null;
 
   return (
     <div>
@@ -187,7 +189,7 @@ export function WebNotesScreen({ data, isPartner, onEdit, onReorder, onUpdateNot
         </button>
       </div>
 
-      {notes.length === 0 ? (
+      {activeNotes.length === 0 && archivedNotes.length === 0 ? (
         <div className="card white" style={{ padding: '40px 24px', textAlign: 'center', maxWidth: 480 }}>
           <div style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', color: 'var(--ink-mute)', fontSize: 18 }}>
             Nothing written yet.
@@ -197,38 +199,65 @@ export function WebNotesScreen({ data, isPartner, onEdit, onReorder, onUpdateNot
           </div>
         </div>
       ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={(e) => setActiveId(e.active.id as string)}
-          onDragEnd={handleDragEnd}
-          onDragCancel={() => setActiveId(null)}
-        >
-          <SortableContext items={notes.map((n) => n.id)} strategy={rectSortingStrategy}>
-            <div style={{ columns: '300px 3', columnGap: '20px' }}>
-              {notes.map((note) => (
-                <SortableNoteCard
-                  key={note.id}
-                  note={note}
-                  onEdit={onEdit}
-                  onUpdateNote={onUpdateNote}
-                />
-              ))}
-            </div>
-          </SortableContext>
-
-          <DragOverlay
-            dropAnimation={{
-              sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.35' } } }),
-            }}
+        <>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={(e) => setActiveId(e.active.id as string)}
+            onDragEnd={handleDragEnd}
+            onDragCancel={() => setActiveId(null)}
           >
-            {activeNote && (
-              <div style={{ transform: 'scale(1.02)', boxShadow: '0 20px 48px rgba(21,19,15,0.18)', borderRadius: 16 }}>
-                <NoteCardContent note={activeNote} onEdit={onEdit} onUpdateNote={onUpdateNote} isOverlay />
+            <SortableContext items={activeNotes.map((n) => n.id)} strategy={rectSortingStrategy}>
+              <div style={{ columns: '300px 3', columnGap: '20px' }}>
+                {activeNotes.map((note) => (
+                  <SortableNoteCard
+                    key={note.id}
+                    note={note}
+                    onEdit={onEdit}
+                    onUpdateNote={onUpdateNote}
+                  />
+                ))}
               </div>
-            )}
-          </DragOverlay>
-        </DndContext>
+            </SortableContext>
+
+            <DragOverlay
+              dropAnimation={{
+                sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.35' } } }),
+              }}
+            >
+              {activeNote && (
+                <div style={{ transform: 'scale(1.02)', boxShadow: '0 20px 48px rgba(21,19,15,0.18)', borderRadius: 16 }}>
+                  <NoteCardContent note={activeNote} onEdit={onEdit} onUpdateNote={onUpdateNote} isOverlay />
+                </div>
+              )}
+            </DragOverlay>
+          </DndContext>
+
+          {archivedNotes.length > 0 && (
+            <div style={{ marginTop: 32 }}>
+              <button
+                onClick={() => setShowArchived((v) => !v)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16,
+                  fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.12em',
+                  textTransform: 'uppercase', fontWeight: 600, color: 'var(--ink-mute)',
+                  background: 'none', padding: '6px 0',
+                }}
+              >
+                {showArchived ? '↑ Hide archived' : `📦 ${archivedNotes.length} archived`}
+              </button>
+              {showArchived && (
+                <div style={{ columns: '300px 3', columnGap: '20px', opacity: 0.6 }}>
+                  {archivedNotes.map((note) => (
+                    <div key={note.id} style={{ breakInside: 'avoid', marginBottom: 20 }}>
+                      <NoteCardContent note={note} onEdit={onEdit} onUpdateNote={onUpdateNote} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

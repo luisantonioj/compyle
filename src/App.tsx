@@ -253,6 +253,27 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     });
   };
 
+  const archiveHabit = (habit: Habit) => {
+    const updated = { ...habit, archived: true };
+    store.setEditing(null);
+    if (fs) { void upsertHabit(activeUid, updated); }
+    else { setActiveData((d) => ({ ...d, habits: d.habits.map((h) => h.id === habit.id ? updated : h) })); }
+    store.flash('Tracker archived', 'Undo', () => {
+      const restored = { ...habit, archived: false };
+      if (fs) void upsertHabit(activeUid, restored);
+      else setActiveData((d) => ({ ...d, habits: d.habits.map((h) => h.id === habit.id ? restored : h) }));
+      store.setToast(null);
+    });
+  };
+
+  const restoreHabit = (habit: Habit) => {
+    const updated = { ...habit, archived: false };
+    store.setEditing(null);
+    if (fs) { void upsertHabit(activeUid, updated); }
+    else { setActiveData((d) => ({ ...d, habits: d.habits.map((h) => h.id === habit.id ? updated : h) })); }
+    store.flash('Tracker restored');
+  };
+
   const toggleTrackerDate = (habitId: string, dk: string) => {
     if (fs) {
       const habit = data.habits.find((h) => h.id === habitId);
@@ -573,6 +594,38 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     store.flash('Category deleted');
   };
 
+  const archiveLinkCategory = (cat: LinkCategory) => {
+    const updated = { ...cat, archived: true };
+    store.setEditing(null);
+    if (fs) {
+      void upsertLinkCategory(activeUid, updated);
+      data.links.filter((l) => l.categoryId === cat.id).forEach((l) => void upsertLink(activeUid, { ...l, archived: true }));
+    } else {
+      setActiveData((d) => ({
+        ...d,
+        linkCategories: d.linkCategories.map((c) => c.id === cat.id ? updated : c),
+        links: d.links.map((l) => l.categoryId === cat.id ? { ...l, archived: true } : l),
+      }));
+    }
+    store.flash('Category archived');
+  };
+
+  const restoreLinkCategory = (cat: LinkCategory) => {
+    const updated = { ...cat, archived: false };
+    store.setEditing(null);
+    if (fs) {
+      void upsertLinkCategory(activeUid, updated);
+      data.links.filter((l) => l.categoryId === cat.id).forEach((l) => void upsertLink(activeUid, { ...l, archived: false }));
+    } else {
+      setActiveData((d) => ({
+        ...d,
+        linkCategories: d.linkCategories.map((c) => c.id === cat.id ? updated : c),
+        links: d.links.map((l) => l.categoryId === cat.id ? { ...l, archived: false } : l),
+      }));
+    }
+    store.flash('Category restored');
+  };
+
   // ─── Links ───
   const reorderLinks = (reorderedCatLinks: LinkItem[]) => {
     const ordered = reorderedCatLinks.map((l, i) => ({ ...l, sort_order: i }));
@@ -607,6 +660,27 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
       setActiveData((d) => ({ ...d, links: d.links.filter((l) => l.id !== id) }));
     }
     store.flash('Link deleted');
+  };
+
+  const archiveLink = (link: LinkItem) => {
+    const updated = { ...link, archived: true };
+    store.setEditing(null);
+    if (fs) { void upsertLink(activeUid, updated); }
+    else { setActiveData((d) => ({ ...d, links: d.links.map((l) => l.id === link.id ? updated : l) })); }
+    store.flash('Link archived', 'Undo', () => {
+      const restored = { ...link, archived: false };
+      if (fs) void upsertLink(activeUid, restored);
+      else setActiveData((d) => ({ ...d, links: d.links.map((l) => l.id === link.id ? restored : l) }));
+      store.setToast(null);
+    });
+  };
+
+  const restoreLink = (link: LinkItem) => {
+    const updated = { ...link, archived: false };
+    store.setEditing(null);
+    if (fs) { void upsertLink(activeUid, updated); }
+    else { setActiveData((d) => ({ ...d, links: d.links.map((l) => l.id === link.id ? updated : l) })); }
+    store.flash('Link restored');
   };
 
   // ─── Note reorder / inline update ───
@@ -652,6 +726,27 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
       setActiveData((d) => ({ ...d, notes: d.notes.filter((n) => n.id !== id) }));
     }
     store.flash('Note deleted');
+  };
+
+  const archiveNote = (note: Note) => {
+    const updated = { ...note, archived: true };
+    store.setEditing(null);
+    if (fs) { void upsertNote(activeUid, updated); }
+    else { setActiveData((d) => ({ ...d, notes: d.notes.map((n) => n.id === note.id ? updated : n) })); }
+    store.flash('Note archived', 'Undo', () => {
+      const restored = { ...note, archived: false };
+      if (fs) void upsertNote(activeUid, restored);
+      else setActiveData((d) => ({ ...d, notes: d.notes.map((n) => n.id === note.id ? restored : n) }));
+      store.setToast(null);
+    });
+  };
+
+  const restoreNote = (note: Note) => {
+    const updated = { ...note, archived: false };
+    store.setEditing(null);
+    if (fs) { void upsertNote(activeUid, updated); }
+    else { setActiveData((d) => ({ ...d, notes: d.notes.map((n) => n.id === note.id ? updated : n) })); }
+    store.flash('Note restored');
   };
 
   // ─── FAB action ───
@@ -758,6 +853,8 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           habit={editing.item}
           onSave={saveHabit}
           onDelete={(id) => confirmDelete('this tracker', () => deleteHabit(id))}
+          onArchive={editing.item ? () => (editing.item!.archived ? restoreHabit(editing.item!) : archiveHabit(editing.item!)) : undefined}
+          archiveLabel={editing.item?.archived ? 'Restore' : 'Archive'}
           onClose={() => store.setEditing(null)}
         />
       )}
@@ -808,6 +905,8 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           cat={editing.item}
           onSave={saveLinkCategory}
           onDelete={(id) => confirmDelete('this category', () => deleteLinkCategory(id))}
+          onArchive={editing.item ? () => (editing.item!.archived ? restoreLinkCategory(editing.item!) : archiveLinkCategory(editing.item!)) : undefined}
+          archiveLabel={editing.item?.archived ? 'Restore' : 'Archive'}
           onClose={() => store.setEditing(null)}
         />
       )}
@@ -817,6 +916,8 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           categoryId={editing.categoryId ?? ''}
           onSave={saveLink}
           onDelete={(id) => confirmDelete('this link', () => deleteLink(id))}
+          onArchive={editing.item ? () => (editing.item!.archived ? restoreLink(editing.item!) : archiveLink(editing.item!)) : undefined}
+          archiveLabel={editing.item?.archived ? 'Restore' : 'Archive'}
           onClose={() => store.setEditing(null)}
         />
       )}
@@ -825,6 +926,8 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           note={editing.item}
           onSave={saveNote}
           onDelete={(id) => confirmDelete('this note', () => deleteNote(id))}
+          onArchive={editing.item ? () => (editing.item!.archived ? restoreNote(editing.item!) : archiveNote(editing.item!)) : undefined}
+          archiveLabel={editing.item?.archived ? 'Restore' : 'Archive'}
           onClose={() => store.setEditing(null)}
         />
       )}

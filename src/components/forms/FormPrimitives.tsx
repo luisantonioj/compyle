@@ -37,13 +37,19 @@ export function FormHead({ kicker, title, accent, onClose }: { kicker: string; t
 }
 
 // ─── FormFoot ───
-export function FormFoot({ onSave, onCancel, onDelete, saveLabel = 'Save', canSave = true }: {
+export function FormFoot({ onSave, onCancel, onDelete, onArchive, archiveLabel = 'Archive', saveLabel = 'Save', canSave = true }: {
   onSave: () => void; onCancel: () => void; onDelete?: () => void;
+  onArchive?: () => void; archiveLabel?: 'Archive' | 'Restore';
   saveLabel?: string; canSave?: boolean;
 }) {
   return (
     <div className="form-foot">
       {onDelete && <button className="del" onClick={onDelete} title="Delete">🗑</button>}
+      {onArchive && (
+        <button className="arch" onClick={onArchive} title={archiveLabel}>
+          {archiveLabel === 'Restore' ? '↩' : '📦'}
+        </button>
+      )}
       <button className="cancel" onClick={onCancel}>Cancel</button>
       <button className="save" onClick={onSave} disabled={!canSave}>{saveLabel}</button>
     </div>

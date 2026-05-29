@@ -13,10 +13,12 @@ interface NoteFormProps {
   note?: Note;
   onSave: (n: Note) => void;
   onDelete?: (id: string) => void;
+  onArchive?: () => void;
+  archiveLabel?: 'Archive' | 'Restore';
   onClose: () => void;
 }
 
-export function NoteForm({ note, onSave, onDelete, onClose }: NoteFormProps) {
+export function NoteForm({ note, onSave, onDelete, onArchive, archiveLabel, onClose }: NoteFormProps) {
   const [title, setTitle] = useState(note?.title ?? '');
   const isEditing = !!note?.id;
 
@@ -111,6 +113,8 @@ export function NoteForm({ note, onSave, onDelete, onClose }: NoteFormProps) {
         onSave={handleSave}
         onCancel={onClose}
         onDelete={isEditing && onDelete ? () => onDelete(note!.id) : undefined}
+        onArchive={isEditing ? onArchive : undefined}
+        archiveLabel={archiveLabel}
         canSave={!!title.trim()}
       />
     </FormSheet>

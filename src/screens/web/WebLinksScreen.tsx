@@ -34,8 +34,11 @@ interface WebLinksScreenProps {
 }
 
 export function WebLinksScreen({ data, onEdit, onReorder, onReorderLinks }: WebLinksScreenProps) {
-  const { linkCategories, links } = data;
+  const activeCategories = data.linkCategories.filter((c) => !c.archived);
+  const activeLinks = data.links.filter((l) => !l.archived);
+  const archivedCategories = data.linkCategories.filter((c) => c.archived);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -45,13 +48,13 @@ export function WebLinksScreen({ data, onEdit, onReorder, onReorderLinks }: WebL
     const { active, over } = event;
     setActiveId(null);
     if (!over || active.id === over.id) return;
-    const oldIndex = linkCategories.findIndex((c) => c.id === active.id);
-    const newIndex = linkCategories.findIndex((c) => c.id === over.id);
-    onReorder(arrayMove(linkCategories, oldIndex, newIndex));
+    const oldIndex = activeCategories.findIndex((c) => c.id === active.id);
+    const newIndex = activeCategories.findIndex((c) => c.id === over.id);
+    onReorder(arrayMove(activeCategories, oldIndex, newIndex));
   };
 
-  const activeCat = activeId ? linkCategories.find((c) => c.id === activeId) ?? null : null;
-  const activeLinks = activeId ? links.filter((l) => l.categoryId === activeId) : [];
+  const activeCat = activeId ? activeCategories.find((c) => c.id === activeId) ?? null : null;
+  const activeDragLinks = activeId ? activeLinks.filter((l) => l.categoryId === activeId) : [];
 
   return (
     <div>
@@ -66,7 +69,7 @@ export function WebLinksScreen({ data, onEdit, onReorder, onReorderLinks }: WebL
         </button>
       </div>
 
-      {linkCategories.length === 0 ? (
+      {activeCategories.length === 0 && archivedCategories.length === 0 ? (
         <div className="card white" style={{ padding: '40px 24px', textAlign: 'center', maxWidth: 480 }}>
           <div style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', color: 'var(--ink-mute)', fontSize: 18 }}>
             No categories yet.
@@ -76,39 +79,71 @@ export function WebLinksScreen({ data, onEdit, onReorder, onReorderLinks }: WebL
           </div>
         </div>
       ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={(e) => setActiveId(e.active.id as string)}
-          onDragEnd={handleDragEnd}
-          onDragCancel={() => setActiveId(null)}
-        >
-          <SortableContext items={linkCategories.map((c) => c.id)} strategy={rectSortingStrategy}>
-            <div style={{ columns: '300px 3', columnGap: '20px' }}>
-              {linkCategories.map((cat) => (
-                <SortableWebCard
-                  key={cat.id}
-                  cat={cat}
-                  links={links.filter((l) => l.categoryId === cat.id)}
-                  onEdit={onEdit}
-                  onReorderLinks={onReorderLinks}
-                />
-              ))}
-            </div>
-          </SortableContext>
-
-          <DragOverlay
-            dropAnimation={{
-              sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.35' } } }),
-            }}
+        <>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={(e) => setActiveId(e.active.id as string)}
+            onDragEnd={handleDragEnd}
+            onDragCancel={() => setActiveId(null)}
           >
-            {activeCat && (
-              <div style={{ transform: 'scale(1.02)', boxShadow: '0 20px 48px rgba(21,19,15,0.18)', borderRadius: 16 }}>
-                <WebCardContent cat={activeCat} links={activeLinks} onEdit={onEdit} onReorderLinks={onReorderLinks} isOverlay />
+            <SortableContext items={activeCategories.map((c) => c.id)} strategy={rectSortingStrategy}>
+              <div style={{ columns: '300px 3', columnGap: '20px' }}>
+                {activeCategories.map((cat) => (
+                  <SortableWebCard
+                    key={cat.id}
+                    cat={cat}
+                    links={activeLinks.filter((l) => l.categoryId === cat.id)}
+                    onEdit={onEdit}
+                    onReorderLinks={onReorderLinks}
+                  />
+                ))}
               </div>
-            )}
-          </DragOverlay>
-        </DndContext>
+            </SortableContext>
+
+            <DragOverlay
+              dropAnimation={{
+                sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.35' } } }),
+              }}
+            >
+              {activeCat && (
+                <div style={{ transform: 'scale(1.02)', boxShadow: '0 20px 48px rgba(21,19,15,0.18)', borderRadius: 16 }}>
+                  <WebCardContent cat={activeCat} links={activeDragLinks} onEdit={onEdit} onReorderLinks={onReorderLinks} isOverlay />
+                </div>
+              )}
+            </DragOverlay>
+          </DndContext>
+
+          {archivedCategories.length > 0 && (
+            <div style={{ marginTop: 32 }}>
+              <button
+                onClick={() => setShowArchived((v) => !v)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16,
+                  fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.12em',
+                  textTransform: 'uppercase', fontWeight: 600, color: 'var(--ink-mute)',
+                  background: 'none', padding: '6px 0',
+                }}
+              >
+                {showArchived ? '↑ Hide archived' : `📦 ${archivedCategories.length} archived`}
+              </button>
+              {showArchived && (
+                <div style={{ columns: '300px 3', columnGap: '20px', opacity: 0.6 }}>
+                  {archivedCategories.map((cat) => (
+                    <div key={cat.id} style={{ breakInside: 'avoid', marginBottom: 20 }}>
+                      <WebCardContent
+                        cat={cat}
+                        links={data.links.filter((l) => l.categoryId === cat.id)}
+                        onEdit={onEdit}
+                        onReorderLinks={onReorderLinks}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

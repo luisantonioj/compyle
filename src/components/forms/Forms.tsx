@@ -151,10 +151,12 @@ export function TaskViewModal({ task, dateKey, onEdit, onDelete, onClose }: {
 }
 
 // ─── Tracker form ───
-export function HabitForm({ habit, onSave, onDelete, onClose }: {
+export function HabitForm({ habit, onSave, onDelete, onArchive, archiveLabel, onClose }: {
   habit?: Habit;
   onSave: (h: Habit) => void;
   onDelete?: (id: string) => void;
+  onArchive?: () => void;
+  archiveLabel?: 'Archive' | 'Restore';
   onClose: () => void;
 }) {
   const [name, setName] = useState(habit?.name ?? '');
@@ -226,6 +228,8 @@ export function HabitForm({ habit, onSave, onDelete, onClose }: {
       <FormFoot
         onSave={handleSave} onCancel={onClose}
         onDelete={editing && onDelete ? () => onDelete(habit!.id) : undefined}
+        onArchive={editing ? onArchive : undefined}
+        archiveLabel={archiveLabel}
         canSave={!!name.trim()} saveLabel={editing ? 'Save' : 'Create tracker'}
       />
     </FormSheet>
@@ -503,10 +507,12 @@ export function DebtForm({ debt, onSave, onDelete, onClose }: {
 }
 
 // ─── Link Category form ───
-export function LinkCategoryForm({ cat, onSave, onDelete, onClose }: {
+export function LinkCategoryForm({ cat, onSave, onDelete, onArchive, archiveLabel, onClose }: {
   cat?: LinkCategory;
   onSave: (cat: LinkCategory) => void;
   onDelete?: (id: string) => void;
+  onArchive?: () => void;
+  archiveLabel?: 'Archive' | 'Restore';
   onClose: () => void;
 }) {
   const editing = !!cat?.id;
@@ -532,6 +538,8 @@ export function LinkCategoryForm({ cat, onSave, onDelete, onClose }: {
       <FormFoot
         onSave={handleSave} onCancel={onClose}
         onDelete={editing && onDelete ? () => onDelete(cat!.id) : undefined}
+        onArchive={editing ? onArchive : undefined}
+        archiveLabel={archiveLabel}
         canSave={!!name.trim()} saveLabel={editing ? 'Save' : 'Create'}
       />
     </FormSheet>
@@ -539,11 +547,13 @@ export function LinkCategoryForm({ cat, onSave, onDelete, onClose }: {
 }
 
 // ─── Link Item form ───
-export function LinkItemForm({ link, categoryId, onSave, onDelete, onClose }: {
+export function LinkItemForm({ link, categoryId, onSave, onDelete, onArchive, archiveLabel, onClose }: {
   link?: LinkItem;
   categoryId: string;
   onSave: (link: LinkItem) => void;
   onDelete?: (id: string) => void;
+  onArchive?: () => void;
+  archiveLabel?: 'Archive' | 'Restore';
   onClose: () => void;
 }) {
   const editing = !!link?.id;
@@ -580,6 +590,8 @@ export function LinkItemForm({ link, categoryId, onSave, onDelete, onClose }: {
       <FormFoot
         onSave={handleSave} onCancel={onClose}
         onDelete={editing && onDelete ? () => onDelete(link!.id) : undefined}
+        onArchive={editing ? onArchive : undefined}
+        archiveLabel={archiveLabel}
         canSave={!!title.trim() && !!url.trim()} saveLabel={editing ? 'Save' : 'Add link'}
       />
     </FormSheet>

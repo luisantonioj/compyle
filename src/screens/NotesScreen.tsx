@@ -1,5 +1,5 @@
 // compyle — Notes tab (mobile)
-import React from 'react';
+import React, { useState } from 'react';
 import type { UserData, ViewMode, EditingState } from '../types';
 import { extractNotePreview, relativeDate } from '../lib/noteUtils';
 import '../styles/notes.css';
@@ -14,7 +14,10 @@ interface NotesScreenProps {
 }
 
 export function NotesScreen({ data, isPartner, profileInitial, onProfile, onEdit }: NotesScreenProps) {
-  const { notes } = data;
+  const [showArchived, setShowArchived] = useState(false);
+
+  const activeNotes = data.notes.filter((n) => !n.archived);
+  const archivedNotes = data.notes.filter((n) => n.archived);
 
   return (
     <div className="screen">
@@ -33,12 +36,12 @@ export function NotesScreen({ data, isPartner, profileInitial, onProfile, onEdit
       </div>
 
       <div className="notes-list">
-        {notes.length === 0 ? (
+        {activeNotes.length === 0 && archivedNotes.length === 0 ? (
           <div className="card white">
             <div className="notes-empty">Nothing written yet.<br />Tap + to start a new note.</div>
           </div>
         ) : (
-          notes.map((note) => (
+          activeNotes.map((note) => (
             <div key={note.id} className="card white" style={{ padding: '14px 16px' }}>
               <button
                 className="note-card-btn"
@@ -51,6 +54,35 @@ export function NotesScreen({ data, isPartner, profileInitial, onProfile, onEdit
             </div>
           ))
         )}
+
+        {archivedNotes.length > 0 && (
+          <button
+            onClick={() => setShowArchived((v) => !v)}
+            style={{
+              width: '100%', padding: '10px', borderRadius: 12,
+              border: '1px dashed var(--hair-strong)', background: 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              color: 'var(--ink-mute)', fontFamily: 'var(--mono)', fontSize: 10,
+              letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600,
+              marginTop: activeNotes.length > 0 ? 4 : 0,
+            }}
+          >
+            {showArchived ? '↑ Hide archived' : `📦 ${archivedNotes.length} archived`}
+          </button>
+        )}
+
+        {showArchived && archivedNotes.map((note) => (
+          <div key={note.id} className="card white" style={{ padding: '14px 16px', opacity: 0.6 }}>
+            <button
+              className="note-card-btn"
+              onClick={() => onEdit({ type: 'note', item: note })}
+            >
+              <div className="note-card-title">{note.title}</div>
+              <div className="note-preview">{extractNotePreview(note.content)}</div>
+              <div className="note-card-date">{relativeDate(note.updated_at)}</div>
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
