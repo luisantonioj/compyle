@@ -181,12 +181,10 @@ export function WebNotesScreen({ data, isPartner, onEdit, onReorder, onUpdateNot
           <div className="kicker">Personal notes</div>
           <h1>Your <em>notes</em></h1>
         </div>
-        {!isPartner && (
-          <button className="btn-add" onClick={() => onEdit({ type: 'note' })}>
-            {Icons.plus({ size: 14, stroke: 'var(--cream)' })}
-            <span>New note</span>
-          </button>
-        )}
+        <button className="btn-add" onClick={() => onEdit({ type: 'note' })}>
+          {Icons.plus({ size: 14, stroke: 'var(--cream)' })}
+          <span>New note</span>
+        </button>
       </div>
 
       {notes.length === 0 ? (
