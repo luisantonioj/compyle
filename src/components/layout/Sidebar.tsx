@@ -5,10 +5,10 @@ import type { TabId, ViewMode } from '../../types';
 const NAV_ITEMS: { id: TabId; label: string }[] = [
   // { id: 'today', label: 'Today' }, // hidden — reserved for future use
   { id: 'cal',    label: 'Plan'   },
+  { id: 'notes',  label: 'Notes'  },
+  { id: 'links',  label: 'Links'  },
   { id: 'habits', label: 'Track' },
   { id: 'money',  label: 'Money'  },
-  { id: 'links',  label: 'Links'  },
-  { id: 'notes',  label: 'Notes'  },
 ];
 
 interface SidebarProps {
