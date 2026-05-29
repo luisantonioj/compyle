@@ -1,5 +1,6 @@
 // compyle — reusable form building blocks
 import React, { useRef, useEffect } from 'react';
+import { Icons } from '../Icons';
 
 export const TASK_CATEGORIES = [
   { emoji: '', label: 'None' },
@@ -47,7 +48,7 @@ export function FormFoot({ onSave, onCancel, onDelete, onArchive, archiveLabel =
       {onDelete && <button className="del" onClick={onDelete} title="Delete">🗑</button>}
       {onArchive && (
         <button className="arch" onClick={onArchive} title={archiveLabel}>
-          {archiveLabel === 'Restore' ? '↩' : '📦'}
+          {archiveLabel === 'Restore' ? Icons.restore({ stroke: 'currentColor' }) : Icons.archive({ stroke: 'currentColor' })}
         </button>
       )}
       <button className="cancel" onClick={onCancel}>Cancel</button>

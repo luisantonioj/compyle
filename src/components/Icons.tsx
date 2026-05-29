@@ -68,6 +68,19 @@ export const Icons = {
       <path d="M5.5 12a1.5 1.5 0 003 0" stroke={stroke} strokeWidth="1.3" strokeLinecap="round"/>
     </svg>
   ),
+  archive: ({ size = 14, stroke = 'currentColor' }: IconProps = {}) => (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none">
+      <rect x="1" y="2" width="12" height="2.5" rx="0.7" stroke={stroke} strokeWidth="1.4" strokeLinejoin="round"/>
+      <path d="M2 4.5V11.5a1 1 0 001 1h8a1 1 0 001-1V4.5" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M5.5 8h3" stroke={stroke} strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  ),
+  restore: ({ size = 14, stroke = 'currentColor' }: IconProps = {}) => (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none">
+      <path d="M2 7a5 5 0 105-5H5" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M5 2L3 4l2 2" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
 };
 
 // Tab bar icons

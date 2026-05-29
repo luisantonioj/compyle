@@ -14,6 +14,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Icons } from '../components/Icons';
 import type { UserData, ViewMode, EditingState, LinkCategory, LinkItem } from '../types';
 
+
 const GripIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
     <circle cx="4.5" cy="3.5" r="1.2" fill="currentColor"/>
@@ -129,7 +130,7 @@ export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit
                 letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600,
               }}
             >
-              {showArchived ? '↑ Hide archived' : `📦 ${archivedCategories.length} archived`}
+              {showArchived ? '↑ Hide archived' : <>{Icons.archive({ stroke: 'currentColor' })} {archivedCategories.length} archived</>}
             </button>
             {showArchived && archivedCategories.map((cat) => (
               <div key={cat.id} style={{ opacity: 0.6 }}>

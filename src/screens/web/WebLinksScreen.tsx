@@ -125,7 +125,7 @@ export function WebLinksScreen({ data, onEdit, onReorder, onReorderLinks }: WebL
                   background: 'none', padding: '6px 0',
                 }}
               >
-                {showArchived ? '↑ Hide archived' : `📦 ${archivedCategories.length} archived`}
+                {showArchived ? '↑ Hide archived' : <>{Icons.archive({ stroke: 'currentColor' })} {archivedCategories.length} archived</>}
               </button>
               {showArchived && (
                 <div style={{ columns: '300px 3', columnGap: '20px', opacity: 0.6 }}>

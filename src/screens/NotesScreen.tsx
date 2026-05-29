@@ -1,5 +1,6 @@
 // compyle — Notes tab (mobile)
 import React, { useState } from 'react';
+import { Icons } from '../components/Icons';
 import type { UserData, ViewMode, EditingState } from '../types';
 import { extractNotePreview, relativeDate } from '../lib/noteUtils';
 import '../styles/notes.css';
@@ -67,7 +68,7 @@ export function NotesScreen({ data, isPartner, profileInitial, onProfile, onEdit
               marginTop: activeNotes.length > 0 ? 4 : 0,
             }}
           >
-            {showArchived ? '↑ Hide archived' : `📦 ${archivedNotes.length} archived`}
+            {showArchived ? '↑ Hide archived' : <>{Icons.archive({ stroke: 'currentColor' })} {archivedNotes.length} archived</>}
           </button>
         )}
 

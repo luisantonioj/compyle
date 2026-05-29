@@ -244,7 +244,7 @@ export function WebNotesScreen({ data, isPartner, onEdit, onReorder, onUpdateNot
                   background: 'none', padding: '6px 0',
                 }}
               >
-                {showArchived ? '↑ Hide archived' : `📦 ${archivedNotes.length} archived`}
+                {showArchived ? '↑ Hide archived' : <>{Icons.archive({ stroke: 'currentColor' })} {archivedNotes.length} archived</>}
               </button>
               {showArchived && (
                 <div style={{ columns: '300px 3', columnGap: '20px', opacity: 0.6 }}>

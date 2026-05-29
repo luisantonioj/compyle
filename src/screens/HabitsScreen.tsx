@@ -1,6 +1,7 @@
 // compyle — Track screen (mobile)
 import React, { useState } from 'react';
 import { Icons } from '../components/Icons';
+
 import { DayChecklist } from '../components/ui/shared';
 import { TODAY_KEY, computeStreak } from '../lib/seed';
 import type { UserData, ViewMode, Habit, EditingState } from '../types';
@@ -140,7 +141,7 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
               letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600,
             }}
           >
-            {showArchived ? '↑ Hide archived' : `📦 ${archivedTrackers.length} archived`}
+            {showArchived ? '↑ Hide archived' : <>{Icons.archive({ stroke: 'currentColor' })} {archivedTrackers.length} archived</>}
           </button>
           {showArchived && (
             <div className="card white" style={{ padding: '4px 18px', marginTop: 8, opacity: 0.6 }}>
