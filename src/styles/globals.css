@@ -224,7 +224,7 @@ input, textarea, select {
   position: absolute;
   left: 0; right: 0; bottom: 0;
   z-index: 5;
-  padding: 0 14px calc(12px + var(--safe-bottom));
+  padding: 0 14px calc(4px + var(--safe-bottom));
   pointer-events: none;
 }
 .bottom-nav-inner {
