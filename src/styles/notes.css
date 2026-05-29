@@ -37,13 +37,21 @@
 /* Bold */
 .note-editor-body strong { font-weight: 700; }
 
+/* Paragraphs — match checklist vertical rhythm */
+.note-editor-body p {
+  margin: 2px 0;
+  line-height: 1.5;
+}
+
 /* Bullet list */
 .note-editor-body ul:not([data-type="taskList"]) {
   padding-left: 20px;
   margin: 4px 0;
 }
 .note-editor-body ul:not([data-type="taskList"]) li {
-  margin: 2px 0;
+  padding: 3px 0;
+  margin: 0;
+  line-height: 1.5;
 }
 
 /* Task list */
@@ -294,7 +302,8 @@
   line-height: 1.6;
   font-family: var(--sans);
   color: var(--ink);
-  margin: 1px 0;
+  padding: 2px 0;
+  margin: 0;
 }
 .note-card-listitem p {
   margin: 0;
