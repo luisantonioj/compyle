@@ -243,7 +243,7 @@
 }
 
 /* Desktop overrides for forms */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .form-sheet {
     position: fixed;
     top: 50%;

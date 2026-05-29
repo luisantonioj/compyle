@@ -222,7 +222,7 @@
 }
 
 /* Web-specific overrides */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .notes-list {
     padding: 0;
     max-width: 680px;

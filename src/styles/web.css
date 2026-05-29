@@ -1,6 +1,6 @@
-/* compyle — web / desktop layout (≥1024px) */
+/* compyle — web / desktop layout (≥768px) */
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .web-layout {
     display: grid;
     grid-template-columns: 240px 1fr;
@@ -837,15 +837,8 @@
   .web-layout .form-foot { padding-bottom: 22px !important; }
 }
 
-/* ─── responsive adjustments ─── */
-@media (min-width: 768px) and (max-width: 1023px) {
-  /* iPad: still bottom-nav but wider cards */
-  .screen { padding-left: 8px; padding-right: 8px; }
-  .pad-x { padding-left: 28px; padding-right: 28px; }
-}
-
 /* ─── auto-collapse sidebar below 1100px ─── */
-@media (min-width: 1024px) and (max-width: 1100px) {
+@media (min-width: 768px) and (max-width: 1100px) {
   .web-layout { grid-template-columns: 64px 1fr; }
   .sidebar { padding: 22px 12px; }
   .brand, .brand-sub, .nav-item .nav-label, .nav-item .nav-badge,
@@ -866,7 +859,7 @@
 */
 
 /* Expanded sidebar: content gets tight below ~1260px */
-@media (min-width: 1024px) and (max-width: 1260px) {
+@media (min-width: 768px) and (max-width: 1260px) {
   .web-layout:not(.sidebar-collapsed) .today-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -882,14 +875,14 @@
 }
 
 /* Collapsed sidebar: habits collapse below ~1200px */
-@media (min-width: 1024px) and (max-width: 1200px) {
+@media (min-width: 768px) and (max-width: 1200px) {
   .web-layout.sidebar-collapsed .habits-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 /* Collapsed sidebar: content gets tight below ~1080px */
-@media (min-width: 1024px) and (max-width: 1080px) {
+@media (min-width: 768px) and (max-width: 1080px) {
   .web-layout.sidebar-collapsed .today-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -902,7 +895,7 @@
 }
 
 /* Both states: very narrow (auto-collapsed zone) */
-@media (min-width: 1024px) and (max-width: 1100px) {
+@media (min-width: 768px) and (max-width: 1100px) {
   .today-grid { grid-template-columns: 1fr 1fr; }
   .today-grid > :nth-child(3) { grid-column: 1 / -1; }
   .money-cols { grid-template-columns: 1fr; }

@@ -754,7 +754,7 @@ input, textarea, select {
 }
 
 /* ─── Web / Desktop sidebar layout ─── */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   html { background: var(--cream); overflow-x: hidden; }
 
   .mobile-shell {
