@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Icons } from '../../components/Icons';
 import { buildHabitMonth, TODAY, TODAY_KEY, computeStreak } from '../../lib/seed';
 import type { UserData, EditingState } from '../../types';
@@ -11,10 +11,22 @@ interface WebHabitsProps {
 }
 
 export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHabitsProps) {
+  const [viewYear, setViewYear] = useState(TODAY.getFullYear());
+  const [viewMonth, setViewMonth] = useState(TODAY.getMonth());
+
+  const prevMonth = () => {
+    if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11); }
+    else setViewMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0); }
+    else setViewMonth(m => m + 1);
+  };
+
   const trackers = data.habits;
-  const y = TODAY.getFullYear();
-  const m = TODAY.getMonth();
-  const monthName = TODAY.toLocaleString('en-US', { month: 'long' });
+  const y = viewYear;
+  const m = viewMonth;
+  const monthName = new Date(y, m, 1).toLocaleString('en-US', { month: 'long' });
 
   const doneToday = trackers.filter((h) => (h.completedDates ?? []).includes(TODAY_KEY)).length;
 
@@ -81,8 +93,22 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
         </div>
       </div> */}
 
-      <div style={{ fontFamily: 'var(--serif)', fontSize: 36, letterSpacing: '-0.02em', marginBottom: 16 }}>
-        {monthName} <em style={{ fontStyle: 'italic', color: 'var(--clay)' }}>{y}</em>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+        <button
+          onClick={prevMonth}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px', color: 'var(--ink-mute)', lineHeight: 1 }}
+        >
+          {Icons.chevL({ stroke: 'var(--ink-mute)' })}
+        </button>
+        <div style={{ fontFamily: 'var(--serif)', fontSize: 36, letterSpacing: '-0.02em' }}>
+          {monthName} <em style={{ fontStyle: 'italic', color: 'var(--clay)' }}>{y}</em>
+        </div>
+        <button
+          onClick={nextMonth}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px', color: 'var(--ink-mute)', lineHeight: 1 }}
+        >
+          {Icons.chevR({ stroke: 'var(--ink-mute)' })}
+        </button>
       </div>
 
       <div className="habits-grid">
