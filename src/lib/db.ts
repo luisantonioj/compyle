@@ -139,13 +139,30 @@ export function subscribeUserData(
   onPartial: (data: Partial<UserData>) => void,
   onReady: () => void,
 ): Unsubscribe {
+  let isReady = false;
   const fired = new Set<string>();
   const mark = (key: string) => {
     fired.add(key);
-    if (fired.size === 10) onReady();
+    if (!isReady && fired.size === 10) {
+      isReady = true;
+      onReady();
+    }
   };
 
+  // Safety timeout: ensure the app opens even if one sub-collection hangs
+  const timeout = setTimeout(() => {
+    if (!isReady) {
+      isReady = true;
+      onReady();
+    }
+  }, 1500);
+
   const unsubs: Unsubscribe[] = [];
+
+  const cleanup = () => {
+    clearTimeout(timeout);
+    unsubs.forEach((u) => u());
+  };
 
   // tasks — each doc has a `date` field; group into Record<dateKey, Task[]>
   unsubs.push(onSnapshot(col(uid, 'tasks'), (snap) => {
@@ -244,5 +261,5 @@ export function subscribeUserData(
     mark('notes');
   }));
 
-  return () => unsubs.forEach((u) => u());
+  return cleanup;
 }

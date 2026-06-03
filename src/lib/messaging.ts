@@ -24,7 +24,7 @@ export async function enablePushNotifications(uid: string): Promise<boolean> {
   if (permission !== 'granted') return false;
 
   try {
-    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY as string),

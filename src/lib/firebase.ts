@@ -42,6 +42,7 @@ if (IS_CONFIGURED) {
       tabManager: persistentMultipleTabManager(),
       cacheSizeBytes: CACHE_SIZE_UNLIMITED,
     }),
+    experimentalForceLongPolling: true,
   });
 
   if (import.meta.env.VITE_USE_EMULATOR === 'true') {
