@@ -82,7 +82,7 @@ function WebSavings({
         </div>
         <div style={{ textAlign: 'right' }}>
           <div className="label" style={{ color: 'rgba(244,239,228,0.6)', marginBottom: 6 }}>Net this month</div>
-          <div className={`amount blur${hidden ? '' : ' on'}`} style={{ fontSize: 36, color: 'var(--cream)' }}>
+          <div className={`amount blur${hidden ? '' : ' on'}`} style={{ fontSize: 'clamp(24px, 3vw, 36px)', color: 'var(--cream)' }}>
             {flowIn - flowOut >= 0 ? '+' : '−'}{formatPHP(Math.abs(flowIn - flowOut), { short: true })}
           </div>
           <div className="mono" style={{ fontSize: 11, color: 'rgba(244,239,228,0.5)', letterSpacing: '0.08em', marginTop: 4 }}>

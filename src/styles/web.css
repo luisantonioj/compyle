@@ -3,7 +3,7 @@
 @media (min-width: 768px) {
   .web-layout {
     display: grid;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: clamp(200px, 18vw, 260px) 1fr;
     min-height: 100dvh;
     width: 100%;
     background: var(--cream);
@@ -11,7 +11,7 @@
   }
 
   /* ─── sidebar ─── */
-  .web-layout.sidebar-collapsed { grid-template-columns: 64px 1fr; }
+  .web-layout.sidebar-collapsed { grid-template-columns: 68px 1fr; }
 
   .sidebar {
     border-right: 1px solid var(--hair-strong);
@@ -238,7 +238,7 @@
   .metric .label { margin-bottom: 6px; }
   .metric .value {
     font-family: var(--serif);
-    font-size: 32px;
+    font-size: clamp(28px, 2.5vw, 36px);
     font-style: italic;
     letter-spacing: -0.02em;
     line-height: 1;

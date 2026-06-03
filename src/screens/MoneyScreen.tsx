@@ -273,7 +273,7 @@ function PaymentsPanel({ data, isPartner, onEdit, onMarkPaid, onPayDebt }: {
               {billsDue.length} bills
             </div>
           </div>
-          <div className="amount" style={{ fontSize: 52, lineHeight: 1, marginTop: 8 }}>
+          <div className="amount" style={{ fontSize: 'clamp(38px, 12vw, 52px)', lineHeight: 1, marginTop: 8 }}>
             {formatPHP(totalDue)}
           </div>
           <div className="row" style={{ marginTop: 14, gap: 12 }}>

@@ -62,6 +62,7 @@ button {
 input, textarea, select {
   font-family: inherit;
   font-feature-settings: inherit;
+  font-size: 16px; /* Prevents auto-zoom on iOS */
 }
 
 /* ─── paper grain overlay ─── */
@@ -574,10 +575,10 @@ input, textarea, select {
   gap: 12px;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 0 22px;
+  padding: 0 clamp(16px, 5vw, 22px);
 }
 .scrollx::-webkit-scrollbar { display: none; }
-.pad-x { padding-left: 22px; padding-right: 22px; }
+.pad-x { padding-left: clamp(16px, 5vw, 22px); padding-right: clamp(16px, 5vw, 22px); }
 
 .fade-in { animation: fadeIn 0.32s ease-out; }
 @keyframes fadeIn {
@@ -684,7 +685,7 @@ input, textarea, select {
   border: 1.5px solid var(--hair-strong);
   border-radius: 14px;
   background: var(--paper);
-  font-size: 15px;
+  font-size: 16px;
   color: var(--ink);
   outline: none;
   transition: border-color 0.15s;

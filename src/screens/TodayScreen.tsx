@@ -105,7 +105,7 @@ export function TodayScreen({ data, viewMode, partnerName, isPartner, profileIni
               NET · {formatPHP(flowIn - flowOut, { short: true })}
             </div>
           </div>
-          <div className="amount" style={{ fontSize: 40, lineHeight: 1.1, marginTop: 4 }}>
+          <div className="amount" style={{ fontSize: 'clamp(32px, 10vw, 42px)', lineHeight: 1.1, marginTop: 4 }}>
             {formatPHP(totalBalance, { cents: true })}
           </div>
           <div style={{ marginTop: 14 }}>
