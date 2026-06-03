@@ -1,12 +1,12 @@
+/// <reference lib="webworker" />
+
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 
-declare let self: ServiceWorkerGlobalScope;
-
 cleanupOutdatedCaches();
-precacheAndRoute(self.__WB_MANIFEST);
+precacheAndRoute((self as any).__WB_MANIFEST);
 
 // Google Fonts
 registerRoute(
@@ -31,13 +31,13 @@ registerRoute(
 );
 
 // ─── Web Push logic (from firebase-messaging-sw.js) ───
-self.addEventListener('push', (event) => {
+self.addEventListener('push', (event: any) => {
   const data  = event.data?.json() ?? {};
   const title = data.title ?? 'compyle';
   const body  = data.body  ?? '';
 
   event.waitUntil(
-    self.registration.showNotification(title, {
+    (self as any).registration.showNotification(title, {
       body,
       icon:  '/pwa-192.png',
       badge: '/pwa-192.png',
@@ -51,14 +51,14 @@ self.addEventListener('push', (event) => {
   ch.close();
 });
 
-self.addEventListener('notificationclick', (event) => {
+self.addEventListener('notificationclick', (event: any) => {
   event.notification.close();
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    (self as any).clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list: any[]) => {
       for (const c of list) {
         if ('focus' in c) return c.focus();
       }
-      if (self.clients.openWindow) return self.clients.openWindow('/');
+      if ((self as any).clients.openWindow) return (self as any).clients.openWindow('/');
     })
   );
 });
