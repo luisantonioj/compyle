@@ -15,11 +15,11 @@ export const CAT_COLORS = ['#8f1d2b','#c04059','#c08838','#9a6f48','#4a5c3f','#8
 export const BANK_COLORS = ['#1b3a6e','#0066cc','#00d68f','#8f1d2b','#4a5c3f','#9e3a4d','#0a3d62','#6b5e8a','#c08838','#15130f'];
 
 // ─── FormSheet wrapper ───
-export function FormSheet({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+export function FormSheet({ children, onClose, className }: { children: React.ReactNode; onClose: () => void; className?: string }) {
   return (
     <>
       <div className="sheet-backdrop" onClick={onClose} />
-      <div className="form-sheet">{children}</div>
+      <div className={`form-sheet ${className || ''}`}>{children}</div>
     </>
   );
 }

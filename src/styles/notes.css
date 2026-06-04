@@ -152,10 +152,38 @@
 /* Title input inside note form */
 .note-title-input {
   font-family: var(--serif) !important;
-  font-style: italic !important;
   font-size: 20px !important;
   letter-spacing: -0.01em;
   padding: 10px 14px !important;
+}
+
+/* Frozen layout for NoteForm */
+.form-sheet.note-form-sheet {
+  overflow: hidden;
+}
+
+.note-form-header-area {
+  flex-shrink: 0;
+  background: var(--paper);
+  z-index: 10;
+}
+
+.note-title-toolbar-wrap {
+  padding: 0 22px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.note-form-scrollable-area {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.note-form-scrollable-area::-webkit-scrollbar { display: none; }
+
+.note-form-scrollable-area .form-body {
+  padding-top: 4px;
 }
 
 /* Note card preview text */
