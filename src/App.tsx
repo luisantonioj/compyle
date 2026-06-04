@@ -836,6 +836,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           dateKey={editing.dateKey}
           onEdit={() => store.setEditing({ type: 'task', item: editing.item, dateKey: editing.dateKey })}
           onDelete={() => confirmDelete('this task', () => deleteTask(editing.item.id, editing.dateKey))}
+          onCheck={() => checkTask(editing.item.id, editing.dateKey)}
           onClose={() => store.setEditing(null)}
         />
       )}

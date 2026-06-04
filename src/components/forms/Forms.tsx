@@ -95,10 +95,11 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
 }
 
 // ─── Task view modal ───
-export function TaskViewModal({ task, dateKey, onEdit, onDelete, onClose }: {
+export function TaskViewModal({ task, dateKey, onEdit, onDelete, onCheck, onClose }: {
   task: Task; dateKey: string;
   onEdit: () => void;
   onDelete: () => void;
+  onCheck: () => void;
   onClose: () => void;
 }) {
   const d = parseKey(dateKey);
@@ -144,7 +145,10 @@ export function TaskViewModal({ task, dateKey, onEdit, onDelete, onClose }: {
       </div>
       <div className="form-foot">
         <button className="del" onClick={onDelete} title="Delete">🗑</button>
-        <button className="save" onClick={onEdit}>Edit task</button>
+        <button className="cancel" style={{ flex: '0 0 50px' }} onClick={onEdit} title="Edit">✏️</button>
+        <button className="save" onClick={() => { onCheck(); onClose(); }}>
+          {task.done ? 'Mark as undone' : 'Complete task'}
+        </button>
       </div>
     </FormSheet>
   );
