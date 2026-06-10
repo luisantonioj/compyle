@@ -21,15 +21,15 @@ function addDays(d: Date, n: number): Date {
 
 function MiniCheck({ done }: { done: boolean }) {
   return (
-    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-      <circle cx="5" cy="5" r="4"
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <circle cx="8" cy="8" r="7"
         stroke={done ? 'var(--moss)' : 'var(--ink-mute)'}
         strokeWidth="1.2"
         fill={done ? 'var(--moss)' : 'none'}
       />
       {done && (
-        <path d="M2.8 5.1l1.4 1.4 2.4-2.4"
-          stroke="white" strokeWidth="1.1"
+        <path d="M5 8l2 2 4-4"
+          stroke="white" strokeWidth="1.2"
           strokeLinecap="round" strokeLinejoin="round"
         />
       )}
