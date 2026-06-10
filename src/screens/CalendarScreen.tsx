@@ -76,7 +76,7 @@ export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onPr
                   if ((e.target as HTMLElement).closest('.check')) return;
                   onEdit({ type: 'task-view', item: t, dateKey: editKey });
                 }}>
-                <button className={`check${t.done ? ' checked' : ''}`} disabled={!!ti._virtual}
+                <button className={`check plan-check${t.done ? ' checked' : ''}`} disabled={!!ti._virtual}
                   onClick={(e) => { e.stopPropagation(); !ti._virtual && onCheck(t.id, editKey); }}>
                   {Icons.check()}
                 </button>
