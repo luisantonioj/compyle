@@ -104,4 +104,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
 export const selectData = (s: AppStore): UserData =>
   s.viewMode === 'partner' ? s.luisData : s.yleData;
 export const selectIsPartner = (s: AppStore) => s.viewMode === 'partner';
-export const selectPartnerName = (s: AppStore) => s.partnerProfile.displayName;
+export const selectPartnerName = (s: AppStore) => {
+  const name = s.partnerProfile.displayName;
+  return name ? name.split(' ')[0] : 'Partner';
+};

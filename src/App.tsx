@@ -761,7 +761,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
 
   const meInitial = (store.meProfile.displayName || store.meProfile.email || '?').charAt(0).toUpperCase();
   const profileInitial = isPartner
-    ? (store.partnerProfile.displayName || '?').charAt(0).toUpperCase()
+    ? partnerName.charAt(0).toUpperCase()
     : meInitial;
 
   const sharedScreenProps = {
@@ -817,7 +817,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           privacy={store.yleData.privacy}
           onPrivacyToggle={togglePrivacy}
           partnerLinked={!!store.meProfile.partnerId}
-          partnerName={store.partnerProfile.displayName || 'Partner'}
+          partnerName={partnerName}
           user={user}
           onSignOut={handleSignOut}
           onEnableNotifications={handleEnableNotifications}
@@ -950,7 +950,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           meInitial={meInitial}
           meName={store.meProfile.displayName || store.meProfile.email || 'Me'}
           meEmail={store.meProfile.email || ''}
-          partnerName={store.partnerProfile.displayName || 'Partner'}
+          partnerName={partnerName}
           partnerLinked={!!store.meProfile.partnerId}
         />
         <main className="web-content">
