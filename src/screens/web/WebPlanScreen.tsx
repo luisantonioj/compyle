@@ -23,9 +23,9 @@ function MiniCheck({ done }: { done: boolean }) {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
       <circle cx="8" cy="8" r="7"
-        stroke={done ? 'var(--moss)' : 'var(--ink-mute)'}
+        stroke={done ? 'var(--ink-mute)' : 'var(--ink-mute)'}
         strokeWidth="1.2"
-        fill={done ? 'var(--moss)' : 'none'}
+        fill={done ? 'var(--ink-mute)' : 'none'}
       />
       {done && (
         <path d="M5 8l2 2 4-4"
