@@ -825,7 +825,16 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           onCreateInvite={user ? () => createInvite(user.uid) : undefined}
           onAcceptInvite={user ? (code) => acceptInvite(code, user.uid) : undefined}
           onUnlink={user && store.meProfile.partnerId
-            ? () => unlinkPartner(user.uid, store.meProfile.partnerId!)
+            ? () => {
+                store.setConfirm({
+                  title: 'Unlink partner?',
+                  message: 'Are you sure you want to disconnect from your partner?',
+                  onConfirm: () => {
+                    void unlinkPartner(user.uid, store.meProfile.partnerId!);
+                    store.clearConfirm();
+                  }
+                });
+              }
             : undefined}
         />
       )}
