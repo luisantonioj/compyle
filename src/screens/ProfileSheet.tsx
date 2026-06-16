@@ -5,6 +5,7 @@ import { Icons } from '../components/Icons';
 import { Sheet, Toggle } from '../components/ui/shared';
 import { IS_CONFIGURED } from '../lib/firebase';
 import type { ViewMode, PrivacySettings } from '../types';
+import { useAppStore } from '../store/appStore';
 
 interface ProfileSheetProps {
   onClose: () => void;
@@ -24,21 +25,22 @@ interface ProfileSheetProps {
 }
 
 const PRIVACY_ITEMS: { key: keyof PrivacySettings; label: string }[] = [
-  { key: 'tasks', label: 'Tasks & calendar' },
-  { key: 'habits', label: 'Tracker' },
-  { key: 'budget', label: 'Savings & budget' },
-  { key: 'payments', label: 'Bills & payments' },
-  { key: 'reminders', label: 'Reminders summary' },
+  { key: 'cal', label: 'Plan' },
+  { key: 'notes', label: 'Notes' },
+  { key: 'links', label: 'Links' },
+  { key: 'habits', label: 'Track' },
+  { key: 'money', label: 'Money' },
 ];
 
 const STATIC_SETTINGS_ROWS = [
   { icon: '🌙', label: 'Appearance', detail: 'Cream' },
   { icon: '📥', label: 'Export data', detail: 'CSV / JSON' },
   { icon: '🔒', label: 'Privacy mode', detail: 'On' },
-  { icon: '✨', label: 'About compyle', detail: 'v3.0' },
+  { icon: '✨', label: 'About compyle', detail: 'v1.43' },
 ];
 
 export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPrivacyToggle, partnerLinked, partnerName, user, onSignOut, onEnableNotifications, pushEnabled, onCreateInvite, onAcceptInvite, onUnlink }: ProfileSheetProps) {
+  const flash = useAppStore((s) => s.flash);
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'yle';
   const initial = (viewMode === 'partner' ? partnerName : displayName).charAt(0).toUpperCase();
   const email = user?.email || 'yle@compyle.app';
@@ -47,6 +49,7 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
   const [inviteInput, setInviteInput] = useState('');
   const [linkLoading, setLinkLoading] = useState(false);
   const [linkError, setLinkError] = useState('');
+  const [showAbout, setShowAbout] = useState(false);
 
   const notifDetail = IS_CONFIGURED
     ? pushEnabled
@@ -56,6 +59,44 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
         : 'Off'
     : 'On';
   const notifClickable = IS_CONFIGURED && !pushEnabled && typeof Notification !== 'undefined' && Notification.permission !== 'denied';
+
+  if (showAbout) {
+    return (
+      <Sheet onClose={() => setShowAbout(false)}>
+        <div style={{ position: 'relative', paddingTop: 8, paddingBottom: 24, paddingLeft: 4, paddingRight: 4 }}>
+          <button 
+            onClick={() => setShowAbout(false)}
+            style={{ 
+              position: 'absolute', top: -14, right: -10, 
+              background: 'none', border: 'none', 
+              padding: 8, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--ink-mute)'
+            }}
+          >
+            <div style={{ transform: 'rotate(45deg)' }}>
+              {Icons.plus({ size: 28, stroke: 'currentColor' })}
+            </div>
+          </button>
+          
+          <div style={{ fontFamily: 'var(--serif)', fontSize: 30, marginBottom: 8, marginTop: 4 }}>Compyle</div>
+          <div style={{ fontSize: 15, color: 'var(--ink-mute)', marginBottom: 28, lineHeight: 1.4 }}>
+            All-in-One Personal Companion. Your Life Compyler.
+          </div>
+
+          <div style={{ fontSize: 17, fontFamily: 'var(--serif)', fontWeight: 600, marginBottom: 10 }}>Origin Story</div>
+          <div style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 28, textAlign: 'justify' }}>
+            Compyle was originally created as a gift to replace a scattered collection of Google Sheets with one unified application. Built with love for Yle, the platform was designed to simplify daily routines and bring all essential life-management tools into a single space.
+          </div>
+
+          <div style={{ fontSize: 17, fontFamily: 'var(--serif)', fontWeight: 600, marginBottom: 10 }}>App Summary</div>
+          <div style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, textAlign: 'justify' }}>
+            Serving as your personal companion, this offline-first Progressive Web App seamlessly consolidates calendar tasks, random notes, quick links, habit tracking, budget management, and payment reminders. It also features secure couple collaboration, allowing partners to securely view and edit each other's progress while maintaining full control over their own privacy settings.
+          </div>
+        </div>
+      </Sheet>
+    );
+  }
 
   return (
     <Sheet onClose={onClose}>
@@ -71,7 +112,7 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
               {viewMode === 'partner' ? partnerName : displayName}
             </div>
             <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 2 }}>
-              {viewMode === 'partner' ? 'PARTNER · READ-ONLY' : email.toUpperCase()}
+              {viewMode === 'partner' ? 'PARTNER · READ-ONLY' : email}
             </div>
           </div>
         </div>
@@ -116,11 +157,11 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
                         color: 'var(--clay)',
                         padding: '8px 12px', border: '1px solid var(--clay)',
                         borderRadius: 999, background: 'none', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center',
+                        display: 'flex', alignItems: 'center', gap: 5,
                       }}
                       onClick={async () => { await onUnlink(); }}
                     >
-                      unlink
+                      {Icons.unlink({ stroke: 'var(--clay)' })}
                     </button>
                   )}
                 </div>
@@ -218,12 +259,13 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
           {/* Notifications row — interactive when push not yet enabled */}
           <div
             className="row"
-            onClick={notifClickable && onEnableNotifications ? () => void onEnableNotifications() : undefined}
+            onClick={() => flash('Feature coming soon')}
             style={{
               padding: '13px 18px',
               borderBottom: '1px solid var(--hair)',
               gap: 12,
-              cursor: notifClickable ? 'pointer' : 'default',
+              cursor: 'pointer',
+              opacity: 0.4,
             }}
           >
             <div style={{
@@ -239,12 +281,27 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
             {Icons.chevR({ stroke: 'var(--ink-faint)' })}
           </div>
 
-          {STATIC_SETTINGS_ROWS.map((row, i) => (
-            <div key={row.label} className="row" style={{
-              padding: '13px 18px',
-              borderBottom: i < STATIC_SETTINGS_ROWS.length - 1 ? '1px solid var(--hair)' : 'none',
-              gap: 12,
-            }}>
+          {STATIC_SETTINGS_ROWS.map((row, i) => {
+            const isComingSoon = row.label !== 'About compyle';
+            return (
+            <div 
+              key={row.label} 
+              className="row" 
+              style={{
+                padding: '13px 18px',
+                borderBottom: i < STATIC_SETTINGS_ROWS.length - 1 ? '1px solid var(--hair)' : 'none',
+                gap: 12,
+                opacity: isComingSoon ? 0.4 : 1,
+                cursor: 'pointer'
+              }}
+              onClick={() => {
+                if (isComingSoon) {
+                  flash('Feature coming soon');
+                } else if (row.label === 'About compyle') {
+                  setShowAbout(true);
+                }
+              }}
+            >
               <div style={{
                 width: 28, height: 28, borderRadius: 8, background: 'var(--cream-deep)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
@@ -253,7 +310,7 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
               <div className="mono" style={{ fontSize: 11, color: 'var(--ink-mute)', letterSpacing: '0.05em' }}>{row.detail}</div>
               {Icons.chevR({ stroke: 'var(--ink-faint)' })}
             </div>
-          ))}
+          )})}
         </div>
 
         {IS_CONFIGURED && onSignOut && (

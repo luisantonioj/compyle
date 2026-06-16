@@ -101,11 +101,11 @@ export interface Note {
 }
 
 export interface PrivacySettings {
-  tasks: boolean;
+  cal: boolean;
+  notes: boolean;
+  links: boolean;
   habits: boolean;
-  budget: boolean;
-  payments: boolean;
-  reminders: boolean;
+  money: boolean;
 }
 
 export interface UserData {

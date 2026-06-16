@@ -97,7 +97,7 @@ export const SEED_YLE: UserData = {
     { id: 'd2', name: 'TikTok PL — winter coat',  total: 4200, paid: 1050, due: '2026-06-04', months: 4, paidMonths: 1 },
     { id: 'd3', name: 'Tita Bea — loan',          total: 8000, paid: 3000, due: '2026-07-15', months: 0, paidMonths: 0 },
   ],
-  privacy: { tasks: true, habits: true, budget: true, payments: true, reminders: true },
+  privacy: { cal: true, notes: true, links: true, habits: true, money: true },
   linkCategories: [
     { id: 'ylc1', name: 'School', color: '#8f1d2b', sort_order: 0 },
     { id: 'ylc2', name: 'Socials', color: '#5e131c', sort_order: 1 },
@@ -178,7 +178,7 @@ export const SEED_LUIS: UserData = {
   debts: [
     { id: 'ld1', name: 'Home Credit — laptop', total: 65000, paid: 26000, due: '2026-09-15', months: 12, paidMonths: 4 },
   ],
-  privacy: { tasks: true, habits: true, budget: true, payments: true, reminders: false },
+  privacy: { cal: true, notes: true, links: true, habits: true, money: true },
   linkCategories: [
     { id: 'llc1', name: 'Work', color: '#3d6480', sort_order: 0 },
     { id: 'llc2', name: 'Resources', color: '#4a5c3f', sort_order: 1 },
@@ -198,7 +198,7 @@ export const EMPTY_DATA: UserData = {
   transactions: [],
   bills: [],
   debts: [],
-  privacy: { tasks: true, habits: true, budget: true, payments: true, reminders: true },
+  privacy: { cal: true, notes: true, links: true, habits: true, money: true },
   linkCategories: [],
   links: [],
   notes: [],
