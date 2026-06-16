@@ -1,12 +1,25 @@
 /// <reference lib="webworker" />
 
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
+import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching';
+import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 
 cleanupOutdatedCaches();
 precacheAndRoute((self as any).__WB_MANIFEST);
+
+try {
+  const handler = createHandlerBoundToURL('/index.html');
+  const navigationRoute = new NavigationRoute(handler, {
+    denylist: [
+      /^\/_/,
+      /\/[^/?]+\.[^/]+$/,
+    ],
+  });
+  registerRoute(navigationRoute);
+} catch (e) {
+  console.warn('NavigationRoute fallback failed', e);
+}
 
 // Google Fonts
 registerRoute(
