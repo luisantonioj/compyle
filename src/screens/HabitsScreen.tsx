@@ -33,8 +33,8 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
     <div className="screen">
       <div className="top-bar">
         <div>
-          <div className="kicker">Daily tracker</div>
-          <h1>Your <em>track</em></h1>
+          <div className="kicker">Tracker</div>
+          <h1>Habit <em>Logs</em></h1>
         </div>
         <button className={`profile-pill${viewMode === 'partner' ? ' partner' : ''}`} onClick={onProfile}>
           {profileInitial}

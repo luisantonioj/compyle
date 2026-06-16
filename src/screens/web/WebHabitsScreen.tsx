@@ -54,8 +54,8 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
     <div>
       <div className="page-head">
         <div>
-          <div className="kicker">Daily tracker</div>
-          <h1>Your <em>track</em></h1>
+          <div className="kicker">Tracker</div>
+          <h1>Habit <em>Logs</em></h1>
         </div>
         <button className="btn-add" onClick={() => onEdit({ type: 'habit' })}>
             {Icons.plus({ size: 14, stroke: 'var(--cream)' })}

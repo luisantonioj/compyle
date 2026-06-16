@@ -36,8 +36,8 @@ export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onPr
     <div className="screen">
       <div className="top-bar">
         <div>
-          <div className="kicker">Calendar</div>
-          <h1>Plan & <em>tasks</em></h1>
+          <div className="kicker">Plan</div>
+          <h1>Daily <em>Schedule</em></h1>
         </div>
         <button className={`profile-pill${viewMode === 'partner' ? ' partner' : ''}`} onClick={onProfile}>
           {profileInitial}

@@ -197,8 +197,8 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
     <div>
       <div className="page-head">
         <div>
-          <div className="kicker">Calendar</div>
-          <h1>Plan & <em>tasks</em></h1>
+          <div className="kicker">Plan</div>
+          <h1>Daily <em>Schedule</em></h1>
         </div>
         <button className="btn-add" onClick={() => onEdit({ type: 'task', dateKey: selected })}>
             {Icons.plus({ size: 14, stroke: 'var(--cream)' })}

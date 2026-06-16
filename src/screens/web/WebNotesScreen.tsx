@@ -180,8 +180,8 @@ export function WebNotesScreen({ data, isPartner, onEdit, onReorder, onUpdateNot
     <div>
       <div className="page-head">
         <div>
-          <div className="kicker">Personal notes</div>
-          <h1>Your <em>notes</em></h1>
+          <div className="kicker">Notes</div>
+          <h1>Personal <em>Notebook</em></h1>
         </div>
         <button className="btn-add" onClick={() => onEdit({ type: 'note' })}>
           {Icons.plus({ size: 14, stroke: 'var(--cream)' })}

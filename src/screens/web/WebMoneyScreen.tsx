@@ -19,7 +19,7 @@ export function WebMoneyScreen({ data, isPartner, onEdit, onMarkPaid }: WebMoney
       <div className="page-head">
         <div>
           <div className="kicker">Money</div>
-          <h1>{tab === 'savings' ? <>Spent & <em>saved</em></> : <>Bills & <em>owed</em></>}</h1>
+          <h1>Personal <em>Finances</em></h1>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn-add ghost" onClick={() => setHidden(!hidden)}>

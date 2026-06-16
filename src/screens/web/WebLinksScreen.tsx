@@ -60,8 +60,8 @@ export function WebLinksScreen({ data, onEdit, onReorder, onReorderLinks }: WebL
     <div>
       <div className="page-head">
         <div>
-          <div className="kicker">Quick access</div>
-          <h1>Your <em>links</em></h1>
+          <div className="kicker">Links</div>
+          <h1>Saved <em>Bookmarks</em></h1>
         </div>
         <button className="btn-add" onClick={() => onEdit({ type: 'link-category' })}>
           {Icons.plus({ size: 14, stroke: 'var(--cream)' })}

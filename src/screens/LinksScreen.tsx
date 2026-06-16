@@ -65,8 +65,8 @@ export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit
     <div className="screen">
       <div className="top-bar">
         <div>
-          <div className="kicker">Quick access</div>
-          <h1>Your <em>links</em></h1>
+          <div className="kicker">Links</div>
+          <h1>Saved <em>Bookmarks</em></h1>
         </div>
         <button
           className={`profile-pill${isPartner ? ' partner' : ''}`}
