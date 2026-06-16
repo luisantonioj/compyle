@@ -80,7 +80,7 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
         {partnerLinked && (
           <div className="card white" style={{ padding: 0, marginBottom: 16, overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--hair)' }}>
-              <div className="label" style={{ marginBottom: 4 }}>Linked partner</div>
+              {/* <div className="label" style={{ marginBottom: 4 }}>Linked partner</div> */}
               <div className="row-between">
                 <div className="row" style={{ gap: 10 }}>
                   <div className="profile-pill partner" style={{ width: 32, height: 32, fontSize: 15 }}>
@@ -93,35 +93,40 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={onSwitchView}
-                  style={{
-                    fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 600,
-                    letterSpacing: '0.12em', textTransform: 'uppercase',
-                    padding: '8px 12px', borderRadius: 999,
-                    background: viewMode === 'partner' ? 'var(--ink)' : 'var(--partner)',
-                    color: 'white',
-                    display: 'flex', alignItems: 'center', gap: 5,
-                  }}
-                >
-                  {Icons.swap()}
-                  {viewMode === 'partner' ? 'My view' : `${partnerName}'s view`}
-                </button>
+                <div className="row" style={{ gap: 8 }}>
+                  <button
+                    onClick={onSwitchView}
+                    style={{
+                      fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 600,
+                      letterSpacing: '0.12em', textTransform: 'uppercase',
+                      padding: '8px 12px', borderRadius: 999,
+                      background: viewMode === 'partner' ? 'var(--ink)' : 'var(--partner)',
+                      color: 'white',
+                      display: 'flex', alignItems: 'center', gap: 5,
+                    }}
+                  >
+                    {Icons.swap()}
+                    {viewMode === 'partner' ? 'My view' : `${partnerName}'s view`}
+                  </button>
+                  {onUnlink && (
+                    <button
+                      style={{
+                        fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 600,
+                        letterSpacing: '0.12em', textTransform: 'uppercase',
+                        color: 'var(--clay)',
+                        padding: '8px 12px', border: '1px solid var(--clay)',
+                        borderRadius: 999, background: 'none', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center',
+                      }}
+                      onClick={async () => { await onUnlink(); }}
+                    >
+                      unlink
+                    </button>
+                  )}
+                </div>
               </div>
-              {onUnlink && (
-                <button
-                  style={{
-                    marginTop: 10, fontFamily: 'var(--mono)', fontSize: 10,
-                    letterSpacing: '0.1em', color: 'var(--clay)',
-                    padding: '4px 8px', border: '1px solid var(--clay)',
-                    borderRadius: 6, background: 'none', cursor: 'pointer',
-                  }}
-                  onClick={async () => { await onUnlink(); }}
-                >
-                  unlink
-                </button>
-              )}
             </div>
+
 
             {/* privacy controls — only shown in own view */}
             {viewMode !== 'partner' && (
