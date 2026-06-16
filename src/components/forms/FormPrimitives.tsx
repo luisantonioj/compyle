@@ -1,5 +1,6 @@
 // compyle — reusable form building blocks
 import React, { useRef, useEffect } from 'react';
+import { ChromePicker } from 'react-color';
 import { Icons } from '../Icons';
 
 export const TASK_CATEGORIES = [
@@ -105,10 +106,8 @@ export function EmojiPicker({ value, onChange }: { value: string; onChange: (v: 
 // ─── ColorPicker ───
 export function ColorPicker({ value, onChange, palette }: { value: string; onChange: (v: string) => void; palette: string[] }) {
   return (
-    <div className="color-pick">
-      {palette.map((c) => (
-        <button key={c} type="button" className={value === c ? 'selected' : ''} style={{ background: c }} onClick={() => onChange(c)} />
-      ))}
+    <div className="color-pick-wrapper" style={{ marginTop: '8px', display: 'flex', justifyContent: 'center' }}>
+      <ChromePicker color={value || '#000000'} onChange={(c: any) => onChange(c.hex)} disableAlpha={true} />
     </div>
   );
 }
