@@ -87,6 +87,8 @@ export interface LinkItem {
   title: string;
   url: string;
   description?: string;
+  customEmoji?: string;
+  customImageUrl?: string;
   sort_order?: number;
   archived?: boolean;
 }

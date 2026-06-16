@@ -226,11 +226,17 @@ function WebCardContent({ cat, links, onEdit, onReorderLinks, dragListeners, dra
         {!isOverlay && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <button
-              className="btn-add ghost"
-              style={{ fontSize: 9, padding: '5px 10px' }}
               onClick={() => onEdit({ type: 'link-item', categoryId: cat.id })}
+              style={{
+                width: 28, height: 28, borderRadius: 8,
+                border: '1px solid var(--hair-strong)',
+                background: 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--ink-mute)',
+              }}
+              title="Add link"
             >
-              + link
+              {Icons.plus({ size: 14, stroke: 'currentColor' })}
             </button>
             <button
               onClick={() => onEdit({ type: 'link-category', item: cat })}
@@ -243,7 +249,7 @@ function WebCardContent({ cat, links, onEdit, onReorderLinks, dragListeners, dra
               }}
               title="Edit category"
             >
-              {Icons.chevR({ stroke: 'currentColor' })}
+              {Icons.pencil({ stroke: 'currentColor' })}
             </button>
           </div>
         )}
@@ -254,14 +260,9 @@ function WebCardContent({ cat, links, onEdit, onReorderLinks, dragListeners, dra
           No links yet.
         </div>
       ) : isOverlay ? (
-        <div>
-          {links.map((link, idx) => (
-            <WebLinkRow
-              key={link.id}
-              link={link}
-              isLast={idx === links.length - 1}
-              onEdit={() => {}}
-            />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: '16px 12px', paddingTop: 10 }}>
+          {links.map((link) => (
+            <WebLinkRow key={link.id} link={link} onEdit={() => {}} />
           ))}
         </div>
       ) : (
@@ -272,13 +273,12 @@ function WebCardContent({ cat, links, onEdit, onReorderLinks, dragListeners, dra
           onDragEnd={handleLinkDragEnd}
           onDragCancel={() => setActiveLinkId(null)}
         >
-          <SortableContext items={links.map((l) => l.id)} strategy={verticalListSortingStrategy}>
-            <div>
-              {links.map((link, idx) => (
+          <SortableContext items={links.map((l) => l.id)} strategy={rectSortingStrategy}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: '16px 12px', paddingTop: 10 }}>
+              {links.map((link) => (
                 <SortableWebLinkRow
                   key={link.id}
                   link={link}
-                  isLast={idx === links.length - 1}
                   onEdit={() => onEdit({ type: 'link-item', item: link, categoryId: cat.id })}
                 />
               ))}
@@ -290,8 +290,8 @@ function WebCardContent({ cat, links, onEdit, onReorderLinks, dragListeners, dra
             }}
           >
             {activeLink && (
-              <div style={{ boxShadow: '0 8px 24px rgba(21,19,15,0.14)', borderRadius: 8, background: 'var(--cream)' }}>
-                <WebLinkRow link={activeLink} isLast onEdit={() => {}} />
+              <div style={{ transform: 'scale(1.05)' }}>
+                <WebLinkRow link={activeLink} onEdit={() => {}} />
               </div>
             )}
           </DragOverlay>
@@ -301,7 +301,7 @@ function WebCardContent({ cat, links, onEdit, onReorderLinks, dragListeners, dra
   );
 }
 
-function SortableWebLinkRow({ link, isLast, onEdit }: { link: LinkItem; isLast: boolean; onEdit: () => void }) {
+function SortableWebLinkRow({ link, onEdit }: { link: LinkItem; onEdit: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id });
 
   return (
@@ -311,48 +311,41 @@ function SortableWebLinkRow({ link, isLast, onEdit }: { link: LinkItem; isLast: 
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.35 : 1,
+        touchAction: 'none',
+        position: 'relative',
+        zIndex: isDragging ? 1 : 0,
       }}
       {...listeners}
       {...attributes}
     >
-      <WebLinkRow link={link} isLast={isLast} onEdit={onEdit} />
+      <WebLinkRow link={link} onEdit={onEdit} />
     </div>
   );
 }
 
-function WebLinkRow({ link, isLast, onEdit }: { link: LinkItem; isLast: boolean; onEdit: () => void }) {
+function WebLinkRow({ link, onEdit }: { link: LinkItem; onEdit: () => void }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 10,
-      paddingTop: 10, paddingBottom: 10,
-      borderBottom: isLast ? 'none' : '1px solid var(--hair)',
-    }}>
-      <a href={link.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, minWidth: 0, textDecoration: 'none' }}>
-        <div style={{ fontSize: 14, color: 'var(--ink)', lineHeight: 1.3, fontFamily: 'var(--sans)' }}>{link.title}</div>
-        {link.description && (
-          <div style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 2 }}>
-            {link.description}
-          </div>
-        )}
-        <div style={{
-          fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--ink-faint)',
-          letterSpacing: '0.06em', marginTop: 2,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {link.url}
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <a href={link.url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', width: '100%' }}>
+        <div style={{ width: 48, height: 48, borderRadius: 12, border: '1px solid var(--hair-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 6, background: 'var(--white)', transition: 'border-color 0.15s, box-shadow 0.15s' }}>
+          {link.customImageUrl ? (
+            <img src={link.customImageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : link.customEmoji ? (
+            <span style={{ fontSize: 26, lineHeight: 1 }}>{link.customEmoji}</span>
+          ) : (
+            <img src={`https://www.google.com/s2/favicons?domain=${link.url}&sz=64`} alt="" style={{ width: 28, height: 28 }} />
+          )}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--ink)', lineHeight: 1.2, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 2px', fontFamily: 'var(--sans)' }}>
+          {link.title}
         </div>
       </a>
       <button
-        onClick={onEdit}
-        style={{
-          width: 26, height: 26, borderRadius: 7,
-          border: '1px solid var(--hair-strong)', background: 'transparent',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: 'var(--ink-faint)', flexShrink: 0,
-        }}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }}
+        style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, background: 'var(--white)', border: '1px solid var(--hair-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-mute)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', cursor: 'pointer' }}
         title="Edit link"
       >
-        {Icons.chevR({ stroke: 'currentColor' })}
+        <span style={{ fontSize: 12, lineHeight: 1, paddingBottom: 4, fontFamily: 'var(--sans)' }}>⋮</span>
       </button>
     </div>
   );

@@ -23,6 +23,11 @@ export const Icons = {
       <path d="M7 1L1 7L7 13" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
+  pencil: ({ size = 14, stroke = 'currentColor' }: IconProps = {}) => (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none">
+      <path d="M10 2l2 2M1.5 10.5L1.5 12.5L3.5 12.5L11.5 4.5L9.5 2.5L1.5 10.5Z" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
   eye: ({ stroke = 'currentColor' }: IconProps = {}) => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
       <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke={stroke} strokeWidth="1.4"/>

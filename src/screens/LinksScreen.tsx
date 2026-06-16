@@ -7,7 +7,7 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  SortableContext, verticalListSortingStrategy,
+  SortableContext, verticalListSortingStrategy, rectSortingStrategy,
   useSortable, arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -250,7 +250,7 @@ function CategoryCardContent({ cat, links, onEdit, onReorderLinks, dragListeners
         </div>
         {!isOverlay && (
           <button onClick={() => onEdit({ type: 'link-category', item: cat })} style={{ color: 'var(--ink-faint)', padding: 4 }}>
-            {Icons.chevR({ stroke: 'var(--ink-faint)' })}
+            {Icons.pencil({ stroke: 'var(--ink-faint)' })}
           </button>
         )}
       </div>
@@ -259,14 +259,11 @@ function CategoryCardContent({ cat, links, onEdit, onReorderLinks, dragListeners
         <>
           <div className="hr" />
           {isOverlay ? (
-            links.map((link, idx) => (
-              <LinkRow
-                key={link.id}
-                link={link}
-                isLast={idx === links.length - 1}
-                onEdit={() => {}}
-              />
-            ))
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: '16px 12px', paddingTop: 10 }}>
+              {links.map((link) => (
+                <LinkRow key={link.id} link={link} onEdit={() => {}} />
+              ))}
+            </div>
           ) : (
             <DndContext
               sensors={linkSensors}
@@ -275,15 +272,16 @@ function CategoryCardContent({ cat, links, onEdit, onReorderLinks, dragListeners
               onDragEnd={handleLinkDragEnd}
               onDragCancel={() => setActiveLinkId(null)}
             >
-              <SortableContext items={links.map((l) => l.id)} strategy={verticalListSortingStrategy}>
-                {links.map((link, idx) => (
-                  <SortableLinkRow
-                    key={link.id}
-                    link={link}
-                    isLast={idx === links.length - 1}
-                    onEdit={() => onEdit({ type: 'link-item', item: link, categoryId: cat.id })}
-                  />
-                ))}
+              <SortableContext items={links.map((l) => l.id)} strategy={rectSortingStrategy}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: '16px 12px', paddingTop: 10 }}>
+                  {links.map((link) => (
+                    <SortableLinkRow
+                      key={link.id}
+                      link={link}
+                      onEdit={() => onEdit({ type: 'link-item', item: link, categoryId: cat.id })}
+                    />
+                  ))}
+                </div>
               </SortableContext>
               <DragOverlay
                 dropAnimation={{
@@ -291,8 +289,8 @@ function CategoryCardContent({ cat, links, onEdit, onReorderLinks, dragListeners
                 }}
               >
                 {activeLink && (
-                  <div style={{ boxShadow: '0 8px 24px rgba(21,19,15,0.14)', borderRadius: 8, background: 'var(--cream)' }}>
-                    <LinkRow link={activeLink} isLast onEdit={() => {}} />
+                  <div style={{ transform: 'scale(1.05)' }}>
+                    <LinkRow link={activeLink} onEdit={() => {}} />
                   </div>
                 )}
               </DragOverlay>
@@ -319,7 +317,7 @@ function CategoryCardContent({ cat, links, onEdit, onReorderLinks, dragListeners
   );
 }
 
-function SortableLinkRow({ link, isLast, onEdit }: { link: LinkItem; isLast: boolean; onEdit: () => void }) {
+function SortableLinkRow({ link, onEdit }: { link: LinkItem; onEdit: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id });
 
   return (
@@ -330,39 +328,39 @@ function SortableLinkRow({ link, isLast, onEdit }: { link: LinkItem; isLast: boo
         transition,
         opacity: isDragging ? 0.35 : 1,
         touchAction: 'none',
+        position: 'relative',
+        zIndex: isDragging ? 1 : 0,
       }}
       {...listeners}
       {...attributes}
     >
-      <LinkRow link={link} isLast={isLast} onEdit={onEdit} />
+      <LinkRow link={link} onEdit={onEdit} />
     </div>
   );
 }
 
-function LinkRow({ link, isLast, onEdit }: { link: LinkItem; isLast: boolean; onEdit: () => void }) {
+function LinkRow({ link, onEdit }: { link: LinkItem; onEdit: () => void }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 10,
-      paddingTop: 10, paddingBottom: isLast ? 4 : 10,
-      borderBottom: isLast ? 'none' : '1px solid var(--hair)',
-    }}>
-      <a href={link.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, minWidth: 0, textDecoration: 'none' }}>
-        <div style={{ fontSize: 14, color: 'var(--ink)', lineHeight: 1.3 }}>{link.title}</div>
-        {link.description && (
-          <div style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 2 }}>
-            {link.description}
-          </div>
-        )}
-        <div style={{
-          fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--ink-faint)',
-          letterSpacing: '0.06em', marginTop: 2,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {link.url}
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <a href={link.url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', width: '100%' }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, border: '1px solid var(--hair-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 6, background: 'var(--white)' }}>
+          {link.customImageUrl ? (
+            <img src={link.customImageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : link.customEmoji ? (
+            <span style={{ fontSize: 24, lineHeight: 1 }}>{link.customEmoji}</span>
+          ) : (
+            <img src={`https://www.google.com/s2/favicons?domain=${link.url}&sz=64`} alt="" style={{ width: 24, height: 24 }} />
+          )}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--ink)', lineHeight: 1.2, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 2px' }}>
+          {link.title}
         </div>
       </a>
-      <button onClick={onEdit} style={{ color: 'var(--ink-faint)', padding: 4, flexShrink: 0 }}>
-        {Icons.chevR({ stroke: 'var(--ink-faint)' })}
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }}
+        style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: 10, background: 'var(--white)', border: '1px solid var(--hair-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-mute)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
+      >
+        <span style={{ fontSize: 10, lineHeight: 1, paddingBottom: 2, fontFamily: 'var(--sans)' }}>⋮</span>
       </button>
     </div>
   );

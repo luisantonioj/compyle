@@ -564,6 +564,36 @@ export function LinkItemForm({ link, categoryId, onSave, onDelete, onArchive, ar
   const [title, setTitle] = useState(link?.title ?? '');
   const [url, setUrl] = useState(link?.url ?? '');
   const [description, setDescription] = useState(link?.description ?? '');
+  const [customEmoji, setCustomEmoji] = useState(link?.customEmoji ?? '');
+  const [customImageUrl, setCustomImageUrl] = useState(link?.customImageUrl ?? '');
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 128;
+        let w = img.width;
+        let h = img.height;
+        if (w > h && w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; }
+        else if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; }
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, w, h);
+          setCustomImageUrl(canvas.toDataURL('image/jpeg', 0.8));
+          setCustomEmoji('');
+        }
+      };
+      if (ev.target?.result) img.src = ev.target.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = () => {
     if (!title.trim() || !url.trim()) return;
@@ -574,6 +604,8 @@ export function LinkItemForm({ link, categoryId, onSave, onDelete, onArchive, ar
       title: title.trim(),
       url: normalizedUrl,
       description: description.trim() || undefined,
+      customEmoji: customEmoji || undefined,
+      customImageUrl: customImageUrl || undefined,
     });
   };
 
@@ -586,6 +618,48 @@ export function LinkItemForm({ link, categoryId, onSave, onDelete, onArchive, ar
         </Field>
         <Field label="URL">
           <input className="field-input" type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
+        </Field>
+        <Field label="Custom Icon (Optional)">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, border: '1px solid var(--hair-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--cream)', overflow: 'hidden', flexShrink: 0 }}>
+              {customImageUrl ? (
+                <img src={customImageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : customEmoji ? (
+                <span style={{ fontSize: 24 }}>{customEmoji}</span>
+              ) : (
+                <span style={{ fontSize: 10, color: 'var(--ink-faint)', fontFamily: 'var(--sans)' }}>Auto</span>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  value={customEmoji}
+                  onChange={(e) => {
+                    const chars = Array.from(e.target.value);
+                    setCustomEmoji(chars[chars.length - 1] || '');
+                    setCustomImageUrl('');
+                  }}
+                  placeholder="😀"
+                  style={{ width: 44, height: 44, borderRadius: 12, border: '1px solid var(--hair-strong)', background: 'var(--white)', fontSize: 20, textAlign: 'center', padding: 0 }}
+                />
+                <span style={{ fontSize: 11, color: 'var(--ink-mute)', fontFamily: 'var(--sans)' }}>or</span>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ height: 44, padding: '0 16px', background: 'var(--cream)', border: '1px dashed var(--hair-strong)', borderRadius: 12, fontSize: 12, color: 'var(--ink)', fontFamily: 'var(--sans)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                >
+                  Upload Image
+                </button>
+              </div>
+              <input type="file" ref={fileInputRef} accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} />
+              {(customEmoji || customImageUrl) && (
+                <button type="button" onClick={() => { setCustomEmoji(''); setCustomImageUrl(''); }} style={{ fontSize: 10, color: 'var(--red)', background: 'transparent', border: 'none', textAlign: 'left', padding: 0, marginTop: 2 }}>
+                  Remove custom icon
+                </button>
+              )}
+            </div>
+          </div>
         </Field>
         <Field label="Description (optional)">
           <input className="field-input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short note about this link" />
