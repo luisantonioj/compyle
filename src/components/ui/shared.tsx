@@ -108,7 +108,7 @@ export function Confetti({ trigger }: { trigger: number }) {
   const [bits, setBits] = useState<ConfettiBit[]>([]);
   useEffect(() => {
     if (!trigger) return;
-    const colors = ['#8f1d2b', '#c04059', '#4a5c3f', '#c08838', '#6b5e8a', '#15130f'];
+    const colors = ['#8f1d2b', '#c04059', '#4a5c3f', '#c08838', '#5e131c', '#15130f'];
     const next: ConfettiBit[] = Array.from({ length: 26 }, (_, i) => ({
       id: trigger + '_' + i,
       x: 40 + Math.random() * (window.innerWidth - 80),

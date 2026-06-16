@@ -149,7 +149,7 @@ export function TodayScreen({ data, viewMode, partnerName, isPartner, profileIni
                 <div style={{ fontSize: 15, color: t.done ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: t.done ? 'line-through' : 'none' }}>
                   <span style={{ marginRight: 6 }}>{t.emoji}</span>{t.title}
                 </div>
-                {t.time && <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 3 }}>{t.time}</div>}
+                {t.time && <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 2 }}>{t.time}</div>}
               </div>
             </div>
           ))}

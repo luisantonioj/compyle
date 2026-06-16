@@ -19,9 +19,9 @@
   --rose: #9e3a4d;
   --amber: #c08838;
   --amber-tint: #f5e6c4;
-  --partner: #6b5e8a;
-  --partner-tint: #ddd5ec;
-  --partner-deep: #4a4067;
+  --partner: #8f1d2b;
+  --partner-tint: #f5d2d8;
+  --partner-deep: #5e131c;
 
   --serif: 'Instrument Serif', 'Georgia', serif;
   --sans: 'Geist', -apple-system, system-ui, sans-serif;
@@ -242,7 +242,7 @@ input, textarea, select {
   justify-content: space-around;
   padding: 0 8px;
 }
-.bottom-nav.partner .bottom-nav-inner { background: rgba(245, 240, 252, 0.9); }
+.bottom-nav.partner .bottom-nav-inner { background: rgba(245, 210, 216, 0.9); }
 .tab {
   flex: 1;
   display: flex;
@@ -278,13 +278,13 @@ input, textarea, select {
   margin: 0 22px 14px;
   padding: 10px 14px;
   background: var(--partner-tint);
-  border: 1px solid rgba(107, 94, 138, 0.25);
+  border: 1px solid rgba(143, 29, 43, 0.25);
   border-radius: 14px;
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  color: #3d3458;
+  color: #4a0e16;
 }
 .partner-banner .lock {
   width: 22px;
@@ -308,7 +308,7 @@ input, textarea, select {
   background: white;
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(107, 94, 138, 0.3);
+  border: 1px solid rgba(143, 29, 43, 0.3);
 }
 
 /* sheet */
@@ -462,7 +462,7 @@ input, textarea, select {
 /* tasks */
 .task-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   padding: 12px 0;
   border-bottom: 1px solid var(--hair);

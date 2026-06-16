@@ -94,7 +94,7 @@ function DayTaskPanel({
               </button>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="title">{t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}</div>
-                {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 2 }}>{t.description}</div>}
+                {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 0 }}>{t.description}</div>}
                 {t.time && <div className="time">{t.time}</div>}
                 {ti._virtual && t.recurrence && (
                   <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 2 }}>↻ {t.recurrence}</div>

@@ -11,8 +11,8 @@ export const TASK_CATEGORIES = [
 ];
 export const HABIT_FREQS_DAYS = ['Daily', 'Every 2 days', 'Every 3 days', 'Weekly', 'Bi-weekly', 'Mon/Wed/Fri', 'Wed + Sat'];
 export const HABIT_FREQS_TIME = ['Morning', 'Afternoon', 'Evening', 'AM + PM', 'After workout', 'Before bed'];
-export const CAT_COLORS = ['#8f1d2b','#c04059','#c08838','#9a6f48','#4a5c3f','#87976f','#6b5e8a','#3d6480','#9e3a4d','#5a544a'];
-export const BANK_COLORS = ['#1b3a6e','#0066cc','#00d68f','#8f1d2b','#4a5c3f','#9e3a4d','#0a3d62','#6b5e8a','#c08838','#15130f'];
+export const CAT_COLORS = ['#8f1d2b','#c04059','#c08838','#9a6f48','#4a5c3f','#87976f','#5e131c','#3d6480','#9e3a4d','#5a544a'];
+export const BANK_COLORS = ['#1b3a6e','#0066cc','#00d68f','#8f1d2b','#4a5c3f','#9e3a4d','#0a3d62','#5e131c','#c08838','#15130f'];
 
 // ─── FormSheet wrapper ───
 export function FormSheet({ children, onClose, className }: { children: React.ReactNode; onClose: () => void; className?: string }) {

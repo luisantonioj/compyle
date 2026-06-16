@@ -66,7 +66,7 @@ export const SEED_YLE: UserData = {
       { id: 'c2a', name: 'Groceries',      balance: 2760,   color: '#8f1d2b' },
       { id: 'c2b', name: 'Coffee runs',    balance: 680,    color: '#9a6f48' },
       { id: 'c2c', name: 'Skincare',       balance: 880,    color: '#c04059' },
-      { id: 'c2d', name: 'Subscriptions',  balance: 301,    color: '#6b5e8a' },
+      { id: 'c2d', name: 'Subscriptions',  balance: 301,    color: '#5e131c' },
       { id: 'c2e', name: 'Open',           balance: 3799.25, color: '#5a544a' },
     ]},
     { id: 'b3', name: 'Maya', balance: 12100.00, color: '#00d68f', last4: '0931', categories: [
@@ -100,7 +100,7 @@ export const SEED_YLE: UserData = {
   privacy: { tasks: true, habits: true, budget: true, payments: true, reminders: true },
   linkCategories: [
     { id: 'ylc1', name: 'School', color: '#8f1d2b', sort_order: 0 },
-    { id: 'ylc2', name: 'Socials', color: '#6b5e8a', sort_order: 1 },
+    { id: 'ylc2', name: 'Socials', color: '#5e131c', sort_order: 1 },
   ],
   links: [
     { id: 'yli1', categoryId: 'ylc1', title: 'DLSL Portal', url: 'https://dlsl.edu.ph' },

@@ -84,8 +84,8 @@ export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onPr
                   <div style={{ fontSize: 15, color: t.done ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: t.done ? 'line-through' : 'none' }}>
                     {t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}
                   </div>
-                  {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 2 }}>{t.description}</div>}
-                  {t.time && <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 3 }}>{t.time}</div>}
+                  {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 0 }}>{t.description}</div>}
+                  {t.time && <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 2 }}>{t.time}</div>}
                   {ti._virtual && t.recurrence && (
                     <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 3 }}>↻ {t.recurrence}</div>
                   )}
