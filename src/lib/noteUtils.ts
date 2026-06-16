@@ -7,16 +7,27 @@ interface TiptapNode {
 }
 
 function walk(node: TiptapNode): string {
+  if (node.type === 'hardBreak') return '\n';
   if (node.text) return node.text;
   if (!node.content) return '';
-  return node.content.map(walk).join(' ');
+  
+  const isBlock = ['paragraph', 'heading', 'listItem', 'taskItem'].includes(node.type || '');
+  const childrenText = node.content.map(walk).join('');
+  return isBlock ? childrenText + '\n' : childrenText;
 }
 
 export function extractNotePreview(contentJson: string, maxLength = 120): string {
   try {
     const doc = JSON.parse(contentJson) as TiptapNode;
-    const text = walk(doc).replace(/\s+/g, ' ').trim();
-    return text.length > maxLength ? text.slice(0, maxLength) + '…' : text;
+    const rawText = walk(doc);
+    const text = rawText
+      .split('\n')
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+      .join(', ');
+      
+    const cleanedText = text.replace(/\s+/g, ' ').trim();
+    return cleanedText.length > maxLength ? cleanedText.slice(0, maxLength) + '…' : cleanedText;
   } catch {
     return '';
   }
