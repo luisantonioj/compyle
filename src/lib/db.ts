@@ -172,6 +172,9 @@ export function subscribeUserData(
       if (!tasks[date]) tasks[date] = [];
       tasks[date].push(task as Task);
     });
+    for (const key in tasks) {
+      tasks[key].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    }
     onPartial({ tasks });
     mark('tasks');
   }));

@@ -11,6 +11,7 @@ export interface Task {
   recurrenceEnd?: string | null; // "YYYY-MM-DD" — stop expanding after this date
   reminder_time?: string | null;
   created_at?: number;
+  sort_order?: number;
 }
 
 export interface Habit {

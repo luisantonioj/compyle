@@ -4,6 +4,9 @@ import { Icons } from '../components/Icons';
 import { TODAY_KEY, daysInMonth, dateKey, parseKey, getTaskInstances } from '../lib/seed';
 import type { TaskInstance } from '../lib/seed';
 import type { UserData, ViewMode, Task, EditingState } from '../types';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface CalProps {
   data: UserData;
@@ -15,9 +18,10 @@ interface CalProps {
   onEdit: (e: EditingState) => void;
   onSelectedChange?: (dateKey: string) => void;
   defaultView?: 'month' | 'week' | 'day';
+  onReorderTasks?: (dateKey: string, reorderedTasks: Task[]) => void;
 }
 
-export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onProfile, onCheck, onEdit, onSelectedChange, defaultView = 'month' }: CalProps) {
+export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onProfile, onCheck, onEdit, onSelectedChange, defaultView = 'month', onReorderTasks }: CalProps) {
   const [view, setView] = useState<'month' | 'week' | 'day'>(defaultView);
   const [selected, setSelected] = useState(TODAY_KEY);
   const [month, setMonth] = useState(new Date());
@@ -26,6 +30,22 @@ export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onPr
 
   const tasksOnSelected = getTaskInstances(data.tasks, selected);
   const done = tasksOnSelected.filter((t) => t.done).length;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = tasksOnSelected.findIndex((t) => t.id === active.id);
+      const newIndex = tasksOnSelected.findIndex((t) => t.id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1 && onReorderTasks) {
+        onReorderTasks(selected, arrayMove(tasksOnSelected, oldIndex, newIndex));
+      }
+    }
+  };
 
   function formatDay(k: string) {
     if (k === TODAY_KEY) return 'Today';
@@ -67,36 +87,73 @@ export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onPr
           {tasksOnSelected.length === 0 && (
             <div style={{ textAlign: 'center', color: 'var(--ink-mute)', fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 16 }}>Nothing planned. Quiet day.</div>
           )}
-          {tasksOnSelected.map((t: Task) => {
-            const ti = t as TaskInstance;
-            const editKey = ti._originKey ?? selected;
-            return (
-              <div key={ti._virtual ? `${t.id}-${selected}` : t.id} className="task-item row-tap"
-                onClick={(e) => {
-                  if ((e.target as HTMLElement).closest('.check')) return;
-                  onEdit({ type: 'task-view', item: t, dateKey: editKey });
-                }}>
-                <button className={`check plan-check${t.done ? ' checked' : ''}`} disabled={!!ti._virtual}
-                  onClick={(e) => { e.stopPropagation(); !ti._virtual && onCheck(t.id, editKey); }}>
-                  {Icons.check()}
-                </button>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, color: t.done ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: t.done ? 'line-through' : 'none' }}>
-                    {t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}
-                  </div>
-                  {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 0 }}>{t.description}</div>}
-                  {t.time && <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 2 }}>{t.time}</div>}
-                  {ti._virtual && t.recurrence && (
-                    <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 3 }}>↻ {t.recurrence}</div>
-                  )}
-                </div>
-                {Icons.chevR({ stroke: 'var(--ink-faint)' })}
-              </div>
-            );
-          })}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={tasksOnSelected.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+              {tasksOnSelected.map((t: Task) => {
+                const ti = t as TaskInstance;
+                const editKey = ti._originKey ?? selected;
+                return (
+                  <SortableTaskItemMobile
+                    key={ti._virtual ? `${t.id}-${selected}` : t.id}
+                    t={t} ti={ti} editKey={editKey} selected={selected} onEdit={onEdit} onCheck={onCheck}
+                  />
+                );
+              })}
+            </SortableContext>
+          </DndContext>
         </div>
       </div>
       <div style={{ height: 40 }}/>
+    </div>
+  );
+}
+
+function SortableTaskItemMobile({
+  t, ti, editKey, selected, onEdit, onCheck
+}: {
+  t: Task, ti: TaskInstance, editKey: string, selected: string, onEdit: (e: EditingState) => void, onCheck: (id: string, dateKey: string) => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: t.id,
+    disabled: !!ti._virtual,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 1 : 0,
+    position: 'relative' as const,
+    cursor: ti._virtual ? 'default' : 'grab',
+    touchAction: ti._virtual ? 'auto' : 'none',
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`task-item row-tap${isDragging ? ' dragging' : ''}`}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('.check')) return;
+        onEdit({ type: 'task-view', item: t, dateKey: editKey });
+      }}
+      {...(!ti._virtual ? attributes : {})}
+      {...(!ti._virtual ? listeners : {})}
+    >
+      <button className={`check plan-check${t.done ? ' checked' : ''}`} disabled={!!ti._virtual}
+        onClick={(e) => { e.stopPropagation(); !ti._virtual && onCheck(t.id, editKey); }}>
+        {Icons.check()}
+      </button>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 15, color: t.done ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: t.done ? 'line-through' : 'none' }}>
+          {t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}
+        </div>
+        {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 0 }}>{t.description}</div>}
+        {t.time && <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 2 }}>{t.time}</div>}
+        {ti._virtual && t.recurrence && (
+          <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 3 }}>↻ {t.recurrence}</div>
+        )}
+      </div>
+      {Icons.chevR({ stroke: 'var(--ink-faint)' })}
     </div>
   );
 }

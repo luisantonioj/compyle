@@ -11,7 +11,12 @@ interface WebPlanProps {
   isPartner: boolean;
   onEdit: (e: EditingState) => void;
   onCheckTask: (id: string, dateKey?: string) => void;
+  onReorderTasks?: (dateKey: string, reorderedTasks: Task[]) => void;
 }
+
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 function addDays(d: Date, n: number): Date {
   const r = new Date(d);
@@ -38,7 +43,7 @@ function MiniCheck({ done }: { done: boolean }) {
 }
 
 function DayTaskPanel({
-  dk, tasks, isPartner, showHeader = true, onCheck, onEdit,
+  dk, tasks, isPartner, showHeader = true, onCheck, onEdit, onReorderTasks,
 }: {
   dk: string;
   tasks: Task[];
@@ -46,12 +51,29 @@ function DayTaskPanel({
   showHeader?: boolean;
   onCheck: (id: string, dk: string) => void;
   onEdit: (e: EditingState) => void;
+  onReorderTasks?: (dateKey: string, reorderedTasks: Task[]) => void;
 }) {
   const done = tasks.filter((t) => t.done).length;
   const d = parseKey(dk);
   const label = dk === TODAY_KEY
     ? 'Today'
     : d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = tasks.findIndex((t) => t.id === active.id);
+      const newIndex = tasks.findIndex((t) => t.id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1 && onReorderTasks) {
+        onReorderTasks(dk, arrayMove(tasks, oldIndex, newIndex));
+      }
+    }
+  };
 
   return (
     <div style={{ marginTop: 24 }}>
@@ -73,37 +95,15 @@ function DayTaskPanel({
             Nothing planned. Quiet day.
           </div>
         )}
-        {tasks.map((t) => {
-          const ti = t as TaskInstance;
-          const editKey = ti._originKey ?? dk;
-          return (
-            <div
-              key={ti._virtual ? `${t.id}-${dk}` : t.id}
-              className={`task-list-item${t.done ? ' done' : ''}`}
-              onClick={(e) => {
-                if ((e.target as HTMLElement).closest('.check')) return;
-                onEdit({ type: 'task-view', item: t, dateKey: editKey });
-              }}
-            >
-              <button
-                className={`check${t.done ? ' checked' : ''}`}
-                onClick={(e) => { e.stopPropagation(); if (!ti._virtual) onCheck(t.id, editKey); }}
-                disabled={!!ti._virtual}
-              >
-                {Icons.check()}
-              </button>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="title">{t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}</div>
-                {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 0 }}>{t.description}</div>}
-                {t.time && <div className="time">{t.time}</div>}
-                {ti._virtual && t.recurrence && (
-                  <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 2 }}>↻ {t.recurrence}</div>
-                )}
-              </div>
-              {Icons.chevR({ stroke: 'var(--ink-faint)' })}
-            </div>
-          );
-        })}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+            {tasks.map((t) => {
+              const ti = t as TaskInstance;
+              const editKey = ti._originKey ?? dk;
+              return <SortableTaskItem key={ti._virtual ? `${t.id}-${dk}` : t.id} t={t} ti={ti} editKey={editKey} dk={dk} onEdit={onEdit} onCheck={onCheck} />;
+            })}
+          </SortableContext>
+        </DndContext>
       </div>
       <button
           style={{
@@ -120,9 +120,202 @@ function DayTaskPanel({
   );
 }
 
+function SortableTaskItem({
+  t,
+  ti,
+  editKey,
+  dk,
+  onEdit,
+  onCheck,
+}: {
+  t: Task;
+  ti: TaskInstance;
+  editKey: string;
+  dk: string;
+  onEdit: (e: EditingState) => void;
+  onCheck: (id: string, dk: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: t.id,
+    disabled: !!ti._virtual,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 1 : 0,
+    position: 'relative' as const,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ ...style, cursor: ti._virtual ? 'default' : 'grab', touchAction: ti._virtual ? 'auto' : 'none' }}
+      className={`task-list-item${t.done ? ' done' : ''}${isDragging ? ' dragging' : ''}`}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('.check')) return;
+        onEdit({ type: 'task-view', item: t, dateKey: editKey });
+      }}
+      {...(!ti._virtual ? attributes : {})}
+      {...(!ti._virtual ? listeners : {})}
+    >
+      <button
+        className={`check${t.done ? ' checked' : ''}`}
+        onClick={(e) => { e.stopPropagation(); if (!ti._virtual) onCheck(t.id, editKey); }}
+        disabled={!!ti._virtual}
+      >
+        {Icons.check()}
+      </button>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="title">{t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}</div>
+        {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 0 }}>{t.description}</div>}
+        {t.time && <div className="time">{t.time}</div>}
+        {ti._virtual && t.recurrence && (
+          <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 2 }}>↻ {t.recurrence}</div>
+        )}
+      </div>
+      {Icons.chevR({ stroke: 'var(--ink-faint)' })}
+    </div>
+  );
+}
+
 interface TooltipState { task: Task; x: number; y: number }
 
-export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanProps) {
+function SortableMonthCell({
+  c,
+  isToday,
+  pct,
+  dayTasks,
+  onEdit,
+  onCheckTask,
+  onReorderTasks,
+  setTooltip,
+}: {
+  c: MonthCell;
+  isToday: boolean;
+  pct: number;
+  dayTasks: Task[];
+  onEdit: (e: EditingState) => void;
+  onCheckTask: (id: string, dateKey?: string) => void;
+  onReorderTasks?: (dateKey: string, reorderedTasks: Task[]) => void;
+  setTooltip: (s: TooltipState | null) => void;
+}) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = dayTasks.findIndex((t) => t.id === active.id);
+      const newIndex = dayTasks.findIndex((t) => t.id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1 && onReorderTasks && c.dateKey) {
+        onReorderTasks(c.dateKey, arrayMove(dayTasks, oldIndex, newIndex));
+      }
+    }
+  };
+
+  return (
+    <div
+      className={`month-cell${c.other ? ' other' : ''}${isToday ? ' today' : ''}`}
+      style={{ position: 'relative', cursor: 'pointer' }}
+      onClick={() => c.dateKey && onEdit({ type: 'task', dateKey: c.dateKey })}
+    >
+      <div className="day-num">{c.d}</div>
+      {!c.other && dayTasks.length > 0 && (
+        <div className="mono" style={{
+          position: 'absolute', top: 10, right: 12,
+          fontSize: 10, letterSpacing: '0.1em',
+          color: pct === 0 ? 'var(--ink-mute)' : 'var(--moss)',
+        }}>
+          {pct}%
+        </div>
+      )}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={dayTasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+          {dayTasks.map((t) => {
+            const ti = t as TaskInstance;
+            const editKey = ti._originKey ?? c.dateKey!;
+            return (
+              <SortableMiniTaskItem
+                key={ti._virtual ? `${t.id}-${c.dateKey}` : t.id}
+                t={t}
+                ti={ti}
+                editKey={editKey}
+                onEdit={onEdit}
+                onCheckTask={onCheckTask}
+                setTooltip={setTooltip}
+              />
+            );
+          })}
+        </SortableContext>
+      </DndContext>
+    </div>
+  );
+}
+
+function SortableMiniTaskItem({
+  t,
+  ti,
+  editKey,
+  onEdit,
+  onCheckTask,
+  setTooltip,
+}: {
+  t: Task;
+  ti: TaskInstance;
+  editKey: string;
+  onEdit: (e: EditingState) => void;
+  onCheckTask: (id: string, dk?: string) => void;
+  setTooltip: (s: TooltipState | null) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: t.id,
+    disabled: !!ti._virtual,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 1 : 0,
+    position: 'relative' as const,
+    cursor: ti._virtual ? 'default' : 'grab',
+    touchAction: ti._virtual ? 'auto' : 'none',
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`mini-task${t.done ? ' done' : ''}${isDragging ? ' dragging' : ''}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        if ((e.target as HTMLElement).closest('.mini-check')) return;
+        onEdit({ type: 'task-view', item: t, dateKey: editKey });
+      }}
+      onMouseEnter={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        setTooltip({ task: t, x: r.left + r.width / 2, y: r.top });
+      }}
+      onMouseLeave={() => setTooltip(null)}
+      {...(!ti._virtual ? attributes : {})}
+      {...(!ti._virtual ? listeners : {})}
+    >
+      <button
+        className="mini-check"
+        onClick={(e) => { e.stopPropagation(); if (!ti._virtual) onCheckTask(t.id, editKey); }}
+        disabled={!!ti._virtual}
+      >
+        <MiniCheck done={t.done} />
+      </button>
+      <span className="emoji">{t.emoji}</span>
+      <span className="ttl">{t.title}</span>
+    </div>
+  );
+}
+
+export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderTasks }: WebPlanProps) {
   const [view, setView] = useState<View>('month');
   const [selected, setSelected] = useState(TODAY_KEY);
   const [month, setMonth] = useState(() => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1));
@@ -241,52 +434,17 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
               const pct = dayTasks.length ? Math.round((done / dayTasks.length) * 100) : 0;
               const isToday = c.dateKey === TODAY_KEY;
               return (
-                <div
+                <SortableMonthCell
                   key={c.key}
-                  className={`month-cell${c.other ? ' other' : ''}${isToday ? ' today' : ''}`}
-                  style={{ position: 'relative', cursor: 'pointer' }}
-                  onClick={() => c.dateKey && onEdit({ type: 'task', dateKey: c.dateKey })}
-                >
-                  <div className="day-num">{c.d}</div>
-                  {!c.other && dayTasks.length > 0 && (
-                    <div className="mono" style={{
-                      position: 'absolute', top: 10, right: 12,
-                      fontSize: 10, letterSpacing: '0.1em',
-                      color: pct === 0 ? 'var(--ink-mute)' : 'var(--moss)',
-                    }}>
-                      {pct}%
-                    </div>
-                  )}
-                  {dayTasks.map((t) => {
-                    const ti = t as TaskInstance;
-                    const editKey = ti._originKey ?? c.dateKey!;
-                    return (
-                      <div
-                        key={ti._virtual ? `${t.id}-${c.dateKey}` : t.id}
-                        className={`mini-task${t.done ? ' done' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit({ type: 'task-view', item: t, dateKey: editKey });
-                        }}
-                        onMouseEnter={(e) => {
-                          const r = e.currentTarget.getBoundingClientRect();
-                          setTooltip({ task: t, x: r.left + r.width / 2, y: r.top });
-                        }}
-                        onMouseLeave={() => setTooltip(null)}
-                      >
-                        <button
-                            className="mini-check"
-                            onClick={(e) => { e.stopPropagation(); if (!ti._virtual) onCheckTask(t.id, editKey); }}
-                            disabled={!!ti._virtual}
-                          >
-                            <MiniCheck done={t.done} />
-                          </button>
-                        <span className="emoji">{t.emoji}</span>
-                        <span className="ttl">{t.title}</span>
-                      </div>
-                    );
-                  })}
-                </div>
+                  c={c}
+                  isToday={isToday}
+                  pct={pct}
+                  dayTasks={dayTasks}
+                  onEdit={onEdit}
+                  onCheckTask={onCheckTask}
+                  onReorderTasks={onReorderTasks}
+                  setTooltip={setTooltip}
+                />
               );
             })
           )}
@@ -321,6 +479,7 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
             isPartner={isPartner}
             onCheck={(id, dk) => onCheckTask(id, dk)}
             onEdit={onEdit}
+            onReorderTasks={onReorderTasks}
           />
         </>
       )}
@@ -343,6 +502,7 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask }: WebPlanP
             isPartner={isPartner}
             onCheck={(id, dk) => onCheckTask(id, dk)}
             onEdit={onEdit}
+            onReorderTasks={onReorderTasks}
             showHeader={false}
           />
         </>

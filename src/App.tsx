@@ -173,6 +173,21 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   };
 
   // ─── Task CRUD ───
+  const reorderTasks = (dateKey: string, reorderedTasks: Task[]) => {
+    const realTasks = reorderedTasks.filter((t: any) => !t._virtual);
+    const ordered = realTasks.map((t, i) => {
+      const { _virtual, _originKey, ...cleanTask } = t as any;
+      return { ...cleanTask, sort_order: i };
+    });
+    if (fs) {
+      ordered.forEach((t) => void upsertTask(activeUid, t, dateKey));
+    } else {
+      setActiveData((d) => {
+        return { ...d, tasks: { ...d.tasks, [dateKey]: ordered } };
+      });
+    }
+  };
+
   const saveTask = (task: Task, dateKey: string) => {
     if (fs) {
       void upsertTask(activeUid, task, dateKey);
@@ -771,6 +786,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     profileInitial,
     onProfile: () => store.setProfileOpen(true),
     onEdit: store.setEditing,
+    onReorderTasks: reorderTasks,
   };
 
   // ─── shared overlays (forms, profile, toast, confirm, confetti) ───
@@ -982,9 +998,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
               <WebPlanScreen
                 data={data} isPartner={isPartner}
                 onEdit={store.setEditing} onCheckTask={checkTask}
+                onReorderTasks={reorderTasks}
               />
-            )}
-            {tab === 'habits' && (
+            )}{tab === 'habits' && (
               <WebHabitsScreen
                 data={data} isPartner={isPartner}
                 onEdit={store.setEditing} onTrackDate={toggleTrackerDate}
