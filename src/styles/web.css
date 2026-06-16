@@ -30,9 +30,9 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 4px;
+    margin-bottom: 32px;
   }
-  .sidebar.collapsed .sidebar-top { justify-content: center; margin-bottom: 24px; }
+  .sidebar.collapsed .sidebar-top { justify-content: center; margin-bottom: 32px; }
   .sidebar.collapsed .brand-block { display: none; }
 
   .sidebar-toggle {
@@ -163,15 +163,15 @@
     flex-shrink: 0;
   }
   .profile-card.partner .pp { background: var(--partner); }
-  .profile-card .pc-name { font-size: 13px; color: var(--ink); line-height: 1.1; }
-  .profile-card .pc-email { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; color: var(--ink-mute); margin-top: 1px; }
+  .profile-card .pc-name { font-size: 13px; color: var(--ink); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .profile-card .pc-email { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; color: var(--ink-mute); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   .partner-switch {
     margin-top: 8px;
     padding: 10px 12px;
     border-radius: 10px;
     background: var(--partner-tint);
-    border: 1px solid rgba(107,94,138,0.2);
+    border: 1px solid rgba(143, 29, 43, 0.2);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -181,7 +181,7 @@
     text-align: left;
     transition: background 0.12s;
   }
-  .partner-switch:hover { background: #d5ccea; }
+  .partner-switch:hover { background: #ebc1c7; }
 
   /* ─── content area ─── */
   .web-content {
@@ -595,7 +595,7 @@
   /* ─── partner bar (web) ─── */
   .partner-bar {
     background: var(--partner-tint);
-    border: 1px solid rgba(107,94,138,0.2);
+    border: 1px solid rgba(143, 29, 43, 0.2);
     border-radius: 14px;
     padding: 12px 18px;
     display: flex;
@@ -624,7 +624,7 @@
     background: white;
     padding: 7px 14px;
     border-radius: 999px;
-    border: 1px solid rgba(107,94,138,0.25);
+    border: 1px solid rgba(143, 29, 43, 0.25);
   }
 
   /* ─── plan bar ─── */

@@ -32,8 +32,8 @@ export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collaps
     <aside className={`sidebar${collapsed ? ' collapsed' : ''}`}>
       <div className="sidebar-top">
         <div className="brand-block">
-          <div className="brand">compyle<em>.</em></div>
-          <div className="brand-sub">for yle</div>
+          <div className="brand">compyle</div>
+          {/* <div className="brand-sub">your personal companion</div */}
         </div>
         <button className="sidebar-toggle" onClick={onToggle} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
           {collapsed ? Icons.chevR({ size: 14, stroke: 'currentColor' }) : Icons.chevL({ size: 14, stroke: 'currentColor' })}
