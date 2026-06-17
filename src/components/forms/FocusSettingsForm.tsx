@@ -12,10 +12,16 @@ export function FocusSettingsForm({ onClose }: Props) {
   const storeSettings = useAppStore(s => s.focusSettings);
   const setFocusSettings = useAppStore(s => s.setFocusSettings);
   
-  const [local, setLocal] = useState<FocusSettings>(storeSettings);
+  const [local, setLocal] = useState<any>(storeSettings);
 
   const handleSave = () => {
-    setFocusSettings(local);
+    setFocusSettings({
+      ...local,
+      focusDuration: Math.max(1, Number(local.focusDuration) || 1),
+      shortBreakDuration: Math.max(1, Number(local.shortBreakDuration) || 1),
+      longBreakDuration: Math.max(1, Number(local.longBreakDuration) || 1),
+      longBreakInterval: Math.max(1, Number(local.longBreakInterval) || 1),
+    });
     onClose();
   };
 
@@ -33,15 +39,15 @@ export function FocusSettingsForm({ onClose }: Props) {
         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
           <label className="field" style={{ flex: 1, minWidth: 0 }}>
             <span className="field-label" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Focus (min)</span>
-            <input type="number" style={{ minWidth: 0, paddingLeft: 8, paddingRight: 8 }} value={local.focusDuration} onChange={e => setLocal({...local, focusDuration: Number(e.target.value) || 1})} min={1} />
+            <input type="number" style={{ minWidth: 0, paddingLeft: 8, paddingRight: 8 }} value={local.focusDuration} onChange={e => setLocal({...local, focusDuration: e.target.value === '' ? '' : Number(e.target.value)})} min={1} />
           </label>
           <label className="field" style={{ flex: 1, minWidth: 0 }}>
             <span className="field-label" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Short Break</span>
-            <input type="number" style={{ minWidth: 0, paddingLeft: 8, paddingRight: 8 }} value={local.shortBreakDuration} onChange={e => setLocal({...local, shortBreakDuration: Number(e.target.value) || 1})} min={1} />
+            <input type="number" style={{ minWidth: 0, paddingLeft: 8, paddingRight: 8 }} value={local.shortBreakDuration} onChange={e => setLocal({...local, shortBreakDuration: e.target.value === '' ? '' : Number(e.target.value)})} min={1} />
           </label>
           <label className="field" style={{ flex: 1, minWidth: 0 }}>
             <span className="field-label" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Long Break</span>
-            <input type="number" style={{ minWidth: 0, paddingLeft: 8, paddingRight: 8 }} value={local.longBreakDuration} onChange={e => setLocal({...local, longBreakDuration: Number(e.target.value) || 1})} min={1} />
+            <input type="number" style={{ minWidth: 0, paddingLeft: 8, paddingRight: 8 }} value={local.longBreakDuration} onChange={e => setLocal({...local, longBreakDuration: e.target.value === '' ? '' : Number(e.target.value)})} min={1} />
           </label>
         </div>
 
@@ -57,7 +63,7 @@ export function FocusSettingsForm({ onClose }: Props) {
 
         <label className="field" style={{ marginTop: '12px' }}>
           <span className="field-label">Long Break Interval (sessions)</span>
-          <input type="number" value={local.longBreakInterval} onChange={e => setLocal({...local, longBreakInterval: Number(e.target.value) || 1})} min={1} />
+          <input type="number" value={local.longBreakInterval} onChange={e => setLocal({...local, longBreakInterval: e.target.value === '' ? '' : Number(e.target.value)})} min={1} />
         </label>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0' }}>
