@@ -18,7 +18,7 @@ export function WebFocusScreen() {
           <span>Settings</span>
         </button>
       </div>
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column' }}>
         <FocusTimerUI />
       </div>
 

@@ -14,7 +14,8 @@ export function FocusScreen({ viewMode, isPartner, profileInitial, onProfile }: 
   const [showSettings, setShowSettings] = useState(false);
 
   return (
-    <div className="screen fade-in">
+    <>
+      <div className="screen fade-in" style={{ display: 'flex', flexDirection: 'column' }}>
       {/* top bar */}
       <div className="top-bar">
         <div>
@@ -32,13 +33,14 @@ export function FocusScreen({ viewMode, isPartner, profileInitial, onProfile }: 
         </div>
       </div>
 
-      <div className="scroll-content safe-bottom">
+      <div className="scroll-content safe-bottom" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <FocusTimerUI />
       </div>
 
+      </div>
       {showSettings && (
         <FocusSettingsForm onClose={() => setShowSettings(false)} />
       )}
-    </div>
+    </>
   );
 }

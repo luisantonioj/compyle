@@ -76,16 +76,19 @@ export function DayChecklist({ completedDates, onToggle, disabled }: {
   );
 }
 
+import { createPortal } from 'react-dom';
+
 // ─── Sheet (bottom drawer) ───
 export function Sheet({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  return (
+  return createPortal(
     <>
       <div className="sheet-backdrop" onClick={onClose} />
       <div className="sheet">
         <div className="sheet-handle" />
         {children}
       </div>
-    </>
+    </>,
+    document.body
   );
 }
 

@@ -806,7 +806,7 @@
     to   { opacity: 1; transform: translate(-50%, -50%); }
   }
 
-  .web-layout .sheet {
+  .sheet {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
@@ -820,9 +820,9 @@
     animation: modIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
     padding: 22px 26px 26px !important;
   }
-  .web-layout .sheet .sheet-handle { display: none; }
+  .sheet .sheet-handle { display: none; }
 
-  .web-layout .form-sheet {
+  .form-sheet {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
@@ -836,7 +836,7 @@
     animation: modIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
     padding-bottom: 0 !important;
   }
-  .web-layout .form-foot { padding-bottom: 22px !important; }
+  .form-foot { padding-bottom: 22px !important; }
 }
 
 /* ─── auto-collapse sidebar below 1100px ─── */
