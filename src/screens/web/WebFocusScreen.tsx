@@ -11,7 +11,7 @@ export function WebFocusScreen() {
       <div className="page-head">
         <div>
           <div className="kicker">Focus</div>
-          <h1>Timer <em>Mode</em></h1>
+          <h1>Current <em>Session</em></h1>
         </div>
         <button className="btn-add" onClick={() => setShowSettings(true)}>
           {Icons.sliders({ size: 14, stroke: 'var(--cream)' })}

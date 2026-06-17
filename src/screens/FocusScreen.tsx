@@ -20,7 +20,7 @@ export function FocusScreen({ viewMode, isPartner, profileInitial, onProfile }: 
       <div className="top-bar">
         <div>
           <div className="kicker">Focus</div>
-          <h1>Timer <em>Mode</em></h1>
+          <h1>Current <em>Session</em></h1>
         </div>
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
           <button className="icon-btn" onClick={() => setShowSettings(true)} style={{ padding: '4px' }}>
