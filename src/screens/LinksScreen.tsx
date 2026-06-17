@@ -145,19 +145,7 @@ export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit
           </>
         )}
 
-        <button
-          onClick={() => onEdit({ type: 'link-category' })}
-          style={{
-            width: '100%', padding: '13px', borderRadius: 14,
-            border: '1.5px dashed var(--hair-strong)', background: 'transparent',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            color: 'var(--ink-soft)', fontFamily: 'var(--mono)', fontSize: 11,
-            letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600,
-            marginTop: 4,
-          }}
-        >
-          + Add category
-        </button>
+
       </div>
 
       <div style={{ height: 40 }} />
@@ -227,7 +215,7 @@ function CategoryCardContent({ cat, links, onEdit, onReorderLinks, dragListeners
     <div className="card white" style={{ marginBottom: 12, padding: '14px 18px' }}>
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: links.length > 0 ? 10 : 0,
+        marginBottom: 10,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
           <button
@@ -249,13 +237,22 @@ function CategoryCardContent({ cat, links, onEdit, onReorderLinks, dragListeners
           </span>
         </div>
         {!isOverlay && (
-          <button onClick={() => onEdit({ type: 'link-category', item: cat })} style={{ color: 'var(--ink-faint)', padding: 4 }}>
-            {Icons.pencil({ stroke: 'var(--ink-faint)' })}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button onClick={() => onEdit({ type: 'link-item', categoryId: cat.id })} style={{ color: 'var(--ink-faint)', padding: 4 }} title="Add link">
+              {Icons.plus({ stroke: 'var(--ink-faint)' })}
+            </button>
+            <button onClick={() => onEdit({ type: 'link-category', item: cat })} style={{ color: 'var(--ink-faint)', padding: 4 }} title="Edit category">
+              {Icons.pencil({ stroke: 'var(--ink-faint)' })}
+            </button>
+          </div>
         )}
       </div>
 
-      {links.length > 0 && (
+      {links.length === 0 ? (
+        <div style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 14, color: 'var(--ink-faint)', paddingBottom: 4 }}>
+          No links yet.
+        </div>
+      ) : (
         <>
           <div className="hr" />
           {isOverlay ? (
@@ -299,20 +296,6 @@ function CategoryCardContent({ cat, links, onEdit, onReorderLinks, dragListeners
         </>
       )}
 
-      {!isOverlay && (
-        <button
-          onClick={() => onEdit({ type: 'link-item', categoryId: cat.id })}
-          style={{
-            marginTop: 10, width: '100%', padding: '8px', borderRadius: 10,
-            border: '1.5px dashed var(--hair-strong)', background: 'transparent',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            color: 'var(--ink-mute)', fontFamily: 'var(--mono)', fontSize: 10,
-            letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600,
-          }}
-        >
-          + Add link
-        </button>
-      )}
     </div>
   );
 }
