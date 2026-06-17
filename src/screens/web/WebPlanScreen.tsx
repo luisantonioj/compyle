@@ -12,9 +12,10 @@ interface WebPlanProps {
   onEdit: (e: EditingState) => void;
   onCheckTask: (id: string, dateKey?: string) => void;
   onReorderTasks?: (dateKey: string, reorderedTasks: Task[]) => void;
+  onMoveTask?: (taskId: string, sourceDate: string, destDate: string, newIndex: number) => void;
 }
 
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, useDroppable } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -43,7 +44,7 @@ function MiniCheck({ done }: { done: boolean }) {
 }
 
 function DayTaskPanel({
-  dk, tasks, isPartner, showHeader = true, onCheck, onEdit, onReorderTasks,
+  dk, tasks, isPartner, showHeader = true, onCheck, onEdit,
 }: {
   dk: string;
   tasks: Task[];
@@ -51,7 +52,6 @@ function DayTaskPanel({
   showHeader?: boolean;
   onCheck: (id: string, dk: string) => void;
   onEdit: (e: EditingState) => void;
-  onReorderTasks?: (dateKey: string, reorderedTasks: Task[]) => void;
 }) {
   const done = tasks.filter((t) => t.done).length;
   const d = parseKey(dk);
@@ -59,21 +59,7 @@ function DayTaskPanel({
     ? 'Today'
     : d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = tasks.findIndex((t) => t.id === active.id);
-      const newIndex = tasks.findIndex((t) => t.id === over.id);
-      if (oldIndex !== -1 && newIndex !== -1 && onReorderTasks) {
-        onReorderTasks(dk, arrayMove(tasks, oldIndex, newIndex));
-      }
-    }
-  };
+  const { setNodeRef } = useDroppable({ id: dk });
 
   return (
     <div style={{ marginTop: 24 }}>
@@ -85,7 +71,7 @@ function DayTaskPanel({
           )}
         </div>
       )}
-      <div style={{
+      <div ref={setNodeRef} style={{
         background: 'var(--white)', borderRadius: 16,
         border: '1px solid var(--hair)',
         padding: tasks.length ? '4px 20px' : '28px 20px',
@@ -95,15 +81,13 @@ function DayTaskPanel({
             Nothing planned. Quiet day.
           </div>
         )}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-            {tasks.map((t) => {
-              const ti = t as TaskInstance;
-              const editKey = ti._originKey ?? dk;
-              return <SortableTaskItem key={ti._virtual ? `${t.id}-${dk}` : t.id} t={t} ti={ti} editKey={editKey} dk={dk} onEdit={onEdit} onCheck={onCheck} />;
-            })}
-          </SortableContext>
-        </DndContext>
+        <SortableContext id={dk} items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+          {tasks.map((t) => {
+            const ti = t as TaskInstance;
+            const editKey = ti._originKey ?? dk;
+            return <SortableTaskItem key={ti._virtual ? `${t.id}-${dk}` : t.id} t={t} ti={ti} editKey={editKey} dk={dk} onEdit={onEdit} onCheck={onCheck} />;
+          })}
+        </SortableContext>
       </div>
       <button
           style={{
@@ -188,7 +172,6 @@ function SortableMonthCell({
   dayTasks,
   onEdit,
   onCheckTask,
-  onReorderTasks,
   setTooltip,
 }: {
   c: MonthCell;
@@ -197,27 +180,13 @@ function SortableMonthCell({
   dayTasks: Task[];
   onEdit: (e: EditingState) => void;
   onCheckTask: (id: string, dateKey?: string) => void;
-  onReorderTasks?: (dateKey: string, reorderedTasks: Task[]) => void;
   setTooltip: (s: TooltipState | null) => void;
 }) {
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = dayTasks.findIndex((t) => t.id === active.id);
-      const newIndex = dayTasks.findIndex((t) => t.id === over.id);
-      if (oldIndex !== -1 && newIndex !== -1 && onReorderTasks && c.dateKey) {
-        onReorderTasks(c.dateKey, arrayMove(dayTasks, oldIndex, newIndex));
-      }
-    }
-  };
+  const { setNodeRef } = useDroppable({ id: c.dateKey! });
 
   return (
     <div
+      ref={setNodeRef}
       className={`month-cell${c.other ? ' other' : ''}${isToday ? ' today' : ''}`}
       style={{ position: 'relative', cursor: 'pointer' }}
       onClick={() => c.dateKey && onEdit({ type: 'task', dateKey: c.dateKey })}
@@ -232,25 +201,23 @@ function SortableMonthCell({
           {pct}%
         </div>
       )}
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={dayTasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-          {dayTasks.map((t) => {
-            const ti = t as TaskInstance;
-            const editKey = ti._originKey ?? c.dateKey!;
-            return (
-              <SortableMiniTaskItem
-                key={ti._virtual ? `${t.id}-${c.dateKey}` : t.id}
-                t={t}
-                ti={ti}
-                editKey={editKey}
-                onEdit={onEdit}
-                onCheckTask={onCheckTask}
-                setTooltip={setTooltip}
-              />
-            );
-          })}
-        </SortableContext>
-      </DndContext>
+      <SortableContext id={c.dateKey!} items={dayTasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+        {dayTasks.map((t) => {
+          const ti = t as TaskInstance;
+          const editKey = ti._originKey ?? c.dateKey!;
+          return (
+            <SortableMiniTaskItem
+              key={ti._virtual ? `${t.id}-${c.dateKey}` : t.id}
+              t={t}
+              ti={ti}
+              editKey={editKey}
+              onEdit={onEdit}
+              onCheckTask={onCheckTask}
+              setTooltip={setTooltip}
+            />
+          );
+        })}
+      </SortableContext>
     </div>
   );
 }
@@ -315,12 +282,50 @@ function SortableMiniTaskItem({
   );
 }
 
-export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderTasks }: WebPlanProps) {
+export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderTasks, onMoveTask }: WebPlanProps) {
   const [view, setView] = useState<View>('month');
   const [selected, setSelected] = useState(TODAY_KEY);
   const [month, setMonth] = useState(() => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1));
   const [showPastWeeks, setShowPastWeeks] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeContainer = active.data.current?.sortable?.containerId;
+    const overContainer = over.data.current?.sortable?.containerId || over.id;
+
+    if (!activeContainer || !overContainer) return;
+
+    if (activeContainer !== overContainer) {
+      // Cross-container drag
+      const sourceDate = activeContainer as string;
+      const destDate = overContainer as string;
+      const taskId = active.id as string;
+      
+      const destTasks = getTaskInstances(data.tasks, destDate);
+      let newIndex = destTasks.findIndex((t) => t.id === over.id);
+      if (newIndex === -1) newIndex = destTasks.length;
+
+      onMoveTask?.(taskId, sourceDate, destDate, newIndex);
+    } else if (active.id !== over.id) {
+      // Same container drag
+      const dateKey = activeContainer as string;
+      const dayTasks = getTaskInstances(data.tasks, dateKey);
+      const oldIndex = dayTasks.findIndex((t) => t.id === active.id);
+      const newIndex = dayTasks.findIndex((t) => t.id === over.id);
+      
+      if (oldIndex !== -1 && newIndex !== -1 && onReorderTasks) {
+        onReorderTasks(dateKey, arrayMove(dayTasks, oldIndex, newIndex));
+      }
+    }
+  };
 
   const y = month.getFullYear();
   const m = month.getMonth();
@@ -387,8 +392,9 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
   const selTasks = getTaskInstances(data.tasks, selected);
 
   return (
-    <div>
-      <div className="page-head">
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <div>
+        <div className="page-head">
         <div>
           <div className="kicker">Plan</div>
           <h1>Daily <em>Schedule</em></h1>
@@ -442,7 +448,6 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
                   dayTasks={dayTasks}
                   onEdit={onEdit}
                   onCheckTask={onCheckTask}
-                  onReorderTasks={onReorderTasks}
                   setTooltip={setTooltip}
                 />
               );
@@ -479,7 +484,6 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
             isPartner={isPartner}
             onCheck={(id, dk) => onCheckTask(id, dk)}
             onEdit={onEdit}
-            onReorderTasks={onReorderTasks}
           />
         </>
       )}
@@ -502,7 +506,6 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
             isPartner={isPartner}
             onCheck={(id, dk) => onCheckTask(id, dk)}
             onEdit={onEdit}
-            onReorderTasks={onReorderTasks}
             showHeader={false}
           />
         </>
@@ -545,5 +548,6 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
         </div>
       )}
     </div>
+    </DndContext>
   );
 }

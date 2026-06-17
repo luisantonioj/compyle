@@ -188,6 +188,36 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     }
   };
 
+  const moveTask = (taskId: string, sourceDate: string, destDate: string, newIndex: number) => {
+    const taskToMove = (data.tasks[sourceDate] ?? []).find((t) => t.id === taskId);
+    if (!taskToMove) return;
+    
+    const { _virtual, _originKey, ...cleanTask } = taskToMove as any;
+    const task = cleanTask as Task;
+
+    const newSourceTasks = (data.tasks[sourceDate] ?? []).filter((t) => t.id !== taskId);
+    const newDestTasks = [...(data.tasks[destDate] ?? [])];
+    
+    newDestTasks.splice(newIndex, 0, task);
+
+    const orderedSource = newSourceTasks.map((t, i) => ({ ...t, sort_order: i }));
+    const orderedDest = newDestTasks.map((t, i) => ({ ...t, sort_order: i }));
+
+    if (fs) {
+      orderedDest.forEach((t) => void upsertTask(activeUid, t, destDate));
+      orderedSource.forEach((t) => void upsertTask(activeUid, t, sourceDate));
+    } else {
+      setActiveData((d) => ({
+        ...d,
+        tasks: {
+          ...d.tasks,
+          [sourceDate]: orderedSource,
+          [destDate]: orderedDest,
+        }
+      }));
+    }
+  };
+
   const saveTask = (task: Task, dateKey: string) => {
     if (fs) {
       void upsertTask(activeUid, task, dateKey);
@@ -787,6 +817,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     onProfile: () => store.setProfileOpen(true),
     onEdit: store.setEditing,
     onReorderTasks: reorderTasks,
+    onMoveTask: moveTask,
   };
 
   // ─── shared overlays (forms, profile, toast, confirm, confetti) ───
@@ -999,6 +1030,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
                 data={data} isPartner={isPartner}
                 onEdit={store.setEditing} onCheckTask={checkTask}
                 onReorderTasks={reorderTasks}
+                onMoveTask={moveTask}
               />
             )}{tab === 'habits' && (
               <WebHabitsScreen
