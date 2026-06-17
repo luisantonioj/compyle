@@ -23,6 +23,7 @@ import { WebNotesScreen } from './screens/web/WebNotesScreen';
 import { WebFocusScreen } from './screens/web/WebFocusScreen';
 import { ProfileSheet } from './screens/ProfileSheet';
 import { AuthScreen } from './screens/AuthScreen';
+import { FocusTimerManager } from './components/FocusTimerManager';
 import {
   TaskForm, TaskViewModal, HabitForm, TransactionForm,
   AccountForm, CategoryForm, BillForm, DebtForm,
@@ -825,6 +826,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   // ─── shared overlays (forms, profile, toast, confirm, confetti) ───
   const overlays = (
     <>
+      <FocusTimerManager />
       <Confetti trigger={confettiTrigger} />
 
       {crown && (
