@@ -23,6 +23,17 @@ const getInitialFocusSettings = (): FocusSettings => {
   }
 };
 
+const getInitialTab = (): TabId => {
+  try {
+    const saved = localStorage.getItem('compyle_active_tab') as TabId;
+    const validTabs: TabId[] = ['today', 'cal', 'habits', 'money', 'links', 'notes', 'focus'];
+    if (saved && validTabs.includes(saved)) {
+      return saved;
+    }
+  } catch {}
+  return 'cal';
+};
+
 import { SEED_USER_ME, SEED_USER_PARTNER } from '../lib/seed';
 
 interface ConfirmState {
@@ -83,7 +94,7 @@ interface AppStore {
 }
 
 export const useAppStore = create<AppStore>((set, get) => ({
-  tab: 'cal',
+  tab: getInitialTab(),
   viewMode: 'me',
   profileOpen: false,
   editing: null,
@@ -100,7 +111,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
   meProfile: SEED_USER_ME,
   partnerProfile: SEED_USER_PARTNER,
 
-  setTab: (tab) => set({ tab }),
+  setTab: (tab) => {
+    localStorage.setItem('compyle_active_tab', tab);
+    set({ tab });
+  },
   setViewMode: (viewMode) => set({ viewMode }),
   switchView: () => set((s) => ({
     viewMode: s.viewMode === 'me' ? 'partner' : 'me',
