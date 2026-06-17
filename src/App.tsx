@@ -13,12 +13,14 @@ import { HabitsScreen } from './screens/HabitsScreen';
 import { MoneyScreen } from './screens/MoneyScreen';
 import { LinksScreen } from './screens/LinksScreen';
 import { NotesScreen } from './screens/NotesScreen';
+import { FocusScreen } from './screens/FocusScreen';
 import { WebTodayScreen } from './screens/web/WebTodayScreen';
 import { WebPlanScreen } from './screens/web/WebPlanScreen';
 import { WebHabitsScreen } from './screens/web/WebHabitsScreen';
 import { WebMoneyScreen } from './screens/web/WebMoneyScreen';
 import { WebLinksScreen } from './screens/web/WebLinksScreen';
 import { WebNotesScreen } from './screens/web/WebNotesScreen';
+import { WebFocusScreen } from './screens/web/WebFocusScreen';
 import { ProfileSheet } from './screens/ProfileSheet';
 import { AuthScreen } from './screens/AuthScreen';
 import {
@@ -1060,6 +1062,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
                 onUpdateNote={updateNoteContent}
               />
             )}
+            {tab === 'focus' && (
+              <WebFocusScreen />
+            )}
           </div>
         </main>
         {overlays}
@@ -1102,6 +1107,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
         )}
         {tab === 'notes' && (
           <NotesScreen {...sharedScreenProps} />
+        )}
+        {tab === 'focus' && (
+          <FocusScreen viewMode={viewMode} isPartner={isPartner} profileInitial={profileInitial} onProfile={() => store.setProfileOpen(true)} />
         )}
       </div>
 

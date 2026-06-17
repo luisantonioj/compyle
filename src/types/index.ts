@@ -132,8 +132,18 @@ export interface UserProfile {
   initial?: string;
 }
 
-export type TabId = 'today' | 'cal' | 'habits' | 'money' | 'links' | 'notes';
+export type TabId = 'today' | 'cal' | 'habits' | 'money' | 'links' | 'notes' | 'focus';
 export type ViewMode = 'me' | 'partner';
+
+export interface FocusSettings {
+  focusDuration: number;
+  shortBreakDuration: number;
+  longBreakDuration: number;
+  autoStartBreaks: boolean;
+  autoStartFocus: boolean;
+  longBreakInterval: number;
+  use24HourFormat: boolean;
+}
 
 export type EditingState =
   | { type: 'task'; item?: Task; dateKey?: string }

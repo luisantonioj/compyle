@@ -14,8 +14,10 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'cal', label: 'Plan' },
   { id: 'notes', label: 'Notes' },
   { id: 'links', label: 'Links' },
+  { id: 'focus', label: 'Focus' },
   { id: 'habits', label: 'Track' },
   { id: 'money', label: 'Money' },
+
 ];
 
 export function BottomNav({ tab, onTab, partner }: BottomNavProps) {
