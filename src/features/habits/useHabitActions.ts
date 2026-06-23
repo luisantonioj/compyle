@@ -1,5 +1,5 @@
 import { useAppStore } from '../../store/appStore';
-import { removeHabit, upsertHabit } from '../../lib/db';
+import { removeHabit, upsertHabit } from './habitRepository';
 import type { DataSetter } from '../actionTypes';
 import type { Habit, UserData } from '../../types';
 
@@ -95,4 +95,3 @@ export function useHabitActions({ data, fs, activeUid, setActiveData, onComplete
 
   return { saveHabit, deleteHabit, archiveHabit, restoreHabit, toggleTrackerDate };
 }
-

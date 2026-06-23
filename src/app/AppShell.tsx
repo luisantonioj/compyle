@@ -5,7 +5,7 @@ import { useIsWeb } from '../hooks/useIsWeb';
 import { useFirestoreSync } from '../hooks/useFirestoreSync';
 import { IS_CONFIGURED } from '../lib/firebase';
 import { listenForegroundMessages } from '../lib/messaging';
-import { savePushSummary } from '../lib/db';
+import { savePushSummary } from '../features/profile/profileRepository';
 import { useTaskActions } from '../features/tasks/useTaskActions';
 import { useHabitActions } from '../features/habits/useHabitActions';
 import { useMoneyActions } from '../features/money/useMoneyActions';

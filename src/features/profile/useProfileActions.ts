@@ -1,7 +1,7 @@
 import { signOut, type User } from 'firebase/auth';
 import { useAppStore } from '../../store/appStore';
 import { auth } from '../../lib/firebase';
-import { acceptInvite, createInvite, savePrivacy, unlinkPartner } from '../../lib/db';
+import { acceptInvite, createInvite, savePrivacy, unlinkPartner } from './profileRepository';
 import { enablePushNotifications } from '../../lib/messaging';
 import type { PrivacySettings } from '../../types';
 
@@ -64,4 +64,3 @@ export function useProfileActions({ user, fs, onPushEnabled }: ProfileActionOpti
     unlinkCurrentPartner,
   };
 }
-

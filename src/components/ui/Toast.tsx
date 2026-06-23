@@ -15,4 +15,4 @@ export function Toast({ message, action, onAction, onDismiss }: {
   );
 }
 
-// â”€â”€â”€ Confirm dialog â”€â”€â”€
+// Confirm dialog

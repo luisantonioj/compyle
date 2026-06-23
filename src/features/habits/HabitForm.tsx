@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react';
 import { FormSheet, FormHead, FormFoot, Field, HABIT_FREQS_DAYS, HABIT_FREQS_TIME } from '../../components/forms/FormPrimitives';
 import { TODAY_KEY } from '../../lib/seed';
+import { createId } from '../../lib/ids';
 import type { Habit } from '../../types';
 
 export function HabitForm({ habit, onSave, onDelete, onArchive, archiveLabel, onClose }: {
@@ -31,7 +32,7 @@ export function HabitForm({ habit, onSave, onDelete, onArchive, archiveLabel, on
   const handleSave = () => {
     if (!name.trim()) return;
     const saved: Habit = {
-      id: habit?.id ?? 'h_' + Date.now(),
+      id: habit?.id ?? createId('h'),
       name: name.trim(),
       note: repeating ? note : note.trim(),
       startDate,
@@ -88,4 +89,5 @@ export function HabitForm({ habit, onSave, onDelete, onArchive, archiveLabel, on
   );
 }
 
-// â”€â”€â”€ Transaction form â”€â”€â”€
+// Transaction form
+

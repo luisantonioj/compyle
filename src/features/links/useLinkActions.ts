@@ -1,5 +1,5 @@
 import { useAppStore } from '../../store/appStore';
-import { removeLink, removeLinkCategory, upsertLink, upsertLinkCategory } from '../../lib/db';
+import { removeLink, removeLinkCategory, upsertLink, upsertLinkCategory } from './linkRepository';
 import type { DataSetter } from '../actionTypes';
 import type { LinkCategory, LinkItem, UserData } from '../../types';
 
@@ -165,4 +165,3 @@ export function useLinkActions({ data, fs, activeUid, setActiveData }: LinkActio
     restoreLink,
   };
 }
-

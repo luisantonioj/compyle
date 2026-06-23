@@ -39,20 +39,20 @@ export function TaskViewModal({ task, dateKey, onEdit, onDelete, onCheck, onClos
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {task.time && (
               <span className="mono" style={{ fontSize: 11, color: 'var(--ink-mute)', letterSpacing: '0.08em' }}>
-                â° {task.time}
+                Time: {task.time}
               </span>
             )}
             {task.recurrence && (
               <span className="mono" style={{ fontSize: 11, color: 'var(--clay)', letterSpacing: '0.08em' }}>
-                â†» {task.recurrence}
+                Repeats: {task.recurrence}
               </span>
             )}
           </div>
         )}
       </div>
       <div className="form-foot">
-        <button className="del" onClick={onDelete} title="Delete">ðŸ—‘</button>
-        <button className="cancel" style={{ flex: '0 0 50px' }} onClick={onEdit} title="Edit">âœï¸</button>
+        <button className="del" onClick={onDelete} title="Delete">Del</button>
+        <button className="cancel" style={{ flex: '0 0 50px' }} onClick={onEdit} title="Edit">Edit</button>
         <button className="save" onClick={() => { onCheck(); onClose(); }}>
           {task.done ? 'Mark as undone' : 'Complete task'}
         </button>
@@ -61,4 +61,4 @@ export function TaskViewModal({ task, dateKey, onEdit, onDelete, onCheck, onClos
   );
 }
 
-// â”€â”€â”€ Tracker form â”€â”€â”€
+// Tracker form

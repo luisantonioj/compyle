@@ -1,5 +1,6 @@
 ﻿import React, { useRef, useState } from 'react';
 import { FormSheet, FormHead, FormFoot, Field, ColorPicker, CAT_COLORS } from '../../components/forms/FormPrimitives';
+import { createId } from '../../lib/ids';
 import type { LinkCategory, LinkItem } from '../../types';
 
 export function LinkCategoryForm({ cat, onSave, onDelete, onArchive, archiveLabel, onClose }: {
@@ -16,7 +17,7 @@ export function LinkCategoryForm({ cat, onSave, onDelete, onArchive, archiveLabe
 
   const handleSave = () => {
     if (!name.trim()) return;
-    onSave({ id: cat?.id ?? 'lc_' + Date.now(), name: name.trim(), color, sort_order: cat?.sort_order });
+    onSave({ id: cat?.id ?? createId('lc'), name: name.trim(), color, sort_order: cat?.sort_order });
   };
 
   return (
@@ -41,7 +42,7 @@ export function LinkCategoryForm({ cat, onSave, onDelete, onArchive, archiveLabe
   );
 }
 
-// â”€â”€â”€ Link Item form â”€â”€â”€
+// Link Item form
 export function LinkItemForm({ link, categoryId, onSave, onDelete, onArchive, archiveLabel, onClose }: {
   link?: LinkItem;
   categoryId: string;
@@ -90,7 +91,7 @@ export function LinkItemForm({ link, categoryId, onSave, onDelete, onArchive, ar
     if (!title.trim() || !url.trim()) return;
     const normalizedUrl = url.trim().match(/^https?:\/\//) ? url.trim() : 'https://' + url.trim();
     onSave({
-      id: link?.id ?? 'li_' + Date.now(),
+      id: link?.id ?? createId('li'),
       categoryId: link?.categoryId ?? categoryId,
       title: title.trim(),
       url: normalizedUrl,
@@ -131,7 +132,7 @@ export function LinkItemForm({ link, categoryId, onSave, onDelete, onArchive, ar
                     setCustomEmoji(chars[chars.length - 1] || '');
                     setCustomImageUrl('');
                   }}
-                  placeholder="ðŸ˜€"
+                  placeholder=":)"
                   style={{ width: 44, height: 44, borderRadius: 12, border: '1px solid var(--hair-strong)', background: 'var(--white)', fontSize: 20, textAlign: 'center', padding: 0 }}
                 />
                 <span style={{ fontSize: 11, color: 'var(--ink-mute)', fontFamily: 'var(--sans)' }}>or</span>
@@ -166,3 +167,4 @@ export function LinkItemForm({ link, categoryId, onSave, onDelete, onArchive, ar
     </FormSheet>
   );
 }
+

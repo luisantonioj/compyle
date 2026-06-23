@@ -37,4 +37,4 @@ export function Confetti({ trigger }: { trigger: number }) {
   );
 }
 
-// â”€â”€â”€ Toast â”€â”€â”€
+// Toast

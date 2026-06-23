@@ -1,6 +1,6 @@
 import { useAppStore } from '../../store/appStore';
 import { TODAY_KEY } from '../../lib/seed';
-import { removeTask, upsertTask } from '../../lib/db';
+import { removeTask, upsertTask } from './taskRepository';
 import type { DataSetter } from '../actionTypes';
 import type { Task, UserData } from '../../types';
 
@@ -110,4 +110,3 @@ export function useTaskActions({ data, fs, activeUid, setActiveData, onComplete 
 
   return { reorderTasks, moveTask, saveTask, deleteTask, checkTask };
 }
-

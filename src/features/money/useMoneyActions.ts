@@ -9,7 +9,7 @@ import {
   upsertBanksBatch,
   upsertBill,
   upsertDebt,
-} from '../../lib/db';
+} from './moneyRepository';
 import type { DataSetter } from '../actionTypes';
 import type { BankAccount, Bill, Category, Debt, Transaction, UserData } from '../../types';
 
@@ -295,4 +295,3 @@ export function useMoneyActions({ data, fs, activeUid, setActiveData, onComplete
     recordDebtPayment,
   };
 }
-

@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 import { FormSheet, FormHead, FormFoot, Field, EmojiPicker } from '../../components/forms/FormPrimitives';
 import { TODAY_KEY } from '../../lib/seed';
+import { createId } from '../../lib/ids';
 import type { Task } from '../../types';
 
 export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
@@ -28,7 +29,7 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
   const handleSave = () => {
     if (!title.trim()) return;
     onSave({
-      id: task?.id ?? 't_' + Date.now(),
+      id: task?.id ?? createId('t'),
       title: title.trim(),
       emoji,
       description: description.trim() || undefined,
@@ -47,7 +48,7 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
           <input className="field-input" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What's the task?"/>
         </Field>
         <Field label="Description (optional)">
-          <textarea ref={descRef} className="field-input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Add a note or detailsâ€¦" rows={1} style={{ resize: 'none', overflow: 'hidden', lineHeight: 1.5 }}/>
+          <textarea ref={descRef} className="field-input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Add a note or details..." rows={1} style={{ resize: 'none', overflow: 'hidden', lineHeight: 1.5 }}/>
         </Field>
         <Field label="Type">
           <EmojiPicker value={emoji} onChange={setEmoji}/>
@@ -80,7 +81,7 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
           </Field>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--ink-mute)' }}>
-          ðŸ”” {time ? `Reminder set for ${time}` : 'No reminder set'}
+          {time ? `Reminder set for ${time}` : 'No reminder set'}
         </div>
       </div>
       <FormFoot
@@ -92,4 +93,5 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
   );
 }
 
-// â”€â”€â”€ Task view modal â”€â”€â”€
+// Task view modal
+

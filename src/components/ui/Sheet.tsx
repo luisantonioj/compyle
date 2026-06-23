@@ -14,4 +14,4 @@ export function Sheet({ children, onClose }: { children: React.ReactNode; onClos
   );
 }
 
-// â”€â”€â”€ Partner banner â”€â”€â”€
+// Partner banner

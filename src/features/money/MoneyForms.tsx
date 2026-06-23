@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { FormSheet, FormHead, FormFoot, Field, ColorPicker, CAT_COLORS, BANK_COLORS } from '../../components/forms/FormPrimitives';
 import { TODAY_KEY } from '../../lib/seed';
+import { createId } from '../../lib/ids';
 import type { Transaction, BankAccount, Category, Bill, Debt } from '../../types';
 
 export function TransactionForm({ tx, banks, onSave, onDelete, onClose }: {
@@ -28,7 +29,7 @@ export function TransactionForm({ tx, banks, onSave, onDelete, onClose }: {
     const num = parseFloat(amount);
     if (!num || !label.trim()) return;
     onSave({
-      id: tx?.id ?? 'tx_' + Date.now(),
+      id: tx?.id ?? createId('tx'),
       bank, cat, label: label.trim(),
       amt: type === 'add' ? Math.abs(num) : -Math.abs(num),
       date: tx?.date ?? TODAY_KEY,
@@ -42,13 +43,13 @@ export function TransactionForm({ tx, banks, onSave, onDelete, onClose }: {
       <div className="form-body">
         <div className="type-toggle">
           <button className={`add${type === 'add' ? ' active' : ''}`} onClick={() => setType('add')}>+ Add money</button>
-          <button className={`deduct${type === 'deduct' ? ' active' : ''}`} onClick={() => setType('deduct')}>âˆ’ Spend</button>
+          <button className={`deduct${type === 'deduct' ? ' active' : ''}`} onClick={() => setType('deduct')}>- Spend</button>
         </div>
         <Field label="Amount (PHP)">
           <input className="field-input big" type="number" inputMode="decimal" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} autoFocus/>
         </Field>
         <Field label="Description">
-          <input className="field-input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Sephora â€” toner refill"/>
+          <input className="field-input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Sephora - toner refill"/>
         </Field>
         <Field label="From account">
           <div className="chips">
@@ -75,13 +76,13 @@ export function TransactionForm({ tx, banks, onSave, onDelete, onClose }: {
         onSave={handleSave} onCancel={onClose}
         onDelete={editing && onDelete ? () => onDelete(tx!.id) : undefined}
         canSave={!!amount && !!label.trim() && !!bank}
-        saveLabel={editing ? 'Save' : (type === 'add' ? 'â‚± Record income' : 'Record spend')}
+        saveLabel={editing ? 'Save' : (type === 'add' ? 'Record income' : 'Record spend')}
       />
     </FormSheet>
   );
 }
 
-// â”€â”€â”€ Account form â”€â”€â”€
+// Account form
 export function AccountForm({ acct, onSave, onDelete, onClose }: {
   acct?: BankAccount;
   onSave: (a: BankAccount) => void;
@@ -96,7 +97,7 @@ export function AccountForm({ acct, onSave, onDelete, onClose }: {
 
   const handleSave = () => {
     if (!name.trim() || !balance) return;
-    onSave({ id: acct?.id ?? 'b_' + Date.now(), name: name.trim(), balance: parseFloat(balance) || 0, last4: last4 || '0000', color, categories: acct?.categories ?? [] });
+    onSave({ id: acct?.id ?? createId('b'), name: name.trim(), balance: parseFloat(balance) || 0, last4: last4 || '0000', color, categories: acct?.categories ?? [] });
   };
 
   return (
@@ -122,7 +123,7 @@ export function AccountForm({ acct, onSave, onDelete, onClose }: {
   );
 }
 
-// â”€â”€â”€ Category form â”€â”€â”€
+// Category form
 export function CategoryForm({ cat, banks, onSave, onDelete, onClose }: {
   cat?: Category & { bankId?: string }; banks: BankAccount[];
   onSave: (c: Category & { bankId: string }) => void;
@@ -137,7 +138,7 @@ export function CategoryForm({ cat, banks, onSave, onDelete, onClose }: {
 
   const handleSave = () => {
     if (!name.trim() || !bankId) return;
-    onSave({ id: cat?.id ?? 'c_' + Date.now(), bankId, name: name.trim(), balance: parseFloat(balance) || 0, color });
+    onSave({ id: cat?.id ?? createId('c'), bankId, name: name.trim(), balance: parseFloat(balance) || 0, color });
   };
 
   return (
@@ -172,7 +173,7 @@ export function CategoryForm({ cat, banks, onSave, onDelete, onClose }: {
   );
 }
 
-// â”€â”€â”€ Bill form â”€â”€â”€
+// Bill form
 export function BillForm({ bill, onSave, onDelete, onClose }: {
   bill?: Bill;
   onSave: (b: Bill) => void;
@@ -186,7 +187,7 @@ export function BillForm({ bill, onSave, onDelete, onClose }: {
 
   const handleSave = () => {
     if (!name.trim() || !amount) return;
-    onSave({ id: bill?.id ?? 'p_' + Date.now(), name: name.trim(), amount: parseFloat(amount) || 0, due: Math.min(31, Math.max(1, parseInt(due, 10) || 1)), status: bill?.status ?? 'due' });
+    onSave({ id: bill?.id ?? createId('p'), name: name.trim(), amount: parseFloat(amount) || 0, due: Math.min(31, Math.max(1, parseInt(due, 10) || 1)), status: bill?.status ?? 'due' });
   };
 
   return (
@@ -215,7 +216,7 @@ export function BillForm({ bill, onSave, onDelete, onClose }: {
   );
 }
 
-// â”€â”€â”€ Debt form â”€â”€â”€
+// Debt form
 export function DebtForm({ debt, onSave, onDelete, onClose }: {
   debt?: Debt;
   onSave: (d: Debt) => void;
@@ -232,7 +233,7 @@ export function DebtForm({ debt, onSave, onDelete, onClose }: {
   const handleSave = () => {
     if (!name.trim() || !total) return;
     onSave({
-      id: debt?.id ?? 'd_' + Date.now(), name: name.trim(),
+      id: debt?.id ?? createId('d'), name: name.trim(),
       total: parseFloat(total) || 0, paid: parseFloat(paid) || 0,
       due: due || TODAY_KEY, months: parseInt(months, 10) || 0,
       paidMonths: debt?.paidMonths ?? 0,
@@ -244,7 +245,7 @@ export function DebtForm({ debt, onSave, onDelete, onClose }: {
       <FormHead kicker={editing ? 'Edit debt' : 'Track a debt'} title={editing ? 'Update' : 'Add'} accent={editing ? '' : 'owed'} onClose={onClose}/>
       <div className="form-body">
         <Field label="Creditor / description">
-          <input className="field-input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. SPayLater â€” phone case"/>
+          <input className="field-input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. SPayLater - phone case"/>
         </Field>
         <div className="field-row">
           <Field label="Total owed">
@@ -272,4 +273,5 @@ export function DebtForm({ debt, onSave, onDelete, onClose }: {
   );
 }
 
-// â”€â”€â”€ Link Category form â”€â”€â”€
+// Link Category form
+

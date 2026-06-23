@@ -1,5 +1,5 @@
 import { useAppStore } from '../../store/appStore';
-import { removeNote, upsertNote } from '../../lib/db';
+import { removeNote, upsertNote } from './noteRepository';
 import type { DataSetter } from '../actionTypes';
 import type { Note } from '../../types';
 
@@ -84,4 +84,3 @@ export function useNoteActions({ fs, activeUid, setActiveData }: NoteActionOptio
 
   return { reorderNotes, updateNoteContent, saveNote, deleteNote, archiveNote, restoreNote };
 }
-

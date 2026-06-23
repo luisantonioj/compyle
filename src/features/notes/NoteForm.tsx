@@ -1,4 +1,4 @@
-﻿// compyle â€” rich-text note form using Tiptap
+// compyle - rich-text note form using Tiptap
 import React, { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -6,6 +6,7 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import { FormSheet, FormHead, FormFoot } from '../../components/forms/FormPrimitives';
+import { createId } from '../../lib/ids';
 import type { Note } from '../../types';
 import '../../styles/notes.css';
 
@@ -34,7 +35,7 @@ export function NoteForm({ note, onSave, onDelete, onArchive, archiveLabel, onCl
       }),
       TaskList,
       TaskItem.configure({ nested: false }),
-      Placeholder.configure({ placeholder: 'Start writingâ€¦' }),
+      Placeholder.configure({ placeholder: 'Start writing...' }),
     ],
     content: note?.content ? (JSON.parse(note.content) as object) : undefined,
     editorProps: {
@@ -46,7 +47,7 @@ export function NoteForm({ note, onSave, onDelete, onArchive, archiveLabel, onCl
     if (!title.trim()) return;
     const content = editor ? JSON.stringify(editor.getJSON()) : '{}';
     onSave({
-      id: note?.id ?? 'n_' + Date.now(),
+      id: note?.id ?? createId('n'),
       title: title.trim(),
       content,
       updated_at: Date.now(),
@@ -127,3 +128,4 @@ export function NoteForm({ note, onSave, onDelete, onArchive, archiveLabel, onCl
     </FormSheet>
   );
 }
+
