@@ -3,19 +3,12 @@ import { useAppStore } from '../store/appStore';
 import { Confetti, ConfirmDialog, Toast } from '../components/ui/shared';
 import { FocusTimerManager } from '../components/FocusTimerManager';
 import { ProfileSheet } from '../screens/ProfileSheet';
-import {
-  AccountForm,
-  BillForm,
-  CategoryForm,
-  DebtForm,
-  HabitForm,
-  LinkCategoryForm,
-  LinkItemForm,
-  TaskForm,
-  TaskViewModal,
-  TransactionForm,
-} from '../components/forms/Forms';
-import { NoteForm } from '../components/forms/NoteForm';
+import { TaskForm } from '../features/tasks/TaskForm';
+import { TaskViewModal } from '../features/tasks/TaskViewModal';
+import { HabitForm } from '../features/habits/HabitForm';
+import { AccountForm, BillForm, CategoryForm, DebtForm, TransactionForm } from '../features/money/MoneyForms';
+import { LinkCategoryForm, LinkItemForm } from '../features/links/LinkForms';
+import { NoteForm } from '../features/notes/NoteForm';
 import type { OverlayProps } from './appTypes';
 
 export function Overlays({
@@ -200,4 +193,3 @@ export function Overlays({
     </>
   );
 }
-
