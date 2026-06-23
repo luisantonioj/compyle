@@ -36,12 +36,40 @@ export const upsertBank = (uid: string, bank: BankAccount) =>
 export const removeBank = (uid: string, id: string) =>
   deleteDoc(ref(uid, 'bank_accounts', id));
 
+export async function upsertBanksBatch(uid: string, banks: BankAccount[]): Promise<void> {
+  const batch = writeBatch(db!);
+  banks.forEach((bank) => batch.set(ref(uid, 'bank_accounts', bank.id), bank));
+  await batch.commit();
+}
+
 // ── Transactions ─────────────────────────────────────────────────────────────
 export const upsertTx = (uid: string, tx: Transaction) =>
   setDoc(ref(uid, 'transactions', tx.id), tx);
 
 export const removeTx = (uid: string, id: string) =>
   deleteDoc(ref(uid, 'transactions', id));
+
+export async function saveTxWithBanksBatch(
+  uid: string,
+  tx: Transaction,
+  banks: BankAccount[],
+): Promise<void> {
+  const batch = writeBatch(db!);
+  batch.set(ref(uid, 'transactions', tx.id), tx);
+  banks.forEach((bank) => batch.set(ref(uid, 'bank_accounts', bank.id), bank));
+  await batch.commit();
+}
+
+export async function removeTxWithBanksBatch(
+  uid: string,
+  txId: string,
+  banks: BankAccount[],
+): Promise<void> {
+  const batch = writeBatch(db!);
+  batch.delete(ref(uid, 'transactions', txId));
+  banks.forEach((bank) => batch.set(ref(uid, 'bank_accounts', bank.id), bank));
+  await batch.commit();
+}
 
 // ── Bills ────────────────────────────────────────────────────────────────────
 export const upsertBill = (uid: string, bill: Bill) =>

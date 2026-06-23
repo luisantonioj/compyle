@@ -38,8 +38,8 @@ import { enablePushNotifications, listenForegroundMessages } from './lib/messagi
 import {
   upsertTask, removeTask,
   upsertHabit, removeHabit,
-  upsertTx, removeTx,
   upsertBank, removeBank,
+  upsertBanksBatch, saveTxWithBanksBatch, removeTxWithBanksBatch,
   upsertBill, removeBill,
   upsertDebt, removeDebt,
   upsertLinkCategory, removeLinkCategory,
@@ -366,9 +366,9 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
       } else if (tx.bank && tx.cat) {
         banks = applyTx(banks, tx.bank, tx.cat, tx.amt);
       }
-      void upsertTx(activeUid, tx);
       const affectedIds = new Set([tx.bank, existed?.bank].filter(Boolean) as string[]);
-      banks.filter((b) => affectedIds.has(b.id)).forEach((b) => void upsertBank(activeUid, b));
+      const affectedBanks = banks.filter((b) => affectedIds.has(b.id));
+      void saveTxWithBanksBatch(activeUid, tx, affectedBanks);
     } else {
       setActiveData((d) => {
         const existed = d.transactions.find((t) => t.id === tx.id);
@@ -392,11 +392,8 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
     if (fs) {
       let banks = data.banks;
       if (removed?.bank && removed?.cat) banks = applyTx(banks, removed.bank, removed.cat, -removed.amt);
-      void removeTx(activeUid, id);
-      if (removed?.bank) {
-        const affected = banks.find((b) => b.id === removed!.bank);
-        if (affected) void upsertBank(activeUid, affected);
-      }
+      const affectedBanks = removed?.bank ? banks.filter((b) => b.id === removed.bank) : [];
+      void removeTxWithBanksBatch(activeUid, id, affectedBanks);
     } else {
       setActiveData((d) => {
         const rem = d.transactions.find((t) => t.id === id);
@@ -449,7 +446,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
           b.id === bankId ? { ...b, categories: [...(b.categories ?? []), rest] } : b
         );
       }
-      void Promise.all(banks.map((b) => upsertBank(activeUid, b)));
+      void upsertBanksBatch(activeUid, banks);
     } else {
       setActiveData((d) => {
         let banks = d.banks.map((b) => {
@@ -482,7 +479,7 @@ function AppShell({ user }: { user: import('firebase/auth').User | null }) {
       const banks = data.banks.map((b) => ({
         ...b, categories: (b.categories ?? []).filter((c) => c.id !== id),
       }));
-      void Promise.all(banks.map((b) => upsertBank(activeUid, b)));
+      void upsertBanksBatch(activeUid, banks);
     } else {
       setActiveData((d) => {
         const banks = d.banks.map((b) => ({
