@@ -1,17 +1,19 @@
+import { Suspense, lazy } from 'react';
 import { TODAY_KEY } from '../lib/seed';
 import { Icons } from '../components/Icons';
 import { BottomNav } from '../components/layout/BottomNav';
 import { PartnerBanner } from '../components/ui/shared';
-import { TodayScreen } from '../screens/TodayScreen';
-import { CalendarScreen } from '../screens/CalendarScreen';
-import { HabitsScreen } from '../screens/HabitsScreen';
-import { MoneyScreen } from '../screens/MoneyScreen';
-import { LinksScreen } from '../screens/LinksScreen';
-import { NotesScreen } from '../screens/NotesScreen';
-import { FocusScreen } from '../screens/FocusScreen';
 import { useAppStore } from '../store/appStore';
 import type { EditingState, TabId } from '../types';
 import type { ConfirmState, LayoutBaseProps } from './appTypes';
+
+const TodayScreen = lazy(() => import('../screens/TodayScreen').then((module) => ({ default: module.TodayScreen })));
+const CalendarScreen = lazy(() => import('../screens/CalendarScreen').then((module) => ({ default: module.CalendarScreen })));
+const HabitsScreen = lazy(() => import('../screens/HabitsScreen').then((module) => ({ default: module.HabitsScreen })));
+const MoneyScreen = lazy(() => import('../screens/MoneyScreen').then((module) => ({ default: module.MoneyScreen })));
+const LinksScreen = lazy(() => import('../screens/LinksScreen').then((module) => ({ default: module.LinksScreen })));
+const NotesScreen = lazy(() => import('../screens/NotesScreen').then((module) => ({ default: module.NotesScreen })));
+const FocusScreen = lazy(() => import('../screens/FocusScreen').then((module) => ({ default: module.FocusScreen })));
 
 interface MobileLayoutProps extends LayoutBaseProps {
   calDate: string;
@@ -71,27 +73,29 @@ export function MobileLayout({
           overflow: 'hidden',
         }}
       >
-        {tab === 'today' && (
-          <TodayScreen {...sharedScreenProps} partnerName={partnerName} onCheck={taskHandlers.checkTask} />
-        )}
-        {tab === 'cal' && (
-          <CalendarScreen {...sharedScreenProps} onCheck={taskHandlers.checkTask} onSelectedChange={onCalendarDateChange} />
-        )}
-        {tab === 'habits' && (
-          <HabitsScreen {...sharedScreenProps} onTrackDate={habitHandlers.toggleTrackerDate} />
-        )}
-        {tab === 'money' && (
-          <MoneyScreen {...sharedScreenProps} onMarkPaid={moneyHandlers.toggleBillPaid} onPayDebt={moneyHandlers.recordDebtPayment} />
-        )}
-        {tab === 'links' && (
-          <LinksScreen {...sharedScreenProps} onReorder={linkHandlers.reorderLinkCategories} onReorderLinks={linkHandlers.reorderLinks} />
-        )}
-        {tab === 'notes' && (
-          <NotesScreen {...sharedScreenProps} />
-        )}
-        {tab === 'focus' && (
-          <FocusScreen viewMode={viewMode} isPartner={isPartner} profileInitial={profileInitial} onProfile={() => store.setProfileOpen(true)} />
-        )}
+        <Suspense fallback={<div className="auth-loading" />}>
+          {tab === 'today' && (
+            <TodayScreen {...sharedScreenProps} partnerName={partnerName} onCheck={taskHandlers.checkTask} />
+          )}
+          {tab === 'cal' && (
+            <CalendarScreen {...sharedScreenProps} onCheck={taskHandlers.checkTask} onSelectedChange={onCalendarDateChange} />
+          )}
+          {tab === 'habits' && (
+            <HabitsScreen {...sharedScreenProps} onTrackDate={habitHandlers.toggleTrackerDate} />
+          )}
+          {tab === 'money' && (
+            <MoneyScreen {...sharedScreenProps} onMarkPaid={moneyHandlers.toggleBillPaid} onPayDebt={moneyHandlers.recordDebtPayment} />
+          )}
+          {tab === 'links' && (
+            <LinksScreen {...sharedScreenProps} onReorder={linkHandlers.reorderLinkCategories} onReorderLinks={linkHandlers.reorderLinks} />
+          )}
+          {tab === 'notes' && (
+            <NotesScreen {...sharedScreenProps} />
+          )}
+          {tab === 'focus' && (
+            <FocusScreen viewMode={viewMode} isPartner={isPartner} profileInitial={profileInitial} onProfile={() => store.setProfileOpen(true)} />
+          )}
+        </Suspense>
       </div>
 
       {fabAction && !editing && !profileOpen && !confirm && (
@@ -125,4 +129,3 @@ function getFabAction(tab: TabId) {
   if (tab === 'notes') return 'note';
   return null;
 }
-
