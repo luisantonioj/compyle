@@ -297,4 +297,4 @@ Build fails in a restricted shell with Vite config access errors:
 
 ## Project Status
 
-This is a private personal app and architecture refactor in progress. Track temporary refactor work in `tasks.md`; delete that file when the checklist is complete.
+This is a private personal app and architecture refactor in progress. Public milestone direction lives in [ROADMAP.md](ROADMAP.md). Local implementation notes can stay in the ignored `tasks.md` file.
