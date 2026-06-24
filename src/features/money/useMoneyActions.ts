@@ -10,6 +10,7 @@ import {
   upsertBill,
   upsertDebt,
 } from './moneyRepository';
+import { applyDeletedTransaction, applySavedTransaction } from './moneyDomain';
 import type { DataSetter } from '../actionTypes';
 import type { BankAccount, Bill, Category, Debt, Transaction, UserData } from '../../types';
 
@@ -21,41 +22,23 @@ interface MoneyActionOptions {
   onComplete: (probability?: number) => void;
 }
 
-const applyTx = (banks: BankAccount[], bankId: string, catId: string, delta: number): BankAccount[] =>
-  banks.map((b) => {
-    if (b.id !== bankId) return b;
-    const cats = (b.categories ?? []).map((c) =>
-      c.id === catId ? { ...c, balance: (c.balance ?? 0) + delta } : c,
-    );
-    return { ...b, balance: (b.balance ?? 0) + delta, categories: cats };
-  });
-
 export function useMoneyActions({ data, fs, activeUid, setActiveData, onComplete }: MoneyActionOptions) {
   const store = useAppStore();
 
   const saveTx = (tx: Transaction) => {
     if (fs) {
       const existed = data.transactions.find((t) => t.id === tx.id);
-      let banks = data.banks;
-      if (existed) {
-        if (existed.bank && existed.cat) banks = applyTx(banks, existed.bank, existed.cat, -existed.amt);
-        if (tx.bank && tx.cat) banks = applyTx(banks, tx.bank, tx.cat, tx.amt);
-      } else if (tx.bank && tx.cat) {
-        banks = applyTx(banks, tx.bank, tx.cat, tx.amt);
-      }
+      const banks = applySavedTransaction(data.banks, tx, existed);
       const affectedIds = new Set([tx.bank, existed?.bank].filter(Boolean) as string[]);
       const affectedBanks = banks.filter((b) => affectedIds.has(b.id));
       void saveTxWithBanksBatch(activeUid, tx, affectedBanks);
     } else {
       setActiveData((d) => {
         const existed = d.transactions.find((t) => t.id === tx.id);
-        let banks = d.banks;
+        const banks = applySavedTransaction(d.banks, tx, existed);
         if (existed) {
-          if (existed.bank && existed.cat) banks = applyTx(banks, existed.bank, existed.cat, -existed.amt);
-          if (tx.bank && tx.cat) banks = applyTx(banks, tx.bank, tx.cat, tx.amt);
           return { ...d, transactions: d.transactions.map((t) => (t.id === tx.id ? tx : t)), banks };
         }
-        if (tx.bank && tx.cat) banks = applyTx(banks, tx.bank, tx.cat, tx.amt);
         return { ...d, transactions: [tx, ...d.transactions], banks };
       });
     }
@@ -67,15 +50,13 @@ export function useMoneyActions({ data, fs, activeUid, setActiveData, onComplete
     const removed = data.transactions.find((t) => t.id === id);
     store.setEditing(null);
     if (fs) {
-      let banks = data.banks;
-      if (removed?.bank && removed?.cat) banks = applyTx(banks, removed.bank, removed.cat, -removed.amt);
+      const banks = applyDeletedTransaction(data.banks, removed);
       const affectedBanks = removed?.bank ? banks.filter((b) => b.id === removed.bank) : [];
       void removeTxWithBanksBatch(activeUid, id, affectedBanks);
     } else {
       setActiveData((d) => {
         const rem = d.transactions.find((t) => t.id === id);
-        let banks = d.banks;
-        if (rem?.bank && rem?.cat) banks = applyTx(banks, rem.bank, rem.cat, -rem.amt);
+        const banks = applyDeletedTransaction(d.banks, rem);
         return { ...d, transactions: d.transactions.filter((t) => t.id !== id), banks };
       });
     }
