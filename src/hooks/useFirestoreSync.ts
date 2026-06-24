@@ -2,7 +2,8 @@
 import { useEffect } from 'react';
 import type { User } from 'firebase/auth';
 import { useAppStore } from '../store/appStore';
-import { subscribeUserData, ensureProfile, subscribeProfile } from '../lib/db';
+import { ensureProfile, subscribeProfile } from '../features/profile/profileRepository';
+import { subscribeUserData } from '../services/firebase/userDataRepository';
 import { IS_CONFIGURED } from '../lib/firebase';
 
 export function useFirestoreSync(user: User | null) {

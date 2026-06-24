@@ -27,9 +27,10 @@ export function extractNotePreview(contentJson: string, maxLength = 120): string
       .join(', ');
       
     const cleanedText = text.replace(/\s+/g, ' ').trim();
-    return cleanedText.length > maxLength ? cleanedText.slice(0, maxLength) + '…' : cleanedText;
+    const preview = cleanedText || 'Untitled note';
+    return preview.length > maxLength ? preview.slice(0, maxLength) + '...' : preview;
   } catch {
-    return '';
+    return 'Untitled note';
   }
 }
 
