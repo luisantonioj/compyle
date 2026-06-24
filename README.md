@@ -297,4 +297,6 @@ Build fails in a restricted shell with Vite config access errors:
 
 ## Project Status
 
-This is a private personal app and architecture refactor in progress. Public milestone direction lives in [ROADMAP.md](ROADMAP.md). Local implementation notes can stay in the ignored `tasks.md` file.
+This is a private personal app and architecture refactor in progress. Public milestone direction lives in [ROADMAP.md](ROADMAP.md).
+
+Made with ♡ for Yle
