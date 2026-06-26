@@ -352,7 +352,7 @@ function NoteCardContent({
             }}
             title="Edit note"
           >
-            {Icons.chevR({ stroke: 'currentColor' })}
+            {Icons.pencil({ stroke: 'currentColor' })}
           </button>
         )}
       </div>

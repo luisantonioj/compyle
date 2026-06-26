@@ -277,7 +277,8 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  padding-top: 3px;
+  padding-top: 4px;
+  padding-left: 4px;
 }
 
 .note-card-checkbox {
@@ -285,6 +286,7 @@
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
+  margin: 0;
   border: 1.5px solid var(--ink-faint);
   border-radius: 4px;
   background: transparent;
