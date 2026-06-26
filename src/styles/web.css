@@ -28,7 +28,7 @@
 
   .sidebar-top {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     margin-bottom: 32px;
   }
@@ -58,12 +58,23 @@
   .sidebar.collapsed .partner-switch { justify-content: center; padding: 8px; }
   .sidebar.collapsed .profile-card { justify-content: center; padding: 6px; }
 
+  .brand-block {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .brand-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    flex: 0 0 auto;
+    object-fit: cover;
+  }
   .brand {
     font-family: var(--serif);
     font-size: 30px;
     letter-spacing: -0.01em;
     line-height: 1;
-    margin-bottom: 4px;
   }
   .brand em { font-style: italic; color: var(--clay); }
 

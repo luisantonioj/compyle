@@ -34,6 +34,7 @@ export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collaps
     <aside className={`sidebar${collapsed ? ' collapsed' : ''}`}>
       <div className="sidebar-top">
         <div className="brand-block">
+          <img className="brand-logo" src="/compyle-logo.png" alt="" />
           <div className="brand">compyle</div>
           {/* <div className="brand-sub">your personal companion</div */}
         </div>
