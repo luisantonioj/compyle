@@ -28,6 +28,11 @@ export const Icons = {
       <path d="M10 2l2 2M1.5 10.5L1.5 12.5L3.5 12.5L11.5 4.5L9.5 2.5L1.5 10.5Z" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
+  trash: ({ size = 14, stroke = 'currentColor' }: IconProps = {}) => (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none">
+      <path d="M2 3.5h10M5 3.5V2h4v1.5M3.5 3.5l.6 8.5h5.8l.6-8.5M5.5 6v3.5M8.5 6v3.5" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
   eye: ({ stroke = 'currentColor' }: IconProps = {}) => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
       <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke={stroke} strokeWidth="1.4"/>

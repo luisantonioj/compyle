@@ -1,4 +1,5 @@
 ﻿import { FormSheet, FormHead } from '../../components/forms/FormPrimitives';
+import { Icons } from '../../components/Icons';
 import { parseKey } from '../../lib/seed';
 import type { Task } from '../../types';
 
@@ -51,8 +52,12 @@ export function TaskViewModal({ task, dateKey, onEdit, onDelete, onCheck, onClos
         )}
       </div>
       <div className="form-foot">
-        <button className="del" onClick={onDelete} title="Delete">Del</button>
-        <button className="cancel" style={{ flex: '0 0 50px' }} onClick={onEdit} title="Edit">Edit</button>
+        <button className="del" onClick={onDelete} title="Delete" aria-label="Delete task">
+          {Icons.trash({ size: 18 })}
+        </button>
+        <button className="cancel" style={{ flex: '0 0 50px' }} onClick={onEdit} title="Edit" aria-label="Edit task">
+          {Icons.pencil({ size: 18 })}
+        </button>
         <button className="save" onClick={() => { onCheck(); onClose(); }}>
           {task.done ? 'Mark as undone' : 'Complete task'}
         </button>
