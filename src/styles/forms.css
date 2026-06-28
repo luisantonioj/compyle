@@ -291,9 +291,11 @@
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-mute);
+  color: var(--ink-soft);
   font-weight: 600;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
+.type-toggle button.active { background: var(--ink); color: var(--white); }
 .type-toggle button.active.add { background: var(--moss); color: white; }
 .type-toggle button.active.deduct { background: var(--clay); color: white; }
 
@@ -308,8 +310,9 @@
   font-family: var(--sans);
   color: var(--ink-soft);
   display: flex; align-items: center; gap: 6px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.chips button.selected { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.chips button.selected { background: var(--ink); color: var(--white); border-color: var(--ink); }
 
 .frequency-chips { gap: 8px; }
 .frequency-chips button { min-height: 38px; padding-inline: 14px; }
@@ -349,12 +352,13 @@
   color: var(--ink-soft);
   font-family: var(--sans);
   font-size: 12px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 .weekday-picker button.selected,
 .times-per-week button.selected {
   background: var(--ink);
   border-color: var(--ink);
-  color: var(--cream);
+  color: var(--white);
 }
 .schedule-hint {
   color: var(--clay);
