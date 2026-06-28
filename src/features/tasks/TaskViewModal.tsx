@@ -1,4 +1,4 @@
-﻿import { FormSheet, FormHead } from '../../components/forms/FormPrimitives';
+import { FormSheet, FormHead } from '../../components/forms/FormPrimitives';
 import { Icons } from '../../components/Icons';
 import { parseKey } from '../../lib/seed';
 import type { Task } from '../../types';
@@ -25,10 +25,12 @@ export function TaskViewModal({ task, dateKey, onEdit, onDelete, onCheck, onClos
           <div style={{
             background: 'var(--cream-deep)', borderRadius: 12,
             padding: '14px 16px', fontFamily: 'var(--sans)',
-            fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.65,
-            whiteSpace: 'pre-wrap',
+            fontSize: 15, color: 'var(--ink-soft)',
+            display: 'flex', flexDirection: 'column', gap: '4px',
           }}>
-            {task.description}
+            {task.description.split(/\r?\n|\||;|•/).map((line) => line.trim()).filter(Boolean).map((line, idx) => (
+              <div key={idx} style={{ lineHeight: 1.5 }}>{line}</div>
+            ))}
           </div>
         ) : (
           <div style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 15, color: 'var(--ink-faint)' }}>

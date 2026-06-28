@@ -148,7 +148,13 @@ function SortableTaskItemMobile({
         <div style={{ fontSize: 15, color: t.done ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: t.done ? 'line-through' : 'none' }}>
           {t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}
         </div>
-        {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 0 }}>{t.description}</div>}
+        {t.description && (
+          <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 3, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {t.description.split(/\r?\n|\||;|•/).map((line) => line.trim()).filter(Boolean).map((line, idx) => (
+              <div key={idx} style={{ lineHeight: 1.3 }}>{line}</div>
+            ))}
+          </div>
+        )}
         {t.time && <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 2 }}>{t.time}</div>}
         {ti._virtual && t.recurrence && (
           <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 3 }}>↻ {t.recurrence}</div>

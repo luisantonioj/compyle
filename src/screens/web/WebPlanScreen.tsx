@@ -152,7 +152,13 @@ function SortableTaskItem({
       </button>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="title">{t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}</div>
-        {t.description && <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 0 }}>{t.description}</div>}
+        {t.description && (
+          <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 3, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {t.description.split(/\r?\n|\||;|•/).map((line) => line.trim()).filter(Boolean).map((line, idx) => (
+              <div key={idx} style={{ lineHeight: 1.3 }}>{line}</div>
+            ))}
+          </div>
+        )}
         {t.time && <div className="time">{t.time}</div>}
         {ti._virtual && t.recurrence && (
           <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 2 }}>↻ {t.recurrence}</div>
@@ -531,8 +537,10 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
             {tooltip.task.title}
           </div>
           {tooltip.task.description && (
-            <div style={{ fontSize: 11, fontFamily: 'var(--sans)', opacity: 0.65, marginTop: 3, wordBreak: 'break-word' }}>
-              {tooltip.task.description}
+            <div style={{ fontSize: 11, fontFamily: 'var(--sans)', opacity: 0.65, marginTop: 4, display: 'flex', flexDirection: 'column', gap: '2px', wordBreak: 'break-word' }}>
+              {tooltip.task.description.split(/\r?\n|\||;|•/).map((line) => line.trim()).filter(Boolean).map((line, idx) => (
+                <div key={idx} style={{ lineHeight: 1.3 }}>{line}</div>
+              ))}
             </div>
           )}
           <div style={{
