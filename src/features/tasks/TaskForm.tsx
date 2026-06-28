@@ -1,18 +1,30 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
-import { FormSheet, FormHead, FormFoot, Field, EmojiPicker } from '../../components/forms/FormPrimitives';
+import { FormSheet, FormHead, FormFoot, Field, TaskTypePicker, TASK_CATEGORIES } from '../../components/forms/FormPrimitives';
 import { TODAY_KEY } from '../../lib/seed';
 import { createId } from '../../lib/ids';
-import type { Task } from '../../types';
+import type { Task, TaskType } from '../../types';
 
-export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
+export function TaskForm({ task, dateKey, taskTypes = [], onSave, onSaveTaskType = () => {}, onDelete, onClose }: {
   task?: Task; dateKey: string;
+  taskTypes?: TaskType[];
   onSave: (task: Task, dateKey: string) => void;
+  onSaveTaskType?: (taskType: TaskType) => void;
   onDelete?: (id: string, dateKey: string) => void;
   onClose: () => void;
 }) {
   const [title, setTitle] = useState(task?.title ?? '');
   const [description, setDescription] = useState(task?.description ?? '');
-  const [emoji, setEmoji] = useState(task?.emoji ?? '');
+  const initialPreset = TASK_CATEGORIES.find((type) => type.emoji === (task?.emoji ?? ''));
+  const [selectedType, setSelectedType] = useState<TaskType>(() => {
+    if (task?.taskTypeId) {
+      return taskTypes.find((type) => type.id === task.taskTypeId) ?? {
+        id: task.taskTypeId,
+        emoji: task.emoji,
+        label: task.taskTypeLabel ?? 'Custom',
+      };
+    }
+    return initialPreset ?? TASK_CATEGORIES[0];
+  });
   const descRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     const el = descRef.current;
@@ -31,7 +43,9 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
     onSave({
       id: task?.id ?? createId('t'),
       title: title.trim(),
-      emoji,
+      emoji: selectedType.emoji,
+      taskTypeId: selectedType.id,
+      taskTypeLabel: selectedType.label,
       description: description.trim() || undefined,
       time: time || null,
       done: task?.done ?? false,
@@ -51,7 +65,12 @@ export function TaskForm({ task, dateKey, onSave, onDelete, onClose }: {
           <textarea ref={descRef} className="field-input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Add a note or details..." rows={1} style={{ resize: 'none', overflow: 'hidden', lineHeight: 1.5 }}/>
         </Field>
         <Field label="Type">
-          <EmojiPicker value={emoji} onChange={setEmoji}/>
+          <TaskTypePicker
+            value={selectedType.id}
+            customTypes={taskTypes}
+            onChange={setSelectedType}
+            onCreate={onSaveTaskType}
+          />
         </Field>
         <div className="field-row">
           <Field label="Repeat">

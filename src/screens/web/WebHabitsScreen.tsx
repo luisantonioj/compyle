@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Icons } from '../../components/Icons';
-import { buildHabitMonth, TODAY, TODAY_KEY, computeStreak } from '../../lib/seed';
+import { buildHabitMonth, TODAY, TODAY_KEY } from '../../lib/seed';
+// Streak calculations are temporarily disabled. Restore with the streak UI below if needed.
+// import { computeStreak } from '../../lib/seed';
+import { isHabitGuideDate } from '../../features/habits/habitSchedule';
 import type { UserData, EditingState } from '../../types';
 
 interface WebHabitsProps {
@@ -10,33 +13,62 @@ interface WebHabitsProps {
   onTrackDate: (id: string, dk: string) => void;
 }
 
-export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHabitsProps) {
-  const [viewYear, setViewYear] = useState(TODAY.getFullYear());
-  const [viewMonth, setViewMonth] = useState(TODAY.getMonth());
+interface HabitCalendarView {
+  year: number;
+  month: number;
+}
 
-  const prevMonth = () => {
-    if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11); }
-    else setViewMonth(m => m - 1);
+const MONTHS = Array.from({ length: 12 }, (_, month) =>
+  new Date(2000, month, 1).toLocaleString('en-US', { month: 'long' }),
+);
+
+export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHabitsProps) {
+  const [calendarViews, setCalendarViews] = useState<Record<string, HabitCalendarView>>({});
+  const [openPeriodPicker, setOpenPeriodPicker] = useState<string | null>(null);
+
+  const moveHabitMonth = (habitId: string, offset: -1 | 1) => {
+    setCalendarViews((current) => {
+      const view = current[habitId] ?? {
+        year: TODAY.getFullYear(),
+        month: TODAY.getMonth(),
+      };
+      const moved = new Date(view.year, view.month + offset, 1);
+      return {
+        ...current,
+        [habitId]: { year: moved.getFullYear(), month: moved.getMonth() },
+      };
+    });
   };
-  const nextMonth = () => {
-    if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0); }
-    else setViewMonth(m => m + 1);
+
+  const setHabitPeriod = (habitId: string, next: Partial<HabitCalendarView>) => {
+    setCalendarViews((current) => {
+      const view = current[habitId] ?? {
+        year: TODAY.getFullYear(),
+        month: TODAY.getMonth(),
+      };
+      return { ...current, [habitId]: { ...view, ...next } };
+    });
   };
 
   const trackers = data.habits;
-  const y = viewYear;
-  const m = viewMonth;
-  const monthName = new Date(y, m, 1).toLocaleString('en-US', { month: 'long' });
 
   const doneToday = trackers.filter((h) => (h.completedDates ?? []).includes(TODAY_KEY)).length;
 
+  /*
+  // Streak summary is temporarily disabled. Retained for future reuse.
   const longest = trackers.length > 0
     ? trackers.reduce<{ name: string; streak: number }>((best, h) => {
         const s = computeStreak(h.completedDates ?? []);
         return s > best.streak ? { name: h.name, streak: s } : best;
       }, { name: '', streak: 0 })
     : null;
+  */
 
+  /*
+  // These metrics are temporarily hidden with the metric row below.
+  const y = TODAY.getFullYear();
+  const m = TODAY.getMonth();
+  const monthName = new Date(y, m, 1).toLocaleString('en-US', { month: 'long' });
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const daysSoFar = Math.min(TODAY.getDate(), daysInMonth);
 
@@ -49,6 +81,7 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
     }, 0) / (trackers.length || 1) * 100;
 
   const totalChecks = trackers.reduce((a, h) => a + (h.completedDates ?? []).length, 0);
+  */
 
   return (
     <div>
@@ -93,32 +126,22 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
         </div>
       </div> */}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-        <button
-          onClick={prevMonth}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px', color: 'var(--ink-mute)', lineHeight: 1 }}
-        >
-          {Icons.chevL({ stroke: 'var(--ink-mute)' })}
-        </button>
-        <div style={{ fontFamily: 'var(--serif)', fontSize: 36, letterSpacing: '-0.02em' }}>
-          {monthName} <em style={{ fontStyle: 'italic', color: 'var(--clay)' }}>{y}</em>
-        </div>
-        <button
-          onClick={nextMonth}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px', color: 'var(--ink-mute)', lineHeight: 1 }}
-        >
-          {Icons.chevR({ stroke: 'var(--ink-mute)' })}
-        </button>
-      </div>
-
       <div className="habits-grid">
         {trackers.map((h) => {
+          const view = calendarViews[h.id] ?? {
+            year: TODAY.getFullYear(),
+            month: TODAY.getMonth(),
+          };
+          const y = view.year;
+          const m = view.month;
+          const monthLabel = new Date(y, m, 1).toLocaleString('en-US', {
+            month: 'short',
+            year: 'numeric',
+          });
           const completedDates = h.completedDates ?? [];
           const cells = buildHabitMonth(y, m, completedDates, h.startDate);
-          const onCount = cells.filter((c) => !c.blank && c.on).length;
-          const inCount = cells.filter((c) => !c.blank && !c.beforeStart).length;
-          const pct = inCount ? Math.round((onCount / inCount) * 100) : 0;
-          const streak = computeStreak(completedDates);
+          // Streak calculation is temporarily disabled. Retained for future reuse.
+          // const streak = computeStreak(completedDates);
 
           return (
             <div key={h.id} className="habit-card">
@@ -133,7 +156,69 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
                     {!h.repeating && <span style={{ marginLeft: 6, color: 'var(--ink-faint)' }}>· once</span>}
                   </div>
                 </div>
+                {/* Streak display is temporarily disabled. Retained for future reuse.
                 {streak > 0 && <div className="hc-streak">🔥 {streak}</div>}
+                */}
+                <div className="hc-calendar-nav" aria-label={`${h.name} calendar navigation`}>
+                  <button
+                    type="button"
+                    className="hc-calendar-arrow"
+                    onClick={() => moveHabitMonth(h.id, -1)}
+                    aria-label={`Previous month for ${h.name}`}
+                    title={`Previous month for ${h.name}`}
+                  >
+                    &lt;
+                  </button>
+                  <button
+                    type="button"
+                    className="hc-calendar-month"
+                    onClick={() => setOpenPeriodPicker((current) => current === h.id ? null : h.id)}
+                    aria-label={`Choose month and year for ${h.name}, currently ${monthLabel}`}
+                    aria-expanded={openPeriodPicker === h.id}
+                  >
+                    {monthLabel}
+                  </button>
+                  <button
+                    type="button"
+                    className="hc-calendar-arrow"
+                    onClick={() => moveHabitMonth(h.id, 1)}
+                    aria-label={`Next month for ${h.name}`}
+                    title={`Next month for ${h.name}`}
+                  >
+                    &gt;
+                  </button>
+                  {openPeriodPicker === h.id && (
+                    <div className="hc-period-popover" role="dialog" aria-label={`Choose calendar period for ${h.name}`}>
+                      <label>
+                        <span>Month</span>
+                        <select
+                          value={m}
+                          onChange={(event) => setHabitPeriod(h.id, { month: Number(event.target.value) })}
+                          aria-label={`Month for ${h.name}`}
+                        >
+                          {MONTHS.map((month, index) => (
+                            <option key={month} value={index}>{month}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Year</span>
+                        <select
+                          value={y}
+                          onChange={(event) => setHabitPeriod(h.id, { year: Number(event.target.value) })}
+                          aria-label={`Year for ${h.name}`}
+                        >
+                          {Array.from({ length: 21 }, (_, i) => y - 10 + i).map((year) => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <button type="button" className="hc-period-done" onClick={() => setOpenPeriodPicker(null)}>
+                        Done
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="mini-month">
                 {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
@@ -147,11 +232,13 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
                   } else {
                     cls.push('in');
                   }
-                  if (c.streak) cls.push('streak');
-                  else if (c.on) cls.push('on');
+                  // Streak highlighting is temporarily disabled. Retained for future reuse.
+                  // if (c.streak) cls.push('streak');
+                  if (c.on) cls.push('on');
+                  if (!c.on && c.dateKey && isHabitGuideDate(h, c.dateKey)) cls.push('schedule-guide');
                   if (c.start) cls.push('habit-start');
                   if (c.today) cls.push('today');
-                  const canToggle = !c.beforeStart && !!c.dateKey;
+                  const canToggle = !!c.dateKey;
                   return (
                     <div
                       key={c.key}
@@ -164,11 +251,6 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
                     </div>
                   );
                 })}
-              </div>
-              <div className="habit-foot">
-                <div className="mono" style={{ fontSize: 10, letterSpacing: '0.1em', color: 'var(--ink-mute)', textTransform: 'uppercase' }}>
-                  {onCount}/{inCount} · {pct}% this month
-                </div>
               </div>
             </div>
           );

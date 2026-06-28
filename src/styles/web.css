@@ -382,6 +382,8 @@
     font-weight: 500;
     margin-top: 4px;
   }
+  /*
+  Streak display is temporarily disabled. Retained for future reuse.
   .habit-card .hc-streak {
     font-family: var(--mono);
     font-size: 12px;
@@ -391,6 +393,7 @@
     gap: 4px;
     font-weight: 600;
   }
+  */
   .mini-month {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -421,10 +424,113 @@
   .mini-month .mc.before-start { color: var(--ink-faint); }
   .mini-month .mc.in { color: var(--ink-soft); }
   .mini-month .mc.in:not(.before-start):hover { background: var(--cream-deep); }
-  .mini-month .mc.on { background: var(--moss); color: white; }
-  .mini-month .mc.on:hover { background: var(--moss-soft); }
+  .mini-month .mc.schedule-guide {
+    box-shadow: inset 0 0 0 1px var(--cream-deep);
+    border-radius: 3px;
+  }
+  .habit-card .hc-calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 10px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .habit-card .hc-calendar-arrow {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ink-mute);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.16s, color 0.16s;
+  }
+  .habit-card .hc-calendar-month {
+    min-width: 66px;
+    padding: 5px 4px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ink-soft);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .habit-card .hc-calendar-arrow:hover,
+  .habit-card .hc-calendar-arrow:focus-visible,
+  .habit-card .hc-calendar-month:hover,
+  .habit-card .hc-calendar-month:focus-visible {
+    background: var(--cream-deep);
+    color: var(--ink);
+  }
+  .habit-card .hc-period-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 10;
+    width: 190px;
+    padding: 12px;
+    border: 1px solid var(--hair-strong);
+    border-radius: 12px;
+    background: var(--paper);
+    box-shadow: 0 12px 30px rgba(21, 19, 15, 0.14);
+  }
+  .habit-card .hc-period-popover label {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    align-items: center;
+    gap: 8px;
+  }
+  .habit-card .hc-period-popover label + label { margin-top: 8px; }
+  .habit-card .hc-period-popover label > span {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .habit-card .hc-period-popover select {
+    min-width: 0;
+    width: 100%;
+    padding: 7px 8px;
+    border: 1px solid var(--hair-strong);
+    border-radius: 8px;
+    background: var(--white);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 10px;
+  }
+  .habit-card .hc-period-done {
+    width: 100%;
+    margin-top: 10px;
+    padding: 7px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--cream);
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .mini-month .mc.on { background: var(--cream); color: var(--ink); }
+  .mini-month .mc.on:hover { background: var(--cream-deep); }
+  /*
+  Streak highlighting is temporarily disabled. Retained for future reuse.
   .mini-month .mc.streak { background: var(--clay); color: var(--cream); }
   .mini-month .mc.streak:hover { background: var(--clay-soft); }
+  */
   .mini-month .mc.habit-start { position: relative; }
   .mini-month .mc.habit-start::after {
     content: '';
@@ -437,23 +543,23 @@
     border-radius: 50%;
     background: var(--clay);
   }
-  .mini-month .mc.on.habit-start::after,
+  .mini-month .mc.on.habit-start::after { background: white; }
+  /* Streak highlighting is temporarily disabled. Retained for future reuse.
   .mini-month .mc.streak.habit-start::after { background: white; }
+  */
   .mini-month .mc.today {
     outline: 2.5px solid var(--clay);
     outline-offset: -2px;
     font-weight: 700;
   }
-  .mini-month .mc.streak.today,
-  .mini-month .mc.on.today { outline-color: white; }
-  .habit-foot {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid var(--hair);
+  .mini-month .mc.on.today {
+    background: var(--clay);
+    color: var(--cream);
+    outline-color: var(--clay);
   }
+  /* Streak highlighting is temporarily disabled. Retained for future reuse.
+  .mini-month .mc.streak.today { outline-color: white; }
+  */
   .habit-toggle {
     padding: 6px 14px;
     border-radius: 999px;

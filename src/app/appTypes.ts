@@ -13,6 +13,7 @@ import type {
   PrivacySettings,
   TabId,
   Task,
+  TaskType,
   Transaction,
   UserData,
   ViewMode,
@@ -37,6 +38,7 @@ export interface TaskHandlers {
   reorderTasks: (dateKey: string, reorderedTasks: Task[]) => void;
   moveTask: (taskId: string, sourceDate: string, destDate: string, newIndex: number) => void;
   saveTask: (task: Task, dateKey: string) => void;
+  saveTaskType: (taskType: TaskType) => void;
   deleteTask: (taskId: string, dateKey: string) => void;
   checkTask: (taskId: string, dateKey?: string) => void;
 }

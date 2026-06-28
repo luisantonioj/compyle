@@ -48,6 +48,7 @@ export const SEED_YLE: UserData = {
       { id: 't6', title: 'Wash makeup brushes', emoji: '📌', time: null, done: false },
     ],
   },
+  taskTypes: [],
   habits: [
     { id: 'h1', name: 'Double Cleanse', note: 'AM + PM', repeating: true, completedDates: patternToDates('on,on,on,on,on,on,on,on,on,on,on,on,on,off,on,on,on,on,on,on,on,on,on,on,on,on,on,on') },
     { id: 'h2', name: 'Bath',           note: 'Daily',   repeating: true, completedDates: patternToDates('on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on') },
@@ -146,6 +147,7 @@ export const SEED_LUIS: UserData = {
       { id: 'lt4', title: 'Standup notes',            emoji: '📌', time: null,    done: false },
     ],
   },
+  taskTypes: [],
   habits: [
     { id: 'lh1', name: 'Morning workout',     note: '6:30 AM',   repeating: true, completedDates: patternToDates('on,on,on,off,on,on,on,on,on,off,on,on,on,on,on,on,off,on,on,on,on,on,on,on,off,on,on,on') },
     { id: 'lh2', name: 'Protein shake',       note: 'After gym', repeating: true, completedDates: patternToDates('on,on,on,off,on,on,on,on,on,off,on,on,on,on,on,on,off,on,on,on,on,on,on,on,off,on,on,on') },
@@ -193,6 +195,7 @@ export const SEED_LUIS: UserData = {
 
 export const EMPTY_DATA: UserData = {
   tasks: {},
+  taskTypes: [],
   habits: [],
   banks: [],
   transactions: [],
@@ -273,10 +276,14 @@ export interface HabitCell {
   blank?: boolean;
   start?: boolean;
   beforeStart?: boolean;
-  streak?: boolean;
+  // Streak highlighting is temporarily disabled. Keep this field here if the
+  // calendar streak treatment is restored later.
+  // streak?: boolean;
   key: string;
 }
 
+/*
+// Streak calculations are temporarily disabled. Retained for future reuse.
 export function computeStreak(completedDates: string[]): number {
   let count = 0;
   const t = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
@@ -288,6 +295,7 @@ export function computeStreak(completedDates: string[]): number {
   }
   return count;
 }
+*/
 
 export interface TaskInstance extends Task {
   _virtual?: boolean;
@@ -331,7 +339,8 @@ export function buildHabitMonth(year: number, month: number, completedDates: str
   const cells: HabitCell[] = [];
   const todayNorm = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
 
-  // Build streak set — consecutive completed days ending at today going backwards
+  /*
+  // Streak highlighting is temporarily disabled. Retained for future reuse.
   const streakKeys = new Set<string>();
   for (let i = 0; ; i++) {
     const d = new Date(todayNorm.getFullYear(), todayNorm.getMonth(), todayNorm.getDate() - i);
@@ -339,6 +348,7 @@ export function buildHabitMonth(year: number, month: number, completedDates: str
     if (completedDates.includes(k)) streakKeys.add(k);
     else break;
   }
+  */
 
   let startNorm: Date | null = null;
   if (startDate) {
@@ -365,7 +375,8 @@ export function buildHabitMonth(year: number, month: number, completedDates: str
       today: diff === 0,
       start: isStart,
       beforeStart,
-      streak: isOn && streakKeys.has(dk),
+      // Streak highlighting is temporarily disabled. Retained for future reuse.
+      // streak: isOn && streakKeys.has(dk),
       key: 'd' + d,
     });
   }

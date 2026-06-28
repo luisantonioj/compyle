@@ -1,8 +1,8 @@
 import { useAppStore } from '../../store/appStore';
 import { TODAY_KEY } from '../../lib/seed';
-import { removeTask, upsertTask } from './taskRepository';
+import { removeTask, upsertTask, upsertTaskType } from './taskRepository';
 import type { DataSetter } from '../actionTypes';
-import type { Task, UserData } from '../../types';
+import type { Task, TaskType, UserData } from '../../types';
 
 interface TaskActionOptions {
   data: UserData;
@@ -72,6 +72,19 @@ export function useTaskActions({ data, fs, activeUid, setActiveData, onComplete 
     store.flash(store.editing && 'item' in store.editing && store.editing.item ? 'Task updated' : 'Task added');
   };
 
+  const saveTaskType = (taskType: TaskType) => {
+    if (fs) {
+      void upsertTaskType(activeUid, taskType);
+    } else {
+      setActiveData((d) => ({
+        ...d,
+        taskTypes: d.taskTypes.some((type) => type.id === taskType.id)
+          ? d.taskTypes.map((type) => type.id === taskType.id ? taskType : type)
+          : [...d.taskTypes, taskType],
+      }));
+    }
+  };
+
   const deleteTask = (taskId: string, dateKey: string) => {
     const removed = (data.tasks[dateKey] ?? []).find((t) => t.id === taskId);
     store.setEditing(null);
@@ -108,5 +121,5 @@ export function useTaskActions({ data, fs, activeUid, setActiveData, onComplete 
     }
   };
 
-  return { reorderTasks, moveTask, saveTask, deleteTask, checkTask };
+  return { reorderTasks, moveTask, saveTask, saveTaskType, deleteTask, checkTask };
 }

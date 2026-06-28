@@ -4,6 +4,8 @@ export interface Task {
   id: string;
   title: string;
   emoji: string;
+  taskTypeId?: string;
+  taskTypeLabel?: string;
   description?: string;
   time: string | null;
   done: boolean;
@@ -14,11 +16,24 @@ export interface Task {
   sort_order?: number;
 }
 
+export interface TaskType {
+  id: string;
+  emoji: string;
+  label: string;
+  created_at?: number;
+}
+
+export type HabitFrequency = 'daily' | 'every_other_day' | 'three_per_week' | 'weekly' | 'custom';
+export type HabitScheduleMode = 'days' | 'times_per_week';
+
 export interface Habit {
   id: string;
   name: string;
   note: string;
-  freqType?: 'days' | 'time';
+  frequency?: HabitFrequency;
+  scheduleMode?: HabitScheduleMode;
+  scheduleDays?: number[]; // ISO weekdays: Monday = 1, Sunday = 7
+  timesPerWeek?: number;
   startDate?: string; // "YYYY-MM-DD"
   completedDates: string[]; // "YYYY-MM-DD" — each day this tracker was ticked
   repeating: boolean; // false = no-repetition / one-time tracker
@@ -113,6 +128,7 @@ export interface PrivacySettings {
 
 export interface UserData {
   tasks: Record<string, Task[]>;
+  taskTypes: TaskType[];
   habits: Habit[];
   banks: BankAccount[];
   transactions: Transaction[];

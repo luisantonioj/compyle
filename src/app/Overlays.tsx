@@ -110,7 +110,9 @@ export function Overlays({
           <TaskForm
             task={editing.item}
             dateKey={editing.dateKey ?? TODAY_KEY}
+            taskTypes={data.taskTypes}
             onSave={taskHandlers.saveTask}
+            onSaveTaskType={taskHandlers.saveTaskType}
             onDelete={(id, dk) => confirmDelete('this task', () => taskHandlers.deleteTask(id, dk))}
             onClose={() => store.setEditing(null)}
           />

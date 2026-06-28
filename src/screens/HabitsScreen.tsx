@@ -3,7 +3,9 @@ import React, { useState } from 'react';
 import { Icons } from '../components/Icons';
 
 import { DayChecklist } from '../components/ui/shared';
-import { TODAY_KEY, computeStreak } from '../lib/seed';
+import { TODAY_KEY } from '../lib/seed';
+// Streak calculations are temporarily disabled. Restore with the summary UI below if needed.
+// import { computeStreak } from '../lib/seed';
 import type { UserData, ViewMode, Habit, EditingState } from '../types';
 
 interface HabitsProps {
@@ -22,12 +24,15 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
   const [showArchived, setShowArchived] = useState(false);
   const doneToday = trackers.filter((h) => h.completedDates?.includes(TODAY_KEY)).length;
 
+  /*
+  // Streak summary is temporarily disabled. Retained for future reuse.
   const longestStreak = trackers.length > 0
     ? trackers.reduce<{ name: string; streak: number }>((best, h) => {
         const s = computeStreak(h.completedDates ?? []);
         return s > best.streak ? { name: h.name, streak: s } : best;
       }, { name: '', streak: 0 })
     : null;
+  */
 
   return (
     <div className="screen">
@@ -102,9 +107,9 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
                       </div>
                     )}
                   </div>
-                  {Icons.chevR({ stroke: 'var(--ink-faint)' })}
                 </div>
                 <DayChecklist
+                  habit={h}
                   completedDates={h.completedDates ?? []}
                   onToggle={(dk) => onTrackDate(h.id, dk)}
                 />
@@ -164,7 +169,6 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
                         </div>
                       )}
                     </div>
-                    {Icons.chevR({ stroke: 'var(--ink-faint)' })}
                   </div>
                 </div>
               ))}

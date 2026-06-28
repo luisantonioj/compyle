@@ -53,6 +53,13 @@ service cloud.firestore {
                    || (isLinkedPartner(uid) && visibilityAllowed(uid, 'cal'));
     }
 
+    match /users/{uid}/task_types/{docId} {
+      allow read:  if isOwner(uid)
+                   || (isLinkedPartner(uid) && visibilityAllowed(uid, 'cal'));
+      allow write: if isOwner(uid)
+                   || (isLinkedPartner(uid) && visibilityAllowed(uid, 'cal'));
+    }
+
     // ── Habits ────────────────────────────────────────────────────────────
     match /users/{uid}/habits/{docId} {
       allow read:  if isOwner(uid)

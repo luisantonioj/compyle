@@ -484,6 +484,19 @@ input, textarea, select {
   display: flex;
   gap: 6px;
 }
+.day-period-trigger {
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.day-period-trigger:active { background: var(--cream-deep); }
 .day-tile {
   flex: 1;
   display: flex;
@@ -497,9 +510,21 @@ input, textarea, select {
   transition: background 0.16s, border-color 0.16s;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+.day-tile.schedule-guide::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 3px;
+  height: 3px;
+  background: var(--cream-deep);
+  border-radius: 999px;
+  pointer-events: none;
 }
 .day-tile:disabled { cursor: default; }
-.day-tile.checked { background: var(--ink); border-color: var(--ink); }
+.day-tile.checked { background: var(--cream); border-color: var(--cream-deep); }
 .day-tile.today { border-color: var(--clay); }
 .day-tile.checked.today { background: var(--clay); border-color: var(--clay); }
 .dt-letter {
@@ -509,7 +534,7 @@ input, textarea, select {
   text-transform: uppercase;
   color: var(--ink-mute);
 }
-.day-tile.checked .dt-letter { color: rgba(244,239,228,0.7); }
+.day-tile.checked .dt-letter { color: var(--ink-soft); }
 .dt-num {
   font-family: var(--mono);
   font-size: 12px;
@@ -517,9 +542,75 @@ input, textarea, select {
   color: var(--ink-soft);
   line-height: 1;
 }
-.day-tile.checked .dt-num { color: var(--cream); }
+.day-tile.checked .dt-num { color: var(--ink); }
 .day-tile.today .dt-num { color: var(--clay); }
+.day-tile.checked.today .dt-letter { color: rgba(244,239,228,0.7); }
 .day-tile.checked.today .dt-num { color: var(--cream); }
+
+.period-sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+.period-sheet-title {
+  margin-top: 3px;
+  font-family: var(--serif);
+  font-size: 26px;
+  line-height: 1;
+}
+.period-sheet-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--cream-deep);
+  color: var(--ink-soft);
+  font-size: 22px;
+  line-height: 1;
+}
+.period-fields {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+}
+.period-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.period-fields label > span {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.period-fields select {
+  width: 100%;
+  padding: 12px 36px 12px 12px;
+  border: 1px solid var(--hair-strong);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+.period-sheet-apply {
+  width: 100%;
+  margin-top: 18px;
+  padding: 13px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
 
 /* calendar */
 .cal-grid {

@@ -11,7 +11,7 @@ import {
 } from '../../features/money/moneyRepository';
 import { normalizeNoteDoc } from '../../features/notes/noteRepository';
 import { normalizePrivacyDoc } from '../../features/profile/profileRepository';
-import { normalizeTaskDoc } from '../../features/tasks/taskRepository';
+import { normalizeTaskDoc, normalizeTaskTypeDoc } from '../../features/tasks/taskRepository';
 import type { Task, UserData } from '../../types';
 
 const isPresent = <T,>(value: T | null | undefined): value is T => value != null;
@@ -25,7 +25,7 @@ export function subscribeUserData(
   const fired = new Set<string>();
   const mark = (key: string) => {
     fired.add(key);
-    if (!isReady && fired.size === 10) {
+    if (!isReady && fired.size === 11) {
       isReady = true;
       onReady();
     }
@@ -58,6 +58,15 @@ export function subscribeUserData(
     }
     onPartial({ tasks });
     mark('tasks');
+  }));
+
+  unsubs.push(onSnapshot(userCollection(uid, 'task_types'), (snap) => {
+    const taskTypes = snap.docs
+      .map((d) => normalizeTaskTypeDoc(d.data()))
+      .filter(isPresent)
+      .sort((a, b) => (a.created_at ?? 0) - (b.created_at ?? 0));
+    onPartial({ taskTypes });
+    mark('task_types');
   }));
 
   unsubs.push(onSnapshot(userCollection(uid, 'habits'), (snap) => {
