@@ -4,7 +4,7 @@ import { Icons } from '../components/Icons';
 import { TODAY_KEY, daysInMonth, dateKey, parseKey, getTaskInstances } from '../lib/seed';
 import type { TaskInstance } from '../lib/seed';
 import type { UserData, ViewMode, Task, EditingState } from '../types';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -32,7 +32,8 @@ export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onPr
   const done = tasksOnSelected.filter((t) => t.done).length;
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 300, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
