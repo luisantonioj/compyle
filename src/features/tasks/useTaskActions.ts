@@ -58,14 +58,41 @@ export function useTaskActions({ data, fs, activeUid, setActiveData, onComplete 
   };
 
   const saveTask = (task: Task, dateKey: string) => {
+    const oldDateKey = store.editing && store.editing.type === 'task' ? store.editing.dateKey : undefined;
+    const isDateChanged = oldDateKey && oldDateKey !== dateKey;
+
+    const dayTasks = data.tasks[dateKey] ?? [];
+    const existed = dayTasks.find((t) => t.id === task.id);
+
+    let finalTask = { ...task };
+    if (existed && !isDateChanged) {
+      finalTask.sort_order = task.sort_order !== undefined ? task.sort_order : existed.sort_order;
+    } else {
+      const maxSortOrder = dayTasks.reduce((max, t) => {
+        const so = t.sort_order ?? 0;
+        return so > max ? so : max;
+      }, -1);
+      finalTask.sort_order = maxSortOrder + 1;
+    }
+
     if (fs) {
-      void upsertTask(activeUid, task, dateKey);
+      void upsertTask(activeUid, finalTask, dateKey);
     } else {
       setActiveData((d) => {
-        const day = d.tasks[dateKey] ?? [];
-        const existed = day.find((t) => t.id === task.id);
-        const newDay = existed ? day.map((t) => (t.id === task.id ? task : t)) : [...day, task];
-        return { ...d, tasks: { ...d.tasks, [dateKey]: newDay } };
+        let updatedTasks = { ...d.tasks };
+        if (isDateChanged && oldDateKey) {
+          const oldDay = updatedTasks[oldDateKey] ?? [];
+          updatedTasks[oldDateKey] = oldDay.filter((t) => t.id !== task.id);
+        }
+
+        const day = updatedTasks[dateKey] ?? [];
+        const existedInD = day.find((t) => t.id === finalTask.id);
+        const newDay = existedInD
+          ? day.map((t) => (t.id === finalTask.id ? finalTask : t))
+          : [...day, finalTask];
+
+        updatedTasks[dateKey] = newDay;
+        return { ...d, tasks: updatedTasks };
       });
     }
     store.setEditing(null);
