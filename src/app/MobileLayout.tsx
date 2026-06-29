@@ -57,21 +57,14 @@ export function MobileLayout({
   const fabAction = getFabAction(tab);
 
   return (
-    <div className="mobile-shell">
+    <div className={`mobile-shell${isPartner ? ' partner-mode' : ''}`}>
       {isPartner && (
         <PartnerBanner name={partnerName} onReturn={store.switchView} />
       )}
 
       <div
         key={tab + viewMode}
-        className="fade-in"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          top: isPartner ? 48 : 0,
-          zIndex: 1,
-          overflow: 'hidden',
-        }}
+        className="fade-in screen-wrapper"
       >
         <Suspense fallback={<div className="auth-loading" />}>
           {tab === 'today' && (
