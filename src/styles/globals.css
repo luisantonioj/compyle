@@ -483,6 +483,15 @@ input, textarea, select {
   border-bottom: 1px solid var(--hair);
 }
 .task-item:last-child { border-bottom: none; }
+.task-item.has-desc {
+  align-items: flex-start;
+}
+.task-item.has-desc .check {
+  margin-top: -4px;
+}
+.task-item.has-desc > svg {
+  margin-top: 3px;
+}
 
 /* tracker row */
 .habit-row {

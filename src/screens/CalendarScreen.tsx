@@ -82,7 +82,9 @@ export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onPr
       <div className="pad-x" style={{ marginTop: 20 }}>
         <div className="row-between" style={{ marginBottom: 10 }}>
           <div style={{ fontFamily: 'var(--serif)', fontSize: 22 }}>{formatDay(selected)}</div>
-          <div className="mono" style={{ fontSize: 11, color: 'var(--ink-mute)' }}>{done}/{tasksOnSelected.length} done</div>
+          {selected !== TODAY_KEY && (
+            <div className="mono" style={{ fontSize: 11, color: 'var(--ink-mute)' }}>{done}/{tasksOnSelected.length} done</div>
+          )}
         </div>
         <div className="card white" style={{ padding: tasksOnSelected.length ? '4px 16px' : '24px 16px' }}>
           {tasksOnSelected.length === 0 && (
@@ -132,7 +134,7 @@ function SortableTaskItemMobile({
     <div
       ref={setNodeRef}
       style={style}
-      className={`task-item row-tap${isDragging ? ' dragging' : ''}`}
+      className={`task-item row-tap${isDragging ? ' dragging' : ''}${t.description ? ' has-desc' : ''}`}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest('.check')) return;
         onEdit({ type: 'task-view', item: t, dateKey: editKey });
