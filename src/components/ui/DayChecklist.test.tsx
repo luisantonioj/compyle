@@ -13,21 +13,25 @@ const habit: Habit = {
 };
 
 describe('DayChecklist', () => {
-  it('always displays a Sunday-to-Saturday calendar week', () => {
+  it('displays every day in the selected month', () => {
     const { container } = render(
       <DayChecklist habit={habit} completedDates={[]} onToggle={vi.fn()} />,
     );
 
-    const displayedWeekdays = () =>
-      Array.from(container.querySelectorAll<HTMLButtonElement>('.day-tile')).map((day) =>
-        new Date(`${day.title}T00:00:00`).getDay(),
-      );
+    const visibleDates = () =>
+      Array.from(container.querySelectorAll<HTMLButtonElement>('.mobile-month-day'))
+        .map((day) => day.title);
+    const now = new Date();
+    const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-`;
 
-    expect(displayedWeekdays()).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect(visibleDates()).toHaveLength(new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate());
+    expect(visibleDates().every((date) => date.startsWith(monthPrefix))).toBe(true);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next month' }));
 
-    expect(displayedWeekdays()).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const nextPrefix = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-`;
+    expect(visibleDates().every((date) => date.startsWith(nextPrefix))).toBe(true);
   });
 
   it('jumps to a month and year from the mobile period sheet', () => {
@@ -46,7 +50,7 @@ describe('DayChecklist', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Show period' }));
 
     const visibleDates = Array.from(
-      container.querySelectorAll<HTMLButtonElement>('.day-tile'),
+      container.querySelectorAll<HTMLButtonElement>('.mobile-month-day'),
     ).map((day) => day.title);
 
     expect(visibleDates).toContain(`${targetYear}-01-01`);

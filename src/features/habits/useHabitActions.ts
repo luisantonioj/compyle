@@ -1,7 +1,7 @@
 import { useAppStore } from '../../store/appStore';
-import { removeHabit, upsertHabit } from './habitRepository';
+import { removeHabit, upsertHabit, upsertHabitCategory } from './habitRepository';
 import type { DataSetter } from '../actionTypes';
-import type { Habit, UserData } from '../../types';
+import type { Habit, HabitCategory, UserData } from '../../types';
 
 interface HabitActionOptions {
   data: UserData;
@@ -13,6 +13,23 @@ interface HabitActionOptions {
 
 export function useHabitActions({ data, fs, activeUid, setActiveData, onComplete }: HabitActionOptions) {
   const store = useAppStore();
+
+  const saveHabitCategory = (category: HabitCategory) => {
+    if (fs) {
+      void upsertHabitCategory(activeUid, category);
+    } else {
+      setActiveData((d) => {
+        const categories = d.habitCategories ?? [];
+        const exists = categories.some((item) => item.id === category.id);
+        return {
+          ...d,
+          habitCategories: exists
+            ? categories.map((item) => item.id === category.id ? category : item)
+            : [...categories, category],
+        };
+      });
+    }
+  };
 
   const saveHabit = (h: Habit) => {
     if (fs) {
@@ -93,5 +110,5 @@ export function useHabitActions({ data, fs, activeUid, setActiveData, onComplete
     }
   };
 
-  return { saveHabit, deleteHabit, archiveHabit, restoreHabit, toggleTrackerDate };
+  return { saveHabit, saveHabitCategory, deleteHabit, archiveHabit, restoreHabit, toggleTrackerDate };
 }

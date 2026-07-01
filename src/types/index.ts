@@ -26,9 +26,16 @@ export interface TaskType {
 export type HabitFrequency = 'daily' | 'every_other_day' | 'three_per_week' | 'weekly' | 'custom';
 export type HabitScheduleMode = 'days' | 'times_per_week';
 
+export interface HabitCategory {
+  id: string;
+  name: string;
+  sort_order?: number;
+}
+
 export interface Habit {
   id: string;
   name: string;
+  categoryId?: string;
   note: string;
   frequency?: HabitFrequency;
   scheduleMode?: HabitScheduleMode;
@@ -130,6 +137,7 @@ export interface UserData {
   tasks: Record<string, Task[]>;
   taskTypes: TaskType[];
   habits: Habit[];
+  habitCategories?: HabitCategory[];
   banks: BankAccount[];
   transactions: Transaction[];
   bills: Bill[];

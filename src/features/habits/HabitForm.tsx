@@ -1,19 +1,50 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FormSheet, FormHead, FormFoot, Field } from '../../components/forms/FormPrimitives';
 import { TODAY_KEY } from '../../lib/seed';
 import { createId } from '../../lib/ids';
-import type { Habit, HabitFrequency, HabitScheduleMode } from '../../types';
+import type { Habit, HabitCategory, HabitFrequency, HabitScheduleMode } from '../../types';
 import { HABIT_FREQUENCIES, WEEKDAYS, legacyHabitSchedule, scheduleNote } from './habitSchedule';
 
-export function HabitForm({ habit, onSave, onDelete, onArchive, archiveLabel, onClose }: {
+const DEFAULT_CATEGORIES: HabitCategory[] = [
+  { id: 'skin-care', name: 'Skin Care', sort_order: 0 },
+  { id: 'body-care', name: 'Body Care', sort_order: 1 },
+];
+const ADD_CATEGORY_VALUE = '__add_new__';
+
+export function HabitForm({
+  habit,
+  categories = [],
+  onSave,
+  onSaveCategory,
+  onDelete,
+  onArchive,
+  archiveLabel,
+  onClose,
+}: {
   habit?: Habit;
+  categories?: HabitCategory[];
   onSave: (h: Habit) => void;
+  onSaveCategory?: (category: HabitCategory) => void;
   onDelete?: (id: string) => void;
   onArchive?: () => void;
   archiveLabel?: 'Archive' | 'Restore';
   onClose: () => void;
 }) {
   const [name, setName] = useState(habit?.name ?? '');
+  const mergedCategories = useMemo(() => {
+    const byId = new Map(DEFAULT_CATEGORIES.map((category) => [category.id, category]));
+    categories.forEach((category) => byId.set(category.id, category));
+    return [...byId.values()].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  }, [categories]);
+  const [addedCategories, setAddedCategories] = useState<HabitCategory[]>([]);
+  const allCategories = useMemo(() => {
+    const byId = new Map(mergedCategories.map((category) => [category.id, category]));
+    addedCategories.forEach((category) => byId.set(category.id, category));
+    return [...byId.values()].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  }, [addedCategories, mergedCategories]);
+  const [categoryId, setCategoryId] = useState(habit?.categoryId ?? mergedCategories[0].id);
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [repeating, setRepeating] = useState(habit?.repeating ?? true);
   const initialSchedule = habit?.frequency
     ? {
@@ -31,6 +62,7 @@ export function HabitForm({ habit, onSave, onDelete, onArchive, archiveLabel, on
   const [startDate, setStartDate] = useState(habit?.startDate ?? TODAY_KEY);
   const editing = !!habit?.id;
   const customScheduleValid = frequency !== 'custom' || scheduleMode !== 'days' || scheduleDays.length > 0;
+  const selectedCategory = allCategories.find((category) => category.id === categoryId);
 
   const toggleScheduleDay = (day: number) => {
     setScheduleDays((days) => days.includes(day)
@@ -39,10 +71,12 @@ export function HabitForm({ habit, onSave, onDelete, onArchive, archiveLabel, on
   };
 
   const handleSave = () => {
-    if (!name.trim() || !customScheduleValid) return;
+    if (!name.trim() || !customScheduleValid || !selectedCategory) return;
+    onSaveCategory?.(selectedCategory);
     const saved: Habit = {
       id: habit?.id ?? createId('h'),
       name: name.trim(),
+      categoryId,
       note: repeating ? scheduleNote(frequency, scheduleMode, scheduleDays, timesPerWeek) : note.trim(),
       startDate,
       repeating,
@@ -59,12 +93,75 @@ export function HabitForm({ habit, onSave, onDelete, onArchive, archiveLabel, on
     onSave(saved);
   };
 
+  const addCategory = () => {
+    const categoryName = newCategoryName.trim();
+    if (!categoryName) return;
+    const existing = allCategories.find(
+      (category) => category.name.localeCompare(categoryName, undefined, { sensitivity: 'accent' }) === 0,
+    );
+    if (existing) {
+      setCategoryId(existing.id);
+    } else {
+      const category: HabitCategory = {
+        id: createId('hc'),
+        name: categoryName,
+        sort_order: allCategories.length,
+      };
+      setAddedCategories((current) => [...current, category]);
+      setCategoryId(category.id);
+      onSaveCategory?.(category);
+    }
+    setNewCategoryName('');
+    setAddingCategory(false);
+  };
+
   return (
     <FormSheet onClose={onClose}>
       <FormHead kicker={editing ? 'Edit tracker' : 'New tracker'} title={editing ? 'Update' : 'Create a'} accent={editing ? '' : 'tracker'} onClose={onClose}/>
       <div className="form-body">
         <Field label="Tracker name">
           <input className="field-input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Floss, Gym, Read"/>
+        </Field>
+        <Field label="Category">
+          <select
+            className="field-input"
+            value={addingCategory ? ADD_CATEGORY_VALUE : categoryId}
+            onChange={(event) => {
+              if (event.target.value === ADD_CATEGORY_VALUE) {
+                setAddingCategory(true);
+                return;
+              }
+              setAddingCategory(false);
+              setCategoryId(event.target.value);
+            }}
+            aria-label="Category"
+          >
+            {allCategories.map((category) => (
+              <option key={category.id} value={category.id}>{category.name}</option>
+            ))}
+            <option value={ADD_CATEGORY_VALUE}>Add New Category</option>
+          </select>
+          {addingCategory && (
+            <div className="new-category-field">
+              <input
+                className="field-input"
+                value={newCategoryName}
+                onChange={(event) => setNewCategoryName(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addCategory();
+                  }
+                }}
+                placeholder="Enter a new category"
+                aria-label="New category name"
+                autoFocus
+              />
+              <button type="button" onClick={addCategory} disabled={!newCategoryName.trim()}>
+                Add
+              </button>
+            </div>
+          )}
         </Field>
         <Field label="Repetition">
           <div className="type-toggle">
@@ -148,7 +245,7 @@ export function HabitForm({ habit, onSave, onDelete, onArchive, archiveLabel, on
         onDelete={editing && onDelete ? () => onDelete(habit!.id) : undefined}
         onArchive={editing ? onArchive : undefined}
         archiveLabel={archiveLabel}
-        canSave={!!name.trim() && customScheduleValid} saveLabel={editing ? 'Save' : 'Create tracker'}
+        canSave={!!name.trim() && customScheduleValid && !!selectedCategory} saveLabel={editing ? 'Save' : 'Create tracker'}
       />
     </FormSheet>
   );

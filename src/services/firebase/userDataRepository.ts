@@ -1,7 +1,7 @@
 import { doc, onSnapshot, type Unsubscribe } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { userCollection } from './client';
-import { normalizeHabitDoc } from '../../features/habits/habitRepository';
+import { normalizeHabitCategoryDoc, normalizeHabitDoc } from '../../features/habits/habitRepository';
 import { normalizeLinkCategoryDoc, normalizeLinkDoc } from '../../features/links/linkRepository';
 import {
   normalizeBankDoc,
@@ -33,7 +33,7 @@ export function subscribeUserData(
   const canRead = (key: keyof PrivacySettings) => privacy?.[key] !== false;
   const expectedListeners =
     (canRead('cal') ? 2 : 0)
-    + (canRead('habits') ? 1 : 0)
+    + (canRead('habits') ? 2 : 0)
     + (canRead('money') ? 4 : 0)
     + (canRead('links') ? 2 : 0)
     + (canRead('notes') ? 1 : 0)
@@ -107,6 +107,16 @@ export function subscribeUserData(
     onPartial({ habits });
     markServerSync(snap.metadata.fromCache);
     mark('habits');
+  }, handleError));
+
+  if (canRead('habits')) unsubs.push(onSnapshot(userCollection(uid, 'habit_categories'), listenOptions, (snap) => {
+    const habitCategories = snap.docs
+      .map((d) => normalizeHabitCategoryDoc(d.data()))
+      .filter(isPresent)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    onPartial({ habitCategories });
+    markServerSync(snap.metadata.fromCache);
+    mark('habit_categories');
   }, handleError));
 
   if (canRead('money')) unsubs.push(onSnapshot(userCollection(uid, 'bank_accounts'), listenOptions, (snap) => {
@@ -193,6 +203,7 @@ export function clearPrivatePartnerData(data: UserData, privacy: PrivacySettings
     tasks: privacy.cal ? data.tasks : {},
     taskTypes: privacy.cal ? data.taskTypes : [],
     habits: privacy.habits ? data.habits : [],
+    habitCategories: privacy.habits ? data.habitCategories : [],
     banks: privacy.money ? data.banks : [],
     transactions: privacy.money ? data.transactions : [],
     bills: privacy.money ? data.bills : [],

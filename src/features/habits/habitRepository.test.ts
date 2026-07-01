@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeHabitDoc } from './habitRepository';
+import { normalizeHabitCategoryDoc, normalizeHabitDoc } from './habitRepository';
 
 describe('habit repository normalization', () => {
+  it('normalizes persistent tracker categories', () => {
+    expect(normalizeHabitCategoryDoc({
+      id: 'hc_mind',
+      name: '  Mind Care  ',
+      sort_order: 2,
+    })).toEqual({
+      id: 'hc_mind',
+      name: 'Mind Care',
+      sort_order: 2,
+    });
+  });
+
   it('normalizes the custom schedule fields stored in Firestore', () => {
     expect(normalizeHabitDoc({
       id: 'h1',

@@ -110,7 +110,9 @@ export function Overlays({
         {editing?.type === 'habit' && (
           <HabitForm
             habit={editing.item}
+            categories={data.habitCategories ?? []}
             onSave={habitHandlers.saveHabit}
+            onSaveCategory={habitHandlers.saveHabitCategory}
             onDelete={(id) => confirmDelete('this tracker', () => habitHandlers.deleteHabit(id))}
             onArchive={editing.item ? () => (editing.item!.archived ? habitHandlers.restoreHabit(editing.item!) : habitHandlers.archiveHabit(editing.item!)) : undefined}
             archiveLabel={editing.item?.archived ? 'Restore' : 'Archive'}
