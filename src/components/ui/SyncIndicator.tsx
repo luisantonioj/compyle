@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppStore, type SyncStatus } from '../../store/appStore';
+import { Icons } from '../Icons';
 
 export function SyncIndicator({ onRetry, hidden = false }: { onRetry: () => void; hidden?: boolean }) {
   const { syncStatus, pendingWrites, syncError } = useAppStore();
@@ -53,7 +54,9 @@ export function SyncIndicator({ onRetry, hidden = false }: { onRetry: () => void
 
   return (
     <div className={`notification-pill sync-indicator sync-${displayStatus}`} role="status" aria-live="polite">
-      <span className="sync-indicator-dot" />
+      {displayStatus === 'offline'
+        ? <span className="sync-indicator-icon">{Icons.wifiOff()}</span>
+        : <span className="sync-indicator-dot" />}
       <span>{message}</span>
       {displayStatus === 'error' && <button onClick={onRetry}>Retry</button>}
     </div>
