@@ -50,12 +50,16 @@ export const SEED_YLE: UserData = {
   },
   taskTypes: [],
   habits: [
-    { id: 'h1', name: 'Double Cleanse', note: 'AM + PM', repeating: true, completedDates: patternToDates('on,on,on,on,on,on,on,on,on,on,on,on,on,off,on,on,on,on,on,on,on,on,on,on,on,on,on,on') },
-    { id: 'h2', name: 'Bath',           note: 'Daily',   repeating: true, completedDates: patternToDates('on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on') },
-    { id: 'h3', name: 'Towel change',   note: 'Every 3 days', repeating: true, completedDates: patternToDates('off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off') },
-    { id: 'h4', name: 'Bed sheet',      note: 'Weekly Sun', repeating: true, completedDates: patternToDates('off,off,off,off,off,off,on,off,off,off,off,off,off,on,off,off,off,off,off,off,on,off,off,off,off,off,off,off') },
-    { id: 'h5', name: 'Blanket wash',   note: 'Bi-weekly', repeating: true, completedDates: patternToDates('off,off,off,off,off,off,off,off,off,off,off,off,off,on,off,off,off,off,off,off,off,off,off,off,off,off,on,off') },
-    { id: 'h6', name: 'Laundry',        note: 'Wed + Sat', repeating: true, completedDates: patternToDates('off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off') },
+    { id: 'h1', name: 'Double Cleanse', categoryId: 'skin-care', note: 'AM + PM', repeating: true, completedDates: patternToDates('on,on,on,on,on,on,on,on,on,on,on,on,on,off,on,on,on,on,on,on,on,on,on,on,on,on,on,on') },
+    { id: 'h2', name: 'Bath', categoryId: 'body-care', note: 'Daily', repeating: true, completedDates: patternToDates('on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on,on') },
+    { id: 'h3', name: 'Towel change', categoryId: 'body-care', note: 'Every 3 days', repeating: true, completedDates: patternToDates('off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off') },
+    { id: 'h4', name: 'Bed sheet', categoryId: 'body-care', note: 'Weekly Sun', repeating: true, completedDates: patternToDates('off,off,off,off,off,off,on,off,off,off,off,off,off,on,off,off,off,off,off,off,on,off,off,off,off,off,off,off') },
+    { id: 'h5', name: 'Blanket wash', categoryId: 'body-care', note: 'Bi-weekly', repeating: true, completedDates: patternToDates('off,off,off,off,off,off,off,off,off,off,off,off,off,on,off,off,off,off,off,off,off,off,off,off,off,off,on,off') },
+    { id: 'h6', name: 'Laundry', categoryId: 'body-care', note: 'Wed + Sat', repeating: true, completedDates: patternToDates('off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off') },
+  ],
+  habitCategories: [
+    { id: 'skin-care', name: 'Skin Care', sort_order: 0 },
+    { id: 'body-care', name: 'Body Care', sort_order: 1 },
   ],
   banks: [
     { id: 'b1', name: 'BDO Savings', balance: 84320.50, color: '#1b3a6e', last4: '2891', categories: [
@@ -154,6 +158,10 @@ export const SEED_LUIS: UserData = {
     { id: 'lh3', name: 'Read 30 min',         note: 'Evening',   repeating: true, completedDates: patternToDates('on,on,off,on,on,on,off,on,on,off,on,on,off,on,on,on,off,on,on,off,on,on,on,on,off,on,on,off') },
     { id: 'lh4', name: 'No phone before bed', note: '11pm',      repeating: true, completedDates: patternToDates('off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,off,off,on,on,off') },
   ],
+  habitCategories: [
+    { id: 'skin-care', name: 'Skin Care', sort_order: 0 },
+    { id: 'body-care', name: 'Body Care', sort_order: 1 },
+  ],
   banks: [
     { id: 'lb1', name: 'Security Bank', balance: 142800.00, color: '#0a3d62', last4: '7723', categories: [
       { id: 'lc1a', name: 'Emergency',       balance: 100000, color: '#4a5c3f' },
@@ -197,6 +205,7 @@ export const EMPTY_DATA: UserData = {
   tasks: {},
   taskTypes: [],
   habits: [],
+  habitCategories: [],
   banks: [],
   transactions: [],
   bills: [],

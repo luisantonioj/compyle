@@ -233,6 +233,10 @@
   }
   .page-head h1 em { font-style: italic; color: var(--clay); }
   .page-head .ph-right { text-align: right; }
+  .web-habits-screen .page-head {
+    padding-bottom: 20px;
+    margin-bottom: 12px;
+  }
 
   /* ─── metrics grid ─── */
   .metric-row {
@@ -349,10 +353,49 @@
   }
 
   /* habits grid — always 4 columns, cards start from left */
+  .habit-filter {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 9px;
+    margin: 0 0 10px;
+  }
+  .habit-filter label,
+  .habit-category-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .habit-filter select {
+    min-width: 160px;
+    padding: 8px 30px 8px 10px;
+    border: 1px solid var(--hair-strong);
+    border-radius: 9px;
+    background: var(--white);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 10px;
+  }
+  .habit-category-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .habit-category-group {
+    min-height: 0;
+  }
+  .habit-category-label {
+    margin: 0 0 9px 2px;
+    color: var(--clay);
+  }
   .habits-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 20px;
+    align-items: start;
   }
   .habits-grid > * { min-width: 0; }
   .habit-card {
@@ -364,14 +407,19 @@
   .habit-card .hc-head {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 14px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
   }
+  .habit-card .hc-head > :first-child { min-width: 0; }
   .habit-card .hc-name {
     font-family: var(--serif);
-    font-size: 22px;
+    font-size: clamp(17px, 1.25vw, 22px);
     letter-spacing: -0.01em;
     line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .habit-card .hc-note {
     font-family: var(--mono);
@@ -398,7 +446,7 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 3px;
-    margin-top: 8px;
+    margin-top: 2px;
   }
   .mini-month .dow {
     font-family: var(--mono);
@@ -429,11 +477,13 @@
     border-radius: 3px;
   }
   .habit-card .hc-calendar-nav {
-    display: flex;
-    align-items: center;
+    display: grid;
+    grid-template-columns: 24px auto 24px;
     gap: 2px;
-    margin-left: 10px;
+    width: max-content;
+    max-width: 100%;
     flex-shrink: 0;
+    margin: 0;
     position: relative;
   }
   .habit-card .hc-calendar-arrow {
@@ -445,7 +495,7 @@
     background: transparent;
     color: var(--ink-mute);
     font-family: var(--mono);
-    font-size: 13px;
+    font-size: 17px;
     line-height: 1;
     cursor: pointer;
     transition: background 0.16s, color 0.16s;
@@ -988,14 +1038,11 @@
   .web-layout:not(.sidebar-collapsed) .money-cols {
     grid-template-columns: 1fr;
   }
-  .web-layout:not(.sidebar-collapsed) .habits-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
-/* Collapsed sidebar: habits collapse below ~1200px */
-@media (min-width: 768px) and (max-width: 1200px) {
-  .web-layout.sidebar-collapsed .habits-grid {
+/* Keep four tracker cards at normal desktop widths; collapse only when genuinely narrow. */
+@media (min-width: 768px) and (max-width: 900px) {
+  .habits-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }

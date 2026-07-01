@@ -93,6 +93,25 @@
   font-feature-settings: inherit;
 }
 .field-input:focus { border-color: var(--ink); }
+.new-category-field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-top: 2px;
+}
+.new-category-field button {
+  min-width: 64px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.new-category-field button:disabled { opacity: 0.4; }
 .field-input.big {
   font-family: var(--serif);
   font-size: 36px;

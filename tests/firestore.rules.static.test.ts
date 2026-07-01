@@ -10,6 +10,7 @@ describe('Firestore rules privacy mapping', () => {
     expect(rules).toContain("visibilityAllowed(uid, 'money')");
     expect(rules).toContain("visibilityAllowed(uid, 'links')");
     expect(rules).toContain("visibilityAllowed(uid, 'notes')");
+    expect(rules).toContain('match /users/{uid}/habit_categories/{docId}');
   });
 
   it('does not use old privacy key names in access rules', () => {

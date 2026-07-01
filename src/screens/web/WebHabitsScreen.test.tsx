@@ -25,6 +25,9 @@ describe('WebHabitsScreen calendar navigation', () => {
 
     expect(firstCard).toHaveTextContent(monthLabel(0));
     expect(secondCard).toHaveTextContent(monthLabel(0));
+    expect(firstCard).not.toHaveTextContent('AM + PM');
+    expect(firstCard?.querySelector('.hc-head .hc-calendar-nav')).toBeInTheDocument();
+    expect(firstCard?.querySelector('.hc-calendar-nav')).toBeInTheDocument();
     expect(firstCard?.querySelector('.habit-foot')).not.toBeInTheDocument();
     expect(secondCard?.querySelector('.habit-foot')).not.toBeInTheDocument();
 

@@ -7,6 +7,7 @@ import type {
   Debt,
   EditingState,
   Habit,
+  HabitCategory,
   LinkCategory,
   LinkItem,
   Note,
@@ -45,6 +46,7 @@ export interface TaskHandlers {
 
 export interface HabitHandlers {
   saveHabit: (habit: Habit) => void;
+  saveHabitCategory: (category: HabitCategory) => void;
   deleteHabit: (id: string) => void;
   archiveHabit: (habit: Habit) => void;
   restoreHabit: (habit: Habit) => void;

@@ -68,6 +68,13 @@ service cloud.firestore {
                    || (isLinkedPartner(uid) && visibilityAllowed(uid, 'habits'));
     }
 
+    match /users/{uid}/habit_categories/{docId} {
+      allow read:  if isOwner(uid)
+                   || (isLinkedPartner(uid) && visibilityAllowed(uid, 'habits'));
+      allow write: if isOwner(uid)
+                   || (isLinkedPartner(uid) && visibilityAllowed(uid, 'habits'));
+    }
+
     // ── Bank accounts (categories stored as array inside doc) ─────────────
     match /users/{uid}/bank_accounts/{docId} {
       allow read:  if isOwner(uid)

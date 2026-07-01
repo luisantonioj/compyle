@@ -1,7 +1,7 @@
 import { deleteDoc, setDoc } from 'firebase/firestore';
 import { stripUndefined, userDoc } from '../../services/firebase/client';
 import { trackFirestoreWrite } from '../../services/firebase/syncTracker';
-import type { Habit } from '../../types';
+import type { Habit, HabitCategory } from '../../types';
 import { legacyHabitSchedule } from './habitSchedule';
 
 export const upsertHabit = (uid: string, habit: Habit) =>
@@ -9,6 +9,21 @@ export const upsertHabit = (uid: string, habit: Habit) =>
 
 export const removeHabit = (uid: string, id: string) =>
   trackFirestoreWrite(deleteDoc(userDoc(uid, 'habits', id)));
+
+export const upsertHabitCategory = (uid: string, category: HabitCategory) =>
+  trackFirestoreWrite(setDoc(
+    userDoc(uid, 'habit_categories', category.id),
+    stripUndefined(category as unknown as Record<string, unknown>),
+  ));
+
+export function normalizeHabitCategoryDoc(data: Record<string, unknown>): HabitCategory | null {
+  if (typeof data.id !== 'string' || typeof data.name !== 'string' || !data.name.trim()) return null;
+  return {
+    id: data.id,
+    name: data.name.trim(),
+    sort_order: typeof data.sort_order === 'number' ? data.sort_order : undefined,
+  };
+}
 
 export function normalizeHabitDoc(data: Record<string, unknown>): Habit | null {
   if (typeof data.id !== 'string' || typeof data.name !== 'string') return null;
@@ -35,6 +50,7 @@ export function normalizeHabitDoc(data: Record<string, unknown>): Habit | null {
   return {
     id: data.id,
     name: data.name,
+    categoryId: typeof data.categoryId === 'string' ? data.categoryId : undefined,
     note,
     frequency,
     scheduleMode: frequency === 'custom' ? scheduleMode ?? 'days' : undefined,
