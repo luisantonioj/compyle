@@ -45,9 +45,11 @@ describe('SyncIndicator', () => {
 
   it('collapses the offline explanation after five seconds', () => {
     useAppStore.setState({ syncStatus: 'offline', isOnline: false });
-    render(<SyncIndicator onRetry={() => {}} />);
+    const { container } = render(<SyncIndicator onRetry={() => {}} />);
 
     expect(screen.getByRole('status')).toHaveTextContent('Offline · changes will sync when connected');
+    expect(container.querySelector('.sync-indicator-icon')).toBeInTheDocument();
+    expect(container.querySelector('.sync-indicator-dot')).not.toBeInTheDocument();
     act(() => vi.advanceTimersByTime(5000));
 
     expect(screen.getByRole('status')).toHaveTextContent(/^Offline$/);

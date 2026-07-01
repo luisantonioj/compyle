@@ -1156,12 +1156,21 @@ input, textarea, select {
   background: var(--moss);
 }
 
+.sync-indicator-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--clay);
+}
+
+.sync-offline {
+  box-shadow: 0 3px 10px rgba(61, 52, 43, 0.12);
+}
+
 .sync-syncing .sync-indicator-dot {
   background: var(--amber);
   animation: sync-pulse 1s ease-in-out infinite;
 }
 
-.sync-offline .sync-indicator-dot,
 .sync-error .sync-indicator-dot {
   background: var(--clay);
 }

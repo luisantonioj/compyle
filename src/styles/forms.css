@@ -401,11 +401,11 @@
 
 .notification-center.notification-center-offline {
   top: max(12px, env(safe-area-inset-top));
-  right: 22px;
+  right: auto;
   bottom: auto;
-  left: auto;
+  left: 50%;
   width: auto;
-  transform: none;
+  transform: translateX(-50%);
 }
 
 .notification-pill {
@@ -463,7 +463,6 @@
 @media (min-width: 768px) {
   .notification-center.notification-center-offline {
     top: 20px;
-    right: clamp(20px, 4vw, 48px);
   }
   .form-sheet {
     position: fixed;
