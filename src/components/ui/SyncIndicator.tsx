@@ -1,32 +1,61 @@
-import { useEffect, useState } from 'react';
-import { useAppStore } from '../../store/appStore';
+import { useEffect, useRef, useState } from 'react';
+import { useAppStore, type SyncStatus } from '../../store/appStore';
 
-export function SyncIndicator({ onRetry }: { onRetry: () => void }) {
+export function SyncIndicator({ onRetry, hidden = false }: { onRetry: () => void; hidden?: boolean }) {
   const { syncStatus, pendingWrites, syncError } = useAppStore();
-  const [showSynced, setShowSynced] = useState(false);
+  const [displayStatus, setDisplayStatus] = useState<SyncStatus | null>(null);
+  const [offlineExpanded, setOfflineExpanded] = useState(false);
+  const showedSyncing = useRef(false);
 
   useEffect(() => {
-    if (syncStatus !== 'synced') return;
-    setShowSynced(true);
-    const timeout = setTimeout(() => setShowSynced(false), 1600);
+    if (syncStatus === 'syncing') {
+      const timeout = setTimeout(() => {
+        showedSyncing.current = true;
+        setDisplayStatus('syncing');
+      }, 700);
+      return () => clearTimeout(timeout);
+    }
+
+    if (syncStatus === 'synced') {
+      if (!showedSyncing.current) {
+        setDisplayStatus(null);
+        return;
+      }
+      showedSyncing.current = false;
+      setDisplayStatus('synced');
+      const timeout = setTimeout(() => setDisplayStatus(null), 1000);
+      return () => clearTimeout(timeout);
+    }
+
+    showedSyncing.current = false;
+    setDisplayStatus(syncStatus === 'offline' || syncStatus === 'error' ? syncStatus : null);
+  }, [syncStatus]);
+
+  useEffect(() => {
+    if (syncStatus !== 'offline') {
+      setOfflineExpanded(false);
+      return;
+    }
+    setOfflineExpanded(true);
+    const timeout = setTimeout(() => setOfflineExpanded(false), 5000);
     return () => clearTimeout(timeout);
   }, [syncStatus]);
 
-  if (syncStatus === 'idle' || (syncStatus === 'synced' && !showSynced)) return null;
+  if (hidden || !displayStatus) return null;
 
-  const message = syncStatus === 'syncing'
+  const message = displayStatus === 'syncing'
     ? `Syncing${pendingWrites > 1 ? ` ${pendingWrites} changes` : '…'}`
-    : syncStatus === 'offline'
-      ? 'Offline · changes will sync when connected'
-      : syncStatus === 'error'
+    : displayStatus === 'offline'
+      ? offlineExpanded ? 'Offline · changes will sync when connected' : 'Offline'
+      : displayStatus === 'error'
         ? syncError || 'Sync failed'
         : 'Synced';
 
   return (
-    <div className={`sync-indicator sync-${syncStatus}`} role="status" aria-live="polite">
+    <div className={`notification-pill sync-indicator sync-${displayStatus}`} role="status" aria-live="polite">
       <span className="sync-indicator-dot" />
       <span>{message}</span>
-      {syncStatus === 'error' && <button onClick={onRetry}>Retry</button>}
+      {displayStatus === 'error' && <button onClick={onRetry}>Retry</button>}
     </div>
   );
 }

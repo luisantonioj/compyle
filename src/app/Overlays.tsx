@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { TODAY_KEY } from '../lib/seed';
 import { useAppStore } from '../store/appStore';
-import { Confetti, ConfirmDialog, Toast } from '../components/ui/shared';
+import { Confetti, ConfirmDialog } from '../components/ui/shared';
 import { FocusTimerManager } from '../components/FocusTimerManager';
 import { ProfileSheet } from '../screens/ProfileSheet';
 import type { OverlayProps } from './appTypes';
@@ -25,7 +25,6 @@ export function Overlays({
   profileOpen,
   editing,
   confirm,
-  toast,
   confettiTrigger,
   crown,
   pushEnabled,
@@ -56,15 +55,6 @@ export function Overlays({
             <span style={{ fontSize: 18, color: 'var(--ink)' }}>for yle</span>
           </div>
         </div>
-      )}
-
-      {toast && (
-        <Toast
-          message={toast.message}
-          action={toast.action}
-          onAction={toast.onAction}
-          onDismiss={() => store.setToast(null)}
-        />
       )}
 
       {confirm && (

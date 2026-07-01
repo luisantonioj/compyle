@@ -1,6 +1,6 @@
 // compyle - root app component
 import { useAppStore } from './store/appStore';
-import { Toast } from './components/ui/shared';
+import { NotificationCenter } from './components/ui/NotificationCenter';
 import { AuthScreen } from './screens/AuthScreen';
 import { useAuth } from './hooks/useAuth';
 import { IS_CONFIGURED } from './lib/firebase';
@@ -16,14 +16,11 @@ export default function App() {
     return (
       <>
         <AuthScreen />
-        {store.toast && (
-          <Toast
-            message={store.toast.message}
-            action={store.toast.action}
-            onAction={store.toast.onAction}
-            onDismiss={() => store.setToast(null)}
-          />
-        )}
+        <NotificationCenter
+          toast={store.toast}
+          onToastDismiss={() => store.setToast(null)}
+          onSyncRetry={() => window.location.reload()}
+        />
       </>
     );
   }
