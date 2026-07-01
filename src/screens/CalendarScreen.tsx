@@ -127,7 +127,7 @@ function SortableTaskItemMobile({
     zIndex: isDragging ? 1 : 0,
     position: 'relative' as const,
     cursor: ti._virtual ? 'default' : 'grab',
-    touchAction: ti._virtual ? 'auto' : 'none',
+    touchAction: 'auto',
   };
 
   return (
