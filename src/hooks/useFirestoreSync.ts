@@ -81,13 +81,19 @@ export function useFirestoreSync(user: User | null) {
 
   // Partner data — re-subscribes whenever partnerId changes
   useEffect(() => {
+    store.beginSyncRefresh();
     if (!IS_CONFIGURED || !partnerId) return;
+    let isActive = true;
     let unsubData = () => {};
     let privacySignature = '';
+    const handlePartnerError = (error: Error) => {
+      if (!isActive || useAppStore.getState().meProfile.partnerId !== partnerId) return;
+      friendlySyncError(error);
+    };
     const unsubProfile = subscribeProfile(
       partnerId,
       (p) => store.setPartnerProfile(p),
-      friendlySyncError,
+      handlePartnerError,
     );
     const unsubPrivacy = subscribePrivacy(
       partnerId,
@@ -101,14 +107,19 @@ export function useFirestoreSync(user: User | null) {
           partnerId,
           (p) => store.setLuisData((prev) => ({ ...prev, ...p })),
           () => {},
-          friendlySyncError,
+          handlePartnerError,
           () => store.markServerSynced(),
           { privacy, includePrivacy: false },
         );
       },
-      friendlySyncError,
+      handlePartnerError,
     );
-    return () => { unsubData(); unsubProfile(); unsubPrivacy(); };
+    return () => {
+      isActive = false;
+      unsubData();
+      unsubProfile();
+      unsubPrivacy();
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partnerId]);
 

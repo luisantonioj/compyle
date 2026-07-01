@@ -124,8 +124,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
   isOnline: typeof navigator === 'undefined' ? true : navigator.onLine,
   yleData: IS_CONFIGURED ? { ...EMPTY_DATA } : structuredClone(SEED_YLE),
   luisData: IS_CONFIGURED ? { ...EMPTY_DATA } : structuredClone(SEED_LUIS),
-  meProfile: SEED_USER_ME,
-  partnerProfile: SEED_USER_PARTNER,
+  meProfile: IS_CONFIGURED
+    ? { uid: '', displayName: '', email: '', partnerId: null }
+    : SEED_USER_ME,
+  partnerProfile: IS_CONFIGURED
+    ? { uid: '', displayName: '', email: '', partnerId: null }
+    : SEED_USER_PARTNER,
 
   setTab: (tab) => {
     localStorage.setItem('compyle_active_tab', tab);
