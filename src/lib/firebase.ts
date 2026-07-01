@@ -42,7 +42,10 @@ if (IS_CONFIGURED) {
       tabManager: persistentMultipleTabManager(),
       cacheSizeBytes: CACHE_SIZE_UNLIMITED,
     }),
-    experimentalForceLongPolling: true,
+    // Let the SDK prefer its streaming transport and fall back only when the
+    // browser or network requires long-polling. Forcing long-polling on every
+    // device can delay cross-device listener delivery.
+    experimentalAutoDetectLongPolling: true,
   });
 
   if (import.meta.env.VITE_USE_EMULATOR === 'true') {

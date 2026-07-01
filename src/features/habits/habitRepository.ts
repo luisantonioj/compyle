@@ -1,13 +1,14 @@
 import { deleteDoc, setDoc } from 'firebase/firestore';
 import { stripUndefined, userDoc } from '../../services/firebase/client';
+import { trackFirestoreWrite } from '../../services/firebase/syncTracker';
 import type { Habit } from '../../types';
 import { legacyHabitSchedule } from './habitSchedule';
 
 export const upsertHabit = (uid: string, habit: Habit) =>
-  setDoc(userDoc(uid, 'habits', habit.id), stripUndefined(habit as unknown as Record<string, unknown>));
+  trackFirestoreWrite(setDoc(userDoc(uid, 'habits', habit.id), stripUndefined(habit as unknown as Record<string, unknown>)));
 
 export const removeHabit = (uid: string, id: string) =>
-  deleteDoc(userDoc(uid, 'habits', id));
+  trackFirestoreWrite(deleteDoc(userDoc(uid, 'habits', id)));
 
 export function normalizeHabitDoc(data: Record<string, unknown>): Habit | null {
   if (typeof data.id !== 'string' || typeof data.name !== 'string') return null;
