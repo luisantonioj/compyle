@@ -8,7 +8,7 @@ export function Toast({ message, action, onAction, onDismiss }: {
     return () => clearTimeout(t);
   }, [message, onDismiss]);
   return (
-    <div className="toast">
+    <div className="notification-pill toast" role="status" aria-live="polite">
       <span>{message}</span>
       {action && onAction && <button onClick={onAction}>{action}</button>}
     </div>

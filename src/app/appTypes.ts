@@ -119,7 +119,6 @@ export interface OverlayProps {
   profileOpen: boolean;
   editing: EditingState;
   confirm: ConfirmState | null;
-  toast: ToastState | null;
   confettiTrigger: number;
   crown: boolean;
   pushEnabled: boolean;

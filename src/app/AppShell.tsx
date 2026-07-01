@@ -15,7 +15,7 @@ import { useProfileActions } from '../features/profile/useProfileActions';
 import { Overlays } from './Overlays';
 import { WebLayout } from './WebLayout';
 import { MobileLayout } from './MobileLayout';
-import { SyncIndicator } from '../components/ui/SyncIndicator';
+import { NotificationCenter } from '../components/ui/NotificationCenter';
 
 export function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   const store = useAppStore();
@@ -101,7 +101,11 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
 
   const overlays = (
     <>
-      <SyncIndicator onRetry={refreshData} />
+      <NotificationCenter
+        toast={toast}
+        onToastDismiss={() => store.setToast(null)}
+        onSyncRetry={refreshData}
+      />
       <Overlays
         user={user}
         data={data}
@@ -109,7 +113,6 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
         profileOpen={profileOpen}
         editing={editing}
         confirm={confirm}
-        toast={toast}
         confettiTrigger={confettiTrigger}
         crown={crown}
         pushEnabled={pushEnabled}
