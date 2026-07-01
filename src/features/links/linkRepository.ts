@@ -1,18 +1,19 @@
 import { deleteDoc, setDoc } from 'firebase/firestore';
 import { stripUndefined, userDoc } from '../../services/firebase/client';
+import { trackFirestoreWrite } from '../../services/firebase/syncTracker';
 import type { LinkCategory, LinkItem } from '../../types';
 
 export const upsertLinkCategory = (uid: string, cat: LinkCategory) =>
-  setDoc(userDoc(uid, 'link_categories', cat.id), stripUndefined(cat as unknown as Record<string, unknown>));
+  trackFirestoreWrite(setDoc(userDoc(uid, 'link_categories', cat.id), stripUndefined(cat as unknown as Record<string, unknown>)));
 
 export const removeLinkCategory = (uid: string, id: string) =>
-  deleteDoc(userDoc(uid, 'link_categories', id));
+  trackFirestoreWrite(deleteDoc(userDoc(uid, 'link_categories', id)));
 
 export const upsertLink = (uid: string, link: LinkItem) =>
-  setDoc(userDoc(uid, 'links', link.id), stripUndefined(link as unknown as Record<string, unknown>));
+  trackFirestoreWrite(setDoc(userDoc(uid, 'links', link.id), stripUndefined(link as unknown as Record<string, unknown>)));
 
 export const removeLink = (uid: string, id: string) =>
-  deleteDoc(userDoc(uid, 'links', id));
+  trackFirestoreWrite(deleteDoc(userDoc(uid, 'links', id)));
 
 export function normalizeLinkCategoryDoc(data: Record<string, unknown>): LinkCategory | null {
   if (typeof data.id !== 'string' || typeof data.name !== 'string') return null;

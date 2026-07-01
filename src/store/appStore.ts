@@ -48,6 +48,8 @@ interface ToastState {
   onAction?: () => void;
 }
 
+export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'offline' | 'error';
+
 interface AppStore {
   // ui
   tab: TabId;
@@ -85,6 +87,16 @@ interface AppStore {
   // loading state for Firestore initial fetch
   dataLoading: boolean;
   setDataLoading: (v: boolean) => void;
+  syncStatus: SyncStatus;
+  pendingWrites: number;
+  syncError: string | null;
+  isOnline: boolean;
+  beginSyncWrite: () => void;
+  completeSyncWrite: () => void;
+  reportSyncError: (message: string) => void;
+  beginSyncRefresh: () => void;
+  markServerSynced: () => void;
+  setOnline: (online: boolean) => void;
 
   // data actions (own data only; partner data is read-only)
   setYleData: (updater: (d: UserData) => UserData) => void;
@@ -106,6 +118,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
 
   dataLoading: IS_CONFIGURED,
+  syncStatus: IS_CONFIGURED ? 'idle' : 'synced',
+  pendingWrites: 0,
+  syncError: null,
+  isOnline: typeof navigator === 'undefined' ? true : navigator.onLine,
   yleData: IS_CONFIGURED ? { ...EMPTY_DATA } : structuredClone(SEED_YLE),
   luisData: IS_CONFIGURED ? { ...EMPTY_DATA } : structuredClone(SEED_LUIS),
   meProfile: SEED_USER_ME,
@@ -139,6 +155,31 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
 
   setDataLoading:    (dataLoading) => set({ dataLoading }),
+  beginSyncWrite: () => set((s) => ({
+    pendingWrites: s.pendingWrites + 1,
+    syncStatus: s.isOnline ? 'syncing' : 'offline',
+    syncError: null,
+  })),
+  completeSyncWrite: () => set((s) => {
+    const pendingWrites = Math.max(0, s.pendingWrites - 1);
+    return {
+      pendingWrites,
+      syncStatus: pendingWrites > 0 ? (s.isOnline ? 'syncing' : 'offline') : (s.isOnline ? 'synced' : 'offline'),
+    };
+  }),
+  reportSyncError: (syncError) => set({ syncError, syncStatus: 'error' }),
+  beginSyncRefresh: () => set((s) => ({
+    syncError: null,
+    syncStatus: s.isOnline ? (s.pendingWrites > 0 ? 'syncing' : 'idle') : 'offline',
+  })),
+  markServerSynced: () => set((s) => ({
+    syncStatus: s.syncStatus === 'error' ? 'error' : s.pendingWrites > 0 ? 'syncing' : 'synced',
+    syncError: s.syncStatus === 'error' ? s.syncError : null,
+  })),
+  setOnline: (isOnline) => set((s) => ({
+    isOnline,
+    syncStatus: !isOnline ? 'offline' : s.pendingWrites > 0 ? 'syncing' : s.syncStatus === 'offline' ? 'idle' : s.syncStatus,
+  })),
   setYleData:        (updater) => set((s) => ({ yleData: updater(s.yleData) })),
   setLuisData:       (updater) => set((s) => ({ luisData: updater(s.luisData) })),
   setMeProfile:      (meProfile) => set({ meProfile }),

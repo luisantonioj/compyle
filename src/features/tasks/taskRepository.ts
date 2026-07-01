@@ -1,15 +1,16 @@
 import { deleteDoc, setDoc } from 'firebase/firestore';
 import { stripUndefined, userDoc } from '../../services/firebase/client';
+import { trackFirestoreWrite } from '../../services/firebase/syncTracker';
 import type { Task, TaskType } from '../../types';
 
 export const upsertTask = (uid: string, task: Task, dateKey: string) =>
-  setDoc(userDoc(uid, 'tasks', task.id), stripUndefined({ ...task, date: dateKey }));
+  trackFirestoreWrite(setDoc(userDoc(uid, 'tasks', task.id), stripUndefined({ ...task, date: dateKey })));
 
 export const removeTask = (uid: string, id: string) =>
-  deleteDoc(userDoc(uid, 'tasks', id));
+  trackFirestoreWrite(deleteDoc(userDoc(uid, 'tasks', id)));
 
 export const upsertTaskType = (uid: string, taskType: TaskType) =>
-  setDoc(userDoc(uid, 'task_types', taskType.id), stripUndefined({ ...taskType }));
+  trackFirestoreWrite(setDoc(userDoc(uid, 'task_types', taskType.id), stripUndefined({ ...taskType })));
 
 export function normalizeTaskTypeDoc(data: Record<string, unknown>): TaskType | null {
   if (typeof data.id !== 'string' || typeof data.emoji !== 'string' || typeof data.label !== 'string') return null;

@@ -1,14 +1,55 @@
 // compyle — syncs Firestore real-time data into the Zustand store
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { User } from 'firebase/auth';
 import { useAppStore } from '../store/appStore';
-import { ensureProfile, subscribeProfile } from '../features/profile/profileRepository';
-import { subscribeUserData } from '../services/firebase/userDataRepository';
+import { ensureProfile, subscribePrivacy, subscribeProfile } from '../features/profile/profileRepository';
+import { clearPrivatePartnerData, subscribeUserData } from '../services/firebase/userDataRepository';
 import { IS_CONFIGURED } from '../lib/firebase';
 
 export function useFirestoreSync(user: User | null) {
   const store = useAppStore();
   const partnerId = store.meProfile.partnerId ?? null;
+  const restart = useCallback(() => window.location.reload(), []);
+  const hasLoadedRef = useRef(false);
+  const friendlySyncError = (error: Error) => {
+    const internalAssertion = error.message.includes('INTERNAL ASSERTION FAILED');
+    const permissionDenied = (error as Error & { code?: string }).code === 'permission-denied'
+      || error.message.toLowerCase().includes('insufficient permission');
+    store.reportSyncError(
+      internalAssertion
+        ? 'Sync needs to restart.'
+        : permissionDenied
+        ? 'Some shared data is unavailable. Check sharing settings.'
+        : error.message,
+    );
+  };
+
+  useEffect(() => {
+    if (!IS_CONFIGURED) return;
+
+    const handleOnline = () => {
+      store.setOnline(navigator.onLine);
+      if (navigator.onLine) store.beginSyncRefresh();
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') handleOnline();
+    };
+    const handleOffline = () => store.setOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('pageshow', handleOnline);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('pageshow', handleOnline);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  // Store methods are stable Zustand actions.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Own data + own profile doc
   useEffect(() => {
@@ -16,14 +57,24 @@ export function useFirestoreSync(user: User | null) {
       store.setDataLoading(false);
       return;
     }
-    store.setDataLoading(true);
+    if (!hasLoadedRef.current) store.setDataLoading(true);
+    store.beginSyncRefresh();
     void ensureProfile(user.uid, user.displayName ?? '', user.email ?? '');
     const unsubData    = subscribeUserData(
       user.uid,
       (p) => store.setYleData((prev) => ({ ...prev, ...p })),
-      () => store.setDataLoading(false),
+      () => {
+        hasLoadedRef.current = true;
+        store.setDataLoading(false);
+      },
+      friendlySyncError,
+      () => store.markServerSynced(),
     );
-    const unsubProfile = subscribeProfile(user.uid, (p) => store.setMeProfile(p));
+    const unsubProfile = subscribeProfile(
+      user.uid,
+      (p) => store.setMeProfile(p),
+      friendlySyncError,
+    );
     return () => { unsubData(); unsubProfile(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid]);
@@ -31,13 +82,35 @@ export function useFirestoreSync(user: User | null) {
   // Partner data — re-subscribes whenever partnerId changes
   useEffect(() => {
     if (!IS_CONFIGURED || !partnerId) return;
-    const unsubData    = subscribeUserData(
+    let unsubData = () => {};
+    let privacySignature = '';
+    const unsubProfile = subscribeProfile(
       partnerId,
-      (p) => store.setLuisData((prev) => ({ ...prev, ...p })),
-      () => {},
+      (p) => store.setPartnerProfile(p),
+      friendlySyncError,
     );
-    const unsubProfile = subscribeProfile(partnerId, (p) => store.setPartnerProfile(p));
-    return () => { unsubData(); unsubProfile(); };
+    const unsubPrivacy = subscribePrivacy(
+      partnerId,
+      (privacy) => {
+        const nextSignature = JSON.stringify(privacy);
+        store.setLuisData((prev) => clearPrivatePartnerData(prev, privacy));
+        if (nextSignature === privacySignature) return;
+        privacySignature = nextSignature;
+        unsubData();
+        unsubData = subscribeUserData(
+          partnerId,
+          (p) => store.setLuisData((prev) => ({ ...prev, ...p })),
+          () => {},
+          friendlySyncError,
+          () => store.markServerSynced(),
+          { privacy, includePrivacy: false },
+        );
+      },
+      friendlySyncError,
+    );
+    return () => { unsubData(); unsubProfile(); unsubPrivacy(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partnerId]);
+
+  return { refresh: restart };
 }

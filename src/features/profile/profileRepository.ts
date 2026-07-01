@@ -2,17 +2,35 @@ import { doc, getDoc, onSnapshot, serverTimestamp, setDoc, writeBatch, type Unsu
 import { db } from '../../lib/firebase';
 import { rootUserDoc, topLevelDoc, userSettingsDoc } from '../../services/firebase/client';
 import type { PrivacySettings, UserProfile } from '../../types';
+import { trackFirestoreWrite } from '../../services/firebase/syncTracker';
 
 export const savePrivacy = (uid: string, privacy: PrivacySettings) =>
-  setDoc(userSettingsDoc(uid, 'tracker_visibility', 'settings'), privacy);
+  trackFirestoreWrite(setDoc(userSettingsDoc(uid, 'tracker_visibility', 'settings'), privacy));
 
 export const ensureProfile = (uid: string, displayName: string, email: string) =>
   setDoc(rootUserDoc(uid), { displayName, email, created_at: serverTimestamp() }, { merge: true });
 
-export function subscribeProfile(uid: string, cb: (p: UserProfile) => void): Unsubscribe {
-  return onSnapshot(rootUserDoc(uid), (snap) => {
+export function subscribeProfile(
+  uid: string,
+  cb: (p: UserProfile) => void,
+  onError?: (error: Error) => void,
+): Unsubscribe {
+  return onSnapshot(rootUserDoc(uid), { includeMetadataChanges: true }, (snap) => {
     if (snap.exists()) cb(normalizeUserProfile(uid, snap.data()));
-  });
+  }, onError);
+}
+
+export function subscribePrivacy(
+  uid: string,
+  cb: (privacy: PrivacySettings) => void,
+  onError?: (error: Error) => void,
+): Unsubscribe {
+  return onSnapshot(
+    userSettingsDoc(uid, 'tracker_visibility', 'settings'),
+    { includeMetadataChanges: true },
+    (snap) => cb(normalizePrivacyDoc(snap.exists() ? snap.data() : {})),
+    onError,
+  );
 }
 
 export async function createInvite(myUid: string): Promise<string> {

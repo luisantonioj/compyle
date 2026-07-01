@@ -1,12 +1,13 @@
 import { deleteDoc, setDoc } from 'firebase/firestore';
 import { stripUndefined, userDoc } from '../../services/firebase/client';
+import { trackFirestoreWrite } from '../../services/firebase/syncTracker';
 import type { Note } from '../../types';
 
 export const upsertNote = (uid: string, note: Note) =>
-  setDoc(userDoc(uid, 'notes', note.id), stripUndefined(note as unknown as Record<string, unknown>));
+  trackFirestoreWrite(setDoc(userDoc(uid, 'notes', note.id), stripUndefined(note as unknown as Record<string, unknown>)));
 
 export const removeNote = (uid: string, id: string) =>
-  deleteDoc(userDoc(uid, 'notes', id));
+  trackFirestoreWrite(deleteDoc(userDoc(uid, 'notes', id)));
 
 export function normalizeNoteDoc(data: Record<string, unknown>): Note | null {
   if (typeof data.id !== 'string' || typeof data.title !== 'string') return null;

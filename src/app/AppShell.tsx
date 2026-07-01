@@ -15,6 +15,7 @@ import { useProfileActions } from '../features/profile/useProfileActions';
 import { Overlays } from './Overlays';
 import { WebLayout } from './WebLayout';
 import { MobileLayout } from './MobileLayout';
+import { SyncIndicator } from '../components/ui/SyncIndicator';
 
 export function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   const store = useAppStore();
@@ -29,7 +30,7 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
     IS_CONFIGURED && typeof Notification !== 'undefined' && Notification.permission === 'granted',
   );
 
-  useFirestoreSync(user);
+  const { refresh: refreshData } = useFirestoreSync(user);
 
   const fs = IS_CONFIGURED && !!user;
   const activeUid = isPartner ? store.partnerProfile.uid : (user?.uid ?? '');
@@ -99,26 +100,29 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
   const profileInitial = isPartner ? partnerName.charAt(0).toUpperCase() : meInitial;
 
   const overlays = (
-    <Overlays
-      user={user}
-      data={data}
-      viewMode={viewMode}
-      profileOpen={profileOpen}
-      editing={editing}
-      confirm={confirm}
-      toast={toast}
-      confettiTrigger={confettiTrigger}
-      crown={crown}
-      pushEnabled={pushEnabled}
-      partnerName={partnerName}
-      confirmDelete={confirmDelete}
-      taskHandlers={taskHandlers}
-      habitHandlers={habitHandlers}
-      moneyHandlers={moneyHandlers}
-      linkHandlers={linkHandlers}
-      noteHandlers={noteHandlers}
-      profileHandlers={profileHandlers}
-    />
+    <>
+      <SyncIndicator onRetry={refreshData} />
+      <Overlays
+        user={user}
+        data={data}
+        viewMode={viewMode}
+        profileOpen={profileOpen}
+        editing={editing}
+        confirm={confirm}
+        toast={toast}
+        confettiTrigger={confettiTrigger}
+        crown={crown}
+        pushEnabled={pushEnabled}
+        partnerName={partnerName}
+        confirmDelete={confirmDelete}
+        taskHandlers={taskHandlers}
+        habitHandlers={habitHandlers}
+        moneyHandlers={moneyHandlers}
+        linkHandlers={linkHandlers}
+        noteHandlers={noteHandlers}
+        profileHandlers={profileHandlers}
+      />
+    </>
   );
 
   const layoutProps = {
