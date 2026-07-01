@@ -16,6 +16,7 @@ export default [
       ecmaVersion: 'latest',
       globals: {
         ...globals.browser,
+        ...globals.serviceworker,
         ...globals.es2020,
         ...globals.node,
         Notification: 'readonly',
