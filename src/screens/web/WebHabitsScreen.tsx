@@ -1,16 +1,34 @@
 import React, { useState } from 'react';
+import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Icons } from '../../components/Icons';
 import { buildHabitMonth, TODAY, TODAY_KEY } from '../../lib/seed';
 // Streak calculations are temporarily disabled. Restore with the streak UI below if needed.
 // import { computeStreak } from '../../lib/seed';
 import { isHabitGuideDate } from '../../features/habits/habitSchedule';
-import type { UserData, EditingState } from '../../types';
+import type { UserData, EditingState, Habit } from '../../types';
 
 interface WebHabitsProps {
   data: UserData;
   isPartner: boolean;
   onEdit: (e: EditingState) => void;
   onTrackDate: (id: string, dk: string) => void;
+  onReorderHabits?: (habits: Habit[]) => void;
 }
 
 interface HabitCalendarView {
@@ -22,10 +40,14 @@ const MONTHS = Array.from({ length: 12 }, (_, month) =>
   new Date(2000, month, 1).toLocaleString('en-US', { month: 'long' }),
 );
 
-export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHabitsProps) {
+export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate, onReorderHabits }: WebHabitsProps) {
   const [calendarViews, setCalendarViews] = useState<Record<string, HabitCalendarView>>({});
   const [openPeriodPicker, setOpenPeriodPicker] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   const moveHabitMonth = (habitId: string, offset: -1 | 1) => {
     setCalendarViews((current) => {
@@ -67,6 +89,21 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
   ].filter((group) => group.trackers.length > 0 && (categoryFilter === 'all' || categoryFilter === group.id));
 
   const doneToday = trackers.filter((h) => (h.completedDates ?? []).includes(TODAY_KEY)).length;
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id || !onReorderHabits) return;
+    const oldIndex = data.habits.findIndex((habit) => habit.id === active.id);
+    const newIndex = data.habits.findIndex((habit) => habit.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const destinationGroup = over.data.current?.categoryId as string | undefined;
+    const movedHabits = data.habits.map((habit) => (
+      habit.id === active.id && destinationGroup
+        ? { ...habit, categoryId: destinationGroup === 'uncategorized' ? undefined : destinationGroup }
+        : habit
+    ));
+    onReorderHabits(arrayMove(movedHabits, oldIndex, newIndex));
+  };
 
   /*
   // Streak summary is temporarily disabled. Retained for future reuse.
@@ -159,11 +196,13 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
         </div>
       )}
 
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <div className="habit-category-groups">
         {categoryGroups.map((group) => (
           <section className="habit-category-group" key={group.id}>
             <div className="habit-category-label">{group.name}</div>
             <div className="habits-grid">
+              <SortableContext items={group.trackers.map((habit) => habit.id)} strategy={rectSortingStrategy}>
               {group.trackers.map((h) => {
           const view = calendarViews[h.id] ?? {
             year: TODAY.getFullYear(),
@@ -181,7 +220,12 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
           // const streak = computeStreak(completedDates);
 
           return (
-            <div key={h.id} className="habit-card">
+            <SortableWebHabitCard
+              key={h.id}
+              habitId={h.id}
+              categoryId={group.id}
+              disabled={!onReorderHabits}
+            >
               <div className="hc-head">
                 <div
                   onClick={() => onEdit({ type: 'habit', item: h })}
@@ -285,13 +329,50 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate }: WebHab
                   );
                 })}
               </div>
-            </div>
+            </SortableWebHabitCard>
           );
               })}
+              </SortableContext>
             </div>
           </section>
         ))}
       </div>
+      </DndContext>
+    </div>
+  );
+}
+
+function SortableWebHabitCard({
+  habitId,
+  categoryId,
+  disabled,
+  children,
+}: {
+  habitId: string;
+  categoryId: string;
+  disabled: boolean;
+  children: React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: habitId,
+    data: { categoryId },
+    disabled,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`habit-card sortable-habit-card${isDragging ? ' dragging' : ''}`}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 2 : 0,
+        position: 'relative',
+      }}
+      {...attributes}
+      {...listeners}
+    >
+      {children}
     </div>
   );
 }

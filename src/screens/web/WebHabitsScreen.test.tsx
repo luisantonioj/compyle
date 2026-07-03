@@ -10,6 +10,25 @@ const monthLabel = (offset: number) =>
   });
 
 describe('WebHabitsScreen calendar navigation', () => {
+  it('makes habit calendars keyboard-draggable when reordering is enabled', () => {
+    const { container } = render(
+      <WebHabitsScreen
+        data={{ ...SEED_YLE, habits: SEED_YLE.habits.slice(1, 3) }}
+        isPartner={false}
+        onEdit={vi.fn()}
+        onTrackDate={vi.fn()}
+        onReorderHabits={vi.fn()}
+      />,
+    );
+
+    const cards = container.querySelectorAll('.sortable-habit-card');
+    expect(cards).toHaveLength(2);
+    cards.forEach((card) => {
+      expect(card).toHaveAttribute('role', 'button');
+      expect(card).toHaveAttribute('tabindex', '0');
+    });
+  });
+
   it('moves each habit calendar independently', () => {
     render(
       <WebHabitsScreen
