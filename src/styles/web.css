@@ -404,6 +404,14 @@
     border-radius: 16px;
     padding: 22px;
   }
+  .sortable-habit-card {
+    cursor: grab;
+  }
+  .sortable-habit-card.dragging {
+    cursor: grabbing;
+    opacity: 0.72;
+    box-shadow: 0 12px 30px rgba(21, 19, 15, 0.14);
+  }
   .habit-card .hc-head {
     display: flex;
     justify-content: space-between;

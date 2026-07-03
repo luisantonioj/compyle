@@ -14,6 +14,15 @@ interface HabitActionOptions {
 export function useHabitActions({ data, fs, activeUid, setActiveData, onComplete }: HabitActionOptions) {
   const store = useAppStore();
 
+  const reorderHabits = (reorderedHabits: Habit[]) => {
+    const ordered = reorderedHabits.map((habit, index) => ({ ...habit, sort_order: index }));
+    if (fs) {
+      ordered.forEach((habit) => void upsertHabit(activeUid, habit));
+    } else {
+      setActiveData((d) => ({ ...d, habits: ordered }));
+    }
+  };
+
   const saveHabitCategory = (category: HabitCategory) => {
     if (fs) {
       void upsertHabitCategory(activeUid, category);
@@ -110,5 +119,5 @@ export function useHabitActions({ data, fs, activeUid, setActiveData, onComplete
     }
   };
 
-  return { saveHabit, saveHabitCategory, deleteHabit, archiveHabit, restoreHabit, toggleTrackerDate };
+  return { reorderHabits, saveHabit, saveHabitCategory, deleteHabit, archiveHabit, restoreHabit, toggleTrackerDate };
 }

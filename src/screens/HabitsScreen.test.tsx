@@ -9,6 +9,7 @@ describe('HabitsScreen mobile layout', () => {
   });
 
   it('stacks one full-month card per tracker beneath category labels', () => {
+    const onReorderHabits = vi.fn();
     const { container } = render(
       <HabitsScreen
         data={{ ...SEED_YLE, habits: SEED_YLE.habits.slice(0, 2) }}
@@ -18,6 +19,7 @@ describe('HabitsScreen mobile layout', () => {
         onProfile={vi.fn()}
         onTrackDate={vi.fn()}
         onEdit={vi.fn()}
+        onReorderHabits={onReorderHabits}
       />,
     );
 
@@ -26,6 +28,8 @@ describe('HabitsScreen mobile layout', () => {
     expect(categoryLabels).toEqual(['Skin Care', 'Body Care']);
     expect(container.querySelectorAll('.mobile-habit-card')).toHaveLength(2);
     expect(container.querySelectorAll('.mobile-month-grid')).toHaveLength(2);
+    container.querySelectorAll<HTMLElement>('.mobile-habit-card')
+      .forEach((card) => expect(card.style.touchAction).toBe('auto'));
     expect(screen.queryByRole('button', { name: 'Add tracker' })).not.toBeInTheDocument();
   });
 

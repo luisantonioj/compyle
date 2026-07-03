@@ -1,5 +1,22 @@
 // compyle — Track screen (mobile)
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  DndContext,
+  KeyboardSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Icons } from '../components/Icons';
 
 import { DayChecklist } from '../components/ui/shared';
@@ -17,6 +34,7 @@ interface HabitsProps {
   onProfile: () => void;
   onTrackDate: (id: string, dk: string) => void;
   onEdit: (e: EditingState) => void;
+  onReorderHabits?: (habits: Habit[]) => void;
 }
 
 function trackerSummary(habit: Habit): string {
@@ -36,7 +54,16 @@ function trackerSummary(habit: Habit): string {
   return `${checks} ${checks === 1 ? 'check' : 'checks'} this month`;
 }
 
-export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProfile, onTrackDate, onEdit }: HabitsProps) {
+export function HabitsScreen({
+  data,
+  viewMode,
+  isPartner,
+  profileInitial,
+  onProfile,
+  onTrackDate,
+  onEdit,
+  onReorderHabits,
+}: HabitsProps) {
   const trackers = data.habits.filter((h) => !h.archived);
   const archivedTrackers = data.habits.filter((h) => h.archived);
   const [showArchived, setShowArchived] = useState(false);
@@ -62,6 +89,25 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
   const scrollDirectionRef = useRef<'up' | 'down'>('down');
   const bottomRevealRef = useRef<string | null>(null);
   const doneToday = trackers.filter((h) => h.completedDates?.includes(TODAY_KEY)).length;
+  const sensors = useSensors(
+    useSensor(TouchSensor, { activationConstraint: { delay: 300, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id || !onReorderHabits) return;
+    const oldIndex = data.habits.findIndex((habit) => habit.id === active.id);
+    const newIndex = data.habits.findIndex((habit) => habit.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const destinationGroup = over.data.current?.categoryId as string | undefined;
+    const movedHabits = data.habits.map((habit) => (
+      habit.id === active.id && destinationGroup
+        ? { ...habit, categoryId: destinationGroup === 'uncategorized' ? undefined : destinationGroup }
+        : habit
+    ));
+    onReorderHabits(arrayMove(movedHabits, oldIndex, newIndex));
+  };
 
   const expandTracker = useCallback((habitId: string) => {
     setExpandedOrder((current) => {
@@ -239,18 +285,22 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
                 <option value="uncategorized">Uncategorized</option>
               )}
             </select>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <div className="mobile-habit-groups">
               {categoryGroups.map((group) => (
                 <section className="mobile-habit-group" key={group.id}>
                   <div className="mobile-habit-category">{group.name}</div>
                   <div className="mobile-habit-card-list">
+                    <SortableContext items={group.trackers.map((habit) => habit.id)} strategy={verticalListSortingStrategy}>
                     {group.trackers.map((h: Habit) => {
                       const expanded = expandedOrder.includes(h.id);
                       return (
-                      <article
+                      <SortableMobileHabitCard
                         key={h.id}
-                        className={`mobile-habit-card${expanded ? ' is-expanded' : ' is-collapsed'}`}
-                        data-habit-card-id={h.id}
+                        habitId={h.id}
+                        categoryId={group.id}
+                        expanded={expanded}
+                        disabled={!onReorderHabits}
                       >
                         <span className="mobile-habit-activation" data-habit-id={h.id} aria-hidden="true" />
                         <div className="mobile-habit-calendar-shell" aria-hidden={!expanded}>
@@ -276,13 +326,15 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
                           </span>
                           <span className="mobile-habit-summary-action">Calendar ›</span>
                         </button>
-                      </article>
+                      </SortableMobileHabitCard>
                       );
                     })}
+                    </SortableContext>
                   </div>
                 </section>
               ))}
             </div>
+            </DndContext>
           </>
         )}
       </div>
@@ -327,5 +379,44 @@ export function HabitsScreen({ data, viewMode, isPartner, profileInitial, onProf
 
       <div style={{ height: 40 }} />
     </div>
+  );
+}
+
+function SortableMobileHabitCard({
+  habitId,
+  categoryId,
+  expanded,
+  disabled,
+  children,
+}: {
+  habitId: string;
+  categoryId: string;
+  expanded: boolean;
+  disabled: boolean;
+  children: React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: habitId,
+    data: { categoryId },
+    disabled,
+  });
+
+  return (
+    <article
+      ref={setNodeRef}
+      className={`mobile-habit-card${expanded ? ' is-expanded' : ' is-collapsed'}${isDragging ? ' dragging' : ''}`}
+      data-habit-card-id={habitId}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 2 : 0,
+        position: 'relative',
+        touchAction: 'auto',
+      }}
+      {...attributes}
+      {...listeners}
+    >
+      {children}
+    </article>
   );
 }

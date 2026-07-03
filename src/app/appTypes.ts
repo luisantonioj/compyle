@@ -45,6 +45,7 @@ export interface TaskHandlers {
 }
 
 export interface HabitHandlers {
+  reorderHabits: (habits: Habit[]) => void;
   saveHabit: (habit: Habit) => void;
   saveHabitCategory: (category: HabitCategory) => void;
   deleteHabit: (id: string) => void;

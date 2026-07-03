@@ -74,7 +74,11 @@ export function MobileLayout({
             <CalendarScreen {...sharedScreenProps} onCheck={taskHandlers.checkTask} onSelectedChange={onCalendarDateChange} />
           )}
           {tab === 'habits' && (
-            <HabitsScreen {...sharedScreenProps} onTrackDate={habitHandlers.toggleTrackerDate} />
+            <HabitsScreen
+              {...sharedScreenProps}
+              onTrackDate={habitHandlers.toggleTrackerDate}
+              onReorderHabits={habitHandlers.reorderHabits}
+            />
           )}
           {tab === 'money' && (
             <MoneyScreen {...sharedScreenProps} onMarkPaid={moneyHandlers.toggleBillPaid} onPayDebt={moneyHandlers.recordDebtPayment} />

@@ -81,6 +81,7 @@ export function WebLayout({
               <WebHabitsScreen
                 data={data} isPartner={isPartner}
                 onEdit={store.setEditing} onTrackDate={habitHandlers.toggleTrackerDate}
+                onReorderHabits={habitHandlers.reorderHabits}
               />
             )}
             {tab === 'money' && (
