@@ -3,6 +3,11 @@ import { create } from 'zustand';
 import { SEED_YLE, SEED_LUIS, EMPTY_DATA } from '../lib/seed';
 import { IS_CONFIGURED } from '../lib/firebase';
 import type { TabId, ViewMode, EditingState, UserData, UserProfile, FocusSettings } from '../types';
+import {
+  DEFAULT_VISIBLE_TABS,
+  type CustomizableTabId,
+  type VisibleTabSettings,
+} from '../lib/navigation';
 
 const defaultFocusSettings: FocusSettings = {
   focusDuration: 25,
@@ -34,6 +39,22 @@ const getInitialTab = (): TabId => {
   return 'cal';
 };
 
+const getInitialVisibleTabs = (): VisibleTabSettings => {
+  try {
+    const saved = JSON.parse(localStorage.getItem('compyle_visible_tabs') ?? '{}') as Partial<VisibleTabSettings>;
+    return {
+      cal: saved.cal !== false,
+      notes: saved.notes !== false,
+      links: saved.links !== false,
+      focus: saved.focus !== false,
+      habits: saved.habits !== false,
+      money: saved.money !== false,
+    };
+  } catch {
+    return DEFAULT_VISIBLE_TABS;
+  }
+};
+
 import { SEED_USER_ME, SEED_USER_PARTNER } from '../lib/seed';
 
 interface ConfirmState {
@@ -61,6 +82,7 @@ interface AppStore {
   confettiTrigger: number;
   crown: boolean;
   focusSettings: FocusSettings;
+  visibleTabs: VisibleTabSettings;
 
 
   // data
@@ -82,6 +104,7 @@ interface AppStore {
   triggerConfetti: () => void;
   triggerCrown: () => void;
   setFocusSettings: (s: FocusSettings) => void;
+  toggleVisibleTab: (tab: CustomizableTabId) => void;
 
 
   // loading state for Firestore initial fetch
@@ -115,6 +138,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   confettiTrigger: 0,
   crown: false,
   focusSettings: getInitialFocusSettings(),
+  visibleTabs: getInitialVisibleTabs(),
 
 
   dataLoading: IS_CONFIGURED,
@@ -156,6 +180,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
     localStorage.setItem('compyle_focus_settings', JSON.stringify(focusSettings));
     set({ focusSettings });
   },
+  toggleVisibleTab: (tab) => set((s) => {
+    const visibleCount = Object.values(s.visibleTabs).filter(Boolean).length;
+    if (s.visibleTabs[tab] && visibleCount <= 1) return s;
+    const visibleTabs = { ...s.visibleTabs, [tab]: !s.visibleTabs[tab] };
+    localStorage.setItem('compyle_visible_tabs', JSON.stringify(visibleTabs));
+    return { visibleTabs };
+  }),
 
 
   setDataLoading:    (dataLoading) => set({ dataLoading }),

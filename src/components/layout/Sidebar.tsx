@@ -1,17 +1,7 @@
 import React from 'react';
 import { Icons, TabIcons } from '../Icons';
 import type { TabId, ViewMode } from '../../types';
-
-const NAV_ITEMS: { id: TabId; label: string }[] = [
-  // { id: 'today', label: 'Today' }, // hidden — reserved for future use
-  { id: 'cal',    label: 'Plan'   },
-  { id: 'notes',  label: 'Notes'  },
-  { id: 'links',  label: 'Links'  },
-  { id: 'focus',  label: 'Focus'  },
-  { id: 'habits', label: 'Track' },
-  { id: 'money',  label: 'Money'  },
-
-];
+import { getVisibleNavItems, type VisibleTabSettings } from '../../lib/navigation';
 
 interface SidebarProps {
   tab: TabId;
@@ -26,10 +16,13 @@ interface SidebarProps {
   meEmail: string;
   partnerName: string;
   partnerLinked: boolean;
+  visibleTabs: VisibleTabSettings;
 }
 
-export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collapsed = false, onToggle, meInitial, meName, meEmail, partnerName, partnerLinked }: SidebarProps) {
+export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collapsed = false, onToggle, meInitial, meName, meEmail, partnerName, partnerLinked, visibleTabs }: SidebarProps) {
   const isPartner = viewMode === 'partner';
+  const navItems = getVisibleNavItems(visibleTabs);
+
   return (
     <aside className={`sidebar${collapsed ? ' collapsed' : ''}`}>
       <div className="sidebar-top">
@@ -43,7 +36,7 @@ export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collaps
         </button>
       </div>
       <nav className="nav">
-        {NAV_ITEMS.map((it) => (
+        {navItems.map((it) => (
           <button
             key={it.id}
             className={`nav-item${tab === it.id ? ' active' : ''}`}

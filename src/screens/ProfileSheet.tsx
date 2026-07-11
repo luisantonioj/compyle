@@ -4,15 +4,20 @@ import type { User } from 'firebase/auth';
 import { Icons } from '../components/Icons';
 import { Sheet, Toggle } from '../components/ui/shared';
 import { IS_CONFIGURED } from '../lib/firebase';
-import type { ViewMode, PrivacySettings } from '../types';
+import type { ViewMode } from '../types';
 import { useAppStore } from '../store/appStore';
+import {
+  CUSTOMIZABLE_NAV_ITEMS,
+  type CustomizableTabId,
+  type VisibleTabSettings,
+} from '../lib/navigation';
 
 interface ProfileSheetProps {
   onClose: () => void;
   viewMode: ViewMode;
   onSwitchView: () => void;
-  privacy: PrivacySettings;
-  onPrivacyToggle: (key: keyof PrivacySettings) => void;
+  visibleTabs: VisibleTabSettings;
+  onVisibleTabToggle: (tab: CustomizableTabId) => void;
   partnerLinked: boolean;
   partnerName: string;
   user?: User | null;
@@ -24,14 +29,6 @@ interface ProfileSheetProps {
   onUnlink?: () => Promise<void>;
 }
 
-const PRIVACY_ITEMS: { key: keyof PrivacySettings; label: string }[] = [
-  { key: 'cal', label: 'Plan' },
-  { key: 'notes', label: 'Notes' },
-  { key: 'links', label: 'Links' },
-  { key: 'habits', label: 'Track' },
-  { key: 'money', label: 'Money' },
-];
-
 const STATIC_SETTINGS_ROWS = [
   { icon: '🌙', label: 'Appearance', detail: 'Cream' },
   { icon: '📥', label: 'Export data', detail: 'CSV / JSON' },
@@ -39,7 +36,7 @@ const STATIC_SETTINGS_ROWS = [
   { icon: '✨', label: 'About compyle', detail: 'v1.43' },
 ];
 
-export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPrivacyToggle, partnerLinked, partnerName, user, onSignOut, onEnableNotifications, pushEnabled, onCreateInvite, onAcceptInvite, onUnlink }: ProfileSheetProps) {
+export function ProfileSheet({ onClose, viewMode, onSwitchView, visibleTabs, onVisibleTabToggle, partnerLinked, partnerName, user, onSignOut, onEnableNotifications, pushEnabled, onCreateInvite, onAcceptInvite, onUnlink }: ProfileSheetProps) {
   const flash = useAppStore((s) => s.flash);
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'yle';
   const initial = (viewMode === 'partner' ? partnerName : displayName).charAt(0).toUpperCase();
@@ -169,14 +166,14 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
             </div>
 
 
-            {/* privacy controls — only shown in own view */}
+            {/* personal navigation controls - only shown in own view */}
             {viewMode !== 'partner' && (
               <div style={{ padding: '12px 18px' }}>
-                <div className="label" style={{ marginBottom: 10 }}>What {partnerName} can see</div>
-                {PRIVACY_ITEMS.map((p) => (
-                  <div key={p.key} className="row-between" style={{ padding: '8px 0' }}>
-                    <span style={{ fontSize: 14 }}>{p.label}</span>
-                    <Toggle on={privacy[p.key]} onToggle={() => onPrivacyToggle(p.key)} />
+                <div className="label" style={{ marginBottom: 10 }}>Customize navigation</div>
+                {CUSTOMIZABLE_NAV_ITEMS.map((item) => (
+                  <div key={item.id} className="row-between" style={{ padding: '8px 0' }}>
+                    <span style={{ fontSize: 14 }}>{item.label}</span>
+                    <Toggle on={visibleTabs[item.id]} onToggle={() => onVisibleTabToggle(item.id)} />
                   </div>
                 ))}
               </div>

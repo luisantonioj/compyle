@@ -71,8 +71,8 @@ export function Overlays({
           onClose={() => store.setProfileOpen(false)}
           viewMode={viewMode}
           onSwitchView={store.switchView}
-          privacy={store.yleData.privacy}
-          onPrivacyToggle={profileHandlers.togglePrivacy}
+          visibleTabs={store.visibleTabs}
+          onVisibleTabToggle={store.toggleVisibleTab}
           partnerLinked={!!store.meProfile.partnerId}
           partnerName={partnerName}
           user={user}

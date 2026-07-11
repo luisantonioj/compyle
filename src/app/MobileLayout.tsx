@@ -30,6 +30,7 @@ export function MobileLayout({
   isPartner,
   partnerName,
   profileInitial,
+  visibleTabs,
   overlays,
   taskHandlers,
   habitHandlers,
@@ -111,7 +112,7 @@ export function MobileLayout({
         </button>
       )}
 
-      <BottomNav tab={tab} onTab={store.setTab} partner={isPartner} />
+      <BottomNav tab={tab} onTab={store.setTab} partner={isPartner} visibleTabs={visibleTabs} />
 
       {overlays}
     </div>

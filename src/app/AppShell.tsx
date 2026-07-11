@@ -16,6 +16,7 @@ import { Overlays } from './Overlays';
 import { WebLayout } from './WebLayout';
 import { MobileLayout } from './MobileLayout';
 import { NotificationCenter } from '../components/ui/NotificationCenter';
+import { getFirstVisibleTab, getVisibleNavItems } from '../lib/navigation';
 
 export function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   const store = useAppStore();
@@ -23,6 +24,7 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
   const isPartner = useAppStore(selectIsPartner);
   const partnerName = useAppStore(selectPartnerName);
   const { tab, viewMode, profileOpen, editing, confirm, toast, confettiTrigger, crown, dataLoading } = store;
+  const { visibleTabs, setTab } = store;
   const isWeb = useIsWeb();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [calDate, setCalDate] = useState(TODAY_KEY);
@@ -94,6 +96,11 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
   const noteHandlers = useNoteActions({ fs, activeUid, setActiveData });
   const profileHandlers = useProfileActions({ user, fs, onPushEnabled: () => setPushEnabled(true) });
 
+  useEffect(() => {
+    if (getVisibleNavItems(visibleTabs).some((item) => item.id === tab)) return;
+    setTab(getFirstVisibleTab(visibleTabs));
+  }, [visibleTabs, tab, setTab]);
+
   if (dataLoading) return <div className="auth-loading paper-grain" />;
 
   const meInitial = (store.meProfile.displayName || store.meProfile.email || '?').charAt(0).toUpperCase();
@@ -135,6 +142,7 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
     isPartner,
     partnerName,
     profileInitial,
+    visibleTabs,
     overlays,
     taskHandlers,
     habitHandlers,
