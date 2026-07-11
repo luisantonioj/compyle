@@ -2,7 +2,12 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { User } from 'firebase/auth';
 import { useAppStore } from '../store/appStore';
-import { ensureProfile, subscribePrivacy, subscribeProfile } from '../features/profile/profileRepository';
+import {
+  ensureProfile,
+  subscribeNavigationPreferences,
+  subscribePrivacy,
+  subscribeProfile,
+} from '../features/profile/profileRepository';
 import { clearPrivatePartnerData, subscribeUserData } from '../services/firebase/userDataRepository';
 import { IS_CONFIGURED } from '../lib/firebase';
 
@@ -75,7 +80,12 @@ export function useFirestoreSync(user: User | null) {
       (p) => store.setMeProfile(p),
       friendlySyncError,
     );
-    return () => { unsubData(); unsubProfile(); };
+    const unsubNavigationPreferences = subscribeNavigationPreferences(
+      user.uid,
+      (preferences) => store.setNavigationPreferencesForAccount(user.uid, preferences),
+      friendlySyncError,
+    );
+    return () => { unsubData(); unsubProfile(); unsubNavigationPreferences(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid]);
 
@@ -114,11 +124,17 @@ export function useFirestoreSync(user: User | null) {
       },
       handlePartnerError,
     );
+    const unsubNavigationPreferences = subscribeNavigationPreferences(
+      partnerId,
+      (preferences) => store.setNavigationPreferencesForAccount(partnerId, preferences),
+      handlePartnerError,
+    );
     return () => {
       isActive = false;
       unsubData();
       unsubProfile();
       unsubPrivacy();
+      unsubNavigationPreferences();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partnerId]);

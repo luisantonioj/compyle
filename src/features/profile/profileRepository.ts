@@ -3,9 +3,18 @@ import { db } from '../../lib/firebase';
 import { rootUserDoc, topLevelDoc, userSettingsDoc } from '../../services/firebase/client';
 import type { PrivacySettings, UserProfile } from '../../types';
 import { trackFirestoreWrite } from '../../services/firebase/syncTracker';
+import {
+  DEFAULT_NAVIGATION_PREFERENCES,
+  normalizeNavOrder,
+  normalizeVisibleTabs,
+  type NavigationPreferences,
+} from '../../lib/navigation';
 
 export const savePrivacy = (uid: string, privacy: PrivacySettings) =>
   trackFirestoreWrite(setDoc(userSettingsDoc(uid, 'tracker_visibility', 'settings'), privacy));
+
+export const saveNavigationPreferences = (uid: string, preferences: NavigationPreferences) =>
+  trackFirestoreWrite(setDoc(userSettingsDoc(uid, 'navigation_preferences', 'settings'), preferences, { merge: true }));
 
 export const ensureProfile = (uid: string, displayName: string, email: string) =>
   setDoc(rootUserDoc(uid), { displayName, email, created_at: serverTimestamp() }, { merge: true });
@@ -29,6 +38,19 @@ export function subscribePrivacy(
     userSettingsDoc(uid, 'tracker_visibility', 'settings'),
     { includeMetadataChanges: true },
     (snap) => cb(normalizePrivacyDoc(snap.exists() ? snap.data() : {})),
+    onError,
+  );
+}
+
+export function subscribeNavigationPreferences(
+  uid: string,
+  cb: (preferences: NavigationPreferences) => void,
+  onError?: (error: Error) => void,
+): Unsubscribe {
+  return onSnapshot(
+    userSettingsDoc(uid, 'navigation_preferences', 'settings'),
+    { includeMetadataChanges: true },
+    (snap) => cb(normalizeNavigationPreferencesDoc(snap.exists() ? snap.data() : {})),
     onError,
   );
 }
@@ -84,5 +106,13 @@ export function normalizePrivacyDoc(data: Record<string, unknown>): PrivacySetti
     habits: data.habits !== false,
     money: data.money !== false,
   };
+}
+
+export function normalizeNavigationPreferencesDoc(data: Record<string, unknown>): NavigationPreferences {
+  const visibleTabs = typeof data.visibleTabs === 'object' && data.visibleTabs !== null
+    ? normalizeVisibleTabs(data.visibleTabs as Partial<NavigationPreferences['visibleTabs']>)
+    : DEFAULT_NAVIGATION_PREFERENCES.visibleTabs;
+  const navOrder = normalizeNavOrder(data.navOrder);
+  return { visibleTabs, navOrder };
 }
 

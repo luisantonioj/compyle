@@ -95,10 +95,13 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
   const linkHandlers = useLinkActions({ data, fs, activeUid, setActiveData });
   const noteHandlers = useNoteActions({ fs, activeUid, setActiveData });
   const profileHandlers = useProfileActions({ user, fs, onPushEnabled: () => setPushEnabled(true) });
+  const viewedNavigationUid = isPartner
+    ? (store.partnerProfile.uid || store.meProfile.partnerId)
+    : user?.uid;
 
   useEffect(() => {
-    setNavigationPreferencesAccount(user?.uid);
-  }, [user?.uid, setNavigationPreferencesAccount]);
+    setNavigationPreferencesAccount(viewedNavigationUid);
+  }, [viewedNavigationUid, setNavigationPreferencesAccount]);
 
   useEffect(() => {
     if (getVisibleNavItems(visibleTabs, navOrder).some((item) => item.id === tab)) return;

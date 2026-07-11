@@ -5,10 +5,12 @@ import { IS_CONFIGURED } from '../lib/firebase';
 import type { TabId, ViewMode, EditingState, UserData, UserProfile, FocusSettings } from '../types';
 import {
   DEFAULT_NAV_ORDER,
-  DEFAULT_VISIBLE_TABS,
+  DEFAULT_NAVIGATION_PREFERENCES,
   normalizeNavOrder,
+  normalizeVisibleTabs,
   type CustomizableTabId,
   type NavOrderSettings,
+  type NavigationPreferences,
   type VisibleTabSettings,
 } from '../lib/navigation';
 
@@ -50,16 +52,9 @@ const getNavPreferenceStorageKey = (accountKey: string, setting: 'visible_tabs' 
 const getInitialVisibleTabs = (accountKey = LOCAL_NAV_ACCOUNT_KEY): VisibleTabSettings => {
   try {
     const saved = JSON.parse(localStorage.getItem(getNavPreferenceStorageKey(accountKey, 'visible_tabs')) ?? '{}') as Partial<VisibleTabSettings>;
-    return {
-      cal: saved.cal !== false,
-      notes: saved.notes !== false,
-      links: saved.links !== false,
-      focus: saved.focus !== false,
-      habits: saved.habits !== false,
-      money: saved.money !== false,
-    };
+    return normalizeVisibleTabs(saved);
   } catch {
-    return DEFAULT_VISIBLE_TABS;
+    return DEFAULT_NAVIGATION_PREFERENCES.visibleTabs;
   }
 };
 
@@ -67,8 +62,18 @@ const getInitialNavOrder = (accountKey = LOCAL_NAV_ACCOUNT_KEY): NavOrderSetting
   try {
     return normalizeNavOrder(JSON.parse(localStorage.getItem(getNavPreferenceStorageKey(accountKey, 'nav_order')) ?? 'null'));
   } catch {
-    return DEFAULT_NAV_ORDER;
+    return DEFAULT_NAVIGATION_PREFERENCES.navOrder;
   }
+};
+
+const getInitialNavigationPreferences = (accountKey = LOCAL_NAV_ACCOUNT_KEY): NavigationPreferences => ({
+  visibleTabs: getInitialVisibleTabs(accountKey),
+  navOrder: getInitialNavOrder(accountKey),
+});
+
+const persistNavigationPreferences = (accountKey: string, preferences: NavigationPreferences) => {
+  localStorage.setItem(getNavPreferenceStorageKey(accountKey, 'visible_tabs'), JSON.stringify(preferences.visibleTabs));
+  localStorage.setItem(getNavPreferenceStorageKey(accountKey, 'nav_order'), JSON.stringify(preferences.navOrder));
 };
 
 import { SEED_USER_ME, SEED_USER_PARTNER } from '../lib/seed';
@@ -99,6 +104,7 @@ interface AppStore {
   crown: boolean;
   focusSettings: FocusSettings;
   navigationPreferencesAccountKey: string;
+  navigationPreferencesByAccount: Record<string, NavigationPreferences>;
   visibleTabs: VisibleTabSettings;
   navOrder: NavOrderSettings;
 
@@ -123,6 +129,7 @@ interface AppStore {
   triggerCrown: () => void;
   setFocusSettings: (s: FocusSettings) => void;
   setNavigationPreferencesAccount: (uid: string | null | undefined) => void;
+  setNavigationPreferencesForAccount: (uid: string, preferences: NavigationPreferences) => void;
   toggleVisibleTab: (tab: CustomizableTabId) => void;
   saveNavigationPreferences: (visibleTabs: VisibleTabSettings, navOrder: NavOrderSettings) => void;
 
@@ -159,6 +166,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
   crown: false,
   focusSettings: getInitialFocusSettings(),
   navigationPreferencesAccountKey: LOCAL_NAV_ACCOUNT_KEY,
+  navigationPreferencesByAccount: {
+    [LOCAL_NAV_ACCOUNT_KEY]: getInitialNavigationPreferences(),
+  },
   visibleTabs: getInitialVisibleTabs(),
   navOrder: getInitialNavOrder(),
 
@@ -205,25 +215,63 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setNavigationPreferencesAccount: (uid) => set((s) => {
     const navigationPreferencesAccountKey = uid || LOCAL_NAV_ACCOUNT_KEY;
     if (s.navigationPreferencesAccountKey === navigationPreferencesAccountKey) return s;
+    const preferences = s.navigationPreferencesByAccount[navigationPreferencesAccountKey]
+      ?? getInitialNavigationPreferences(navigationPreferencesAccountKey);
     return {
       navigationPreferencesAccountKey,
-      visibleTabs: getInitialVisibleTabs(navigationPreferencesAccountKey),
-      navOrder: getInitialNavOrder(navigationPreferencesAccountKey),
+      navigationPreferencesByAccount: {
+        ...s.navigationPreferencesByAccount,
+        [navigationPreferencesAccountKey]: preferences,
+      },
+      visibleTabs: preferences.visibleTabs,
+      navOrder: preferences.navOrder,
+    };
+  }),
+  setNavigationPreferencesForAccount: (uid, preferences) => set((s) => {
+    const safePreferences = {
+      visibleTabs: Object.values(preferences.visibleTabs).some(Boolean)
+        ? preferences.visibleTabs
+        : DEFAULT_NAVIGATION_PREFERENCES.visibleTabs,
+      navOrder: normalizeNavOrder(preferences.navOrder),
+    };
+    persistNavigationPreferences(uid, safePreferences);
+    const isActive = s.navigationPreferencesAccountKey === uid;
+    return {
+      navigationPreferencesByAccount: {
+        ...s.navigationPreferencesByAccount,
+        [uid]: safePreferences,
+      },
+      visibleTabs: isActive ? safePreferences.visibleTabs : s.visibleTabs,
+      navOrder: isActive ? safePreferences.navOrder : s.navOrder,
     };
   }),
   toggleVisibleTab: (tab) => set((s) => {
     const visibleCount = Object.values(s.visibleTabs).filter(Boolean).length;
     if (s.visibleTabs[tab] && visibleCount <= 1) return s;
     const visibleTabs = { ...s.visibleTabs, [tab]: !s.visibleTabs[tab] };
-    localStorage.setItem(getNavPreferenceStorageKey(s.navigationPreferencesAccountKey, 'visible_tabs'), JSON.stringify(visibleTabs));
-    return { visibleTabs };
+    const preferences = { visibleTabs, navOrder: s.navOrder };
+    persistNavigationPreferences(s.navigationPreferencesAccountKey, preferences);
+    return {
+      visibleTabs,
+      navigationPreferencesByAccount: {
+        ...s.navigationPreferencesByAccount,
+        [s.navigationPreferencesAccountKey]: preferences,
+      },
+    };
   }),
   saveNavigationPreferences: (visibleTabs, navOrder) => set((s) => {
-    const safeVisibleTabs = Object.values(visibleTabs).some(Boolean) ? visibleTabs : DEFAULT_VISIBLE_TABS;
+    const safeVisibleTabs = Object.values(visibleTabs).some(Boolean) ? visibleTabs : DEFAULT_NAVIGATION_PREFERENCES.visibleTabs;
     const safeNavOrder = normalizeNavOrder(navOrder);
-    localStorage.setItem(getNavPreferenceStorageKey(s.navigationPreferencesAccountKey, 'visible_tabs'), JSON.stringify(safeVisibleTabs));
-    localStorage.setItem(getNavPreferenceStorageKey(s.navigationPreferencesAccountKey, 'nav_order'), JSON.stringify(safeNavOrder));
-    return { visibleTabs: safeVisibleTabs, navOrder: safeNavOrder };
+    const preferences = { visibleTabs: safeVisibleTabs, navOrder: safeNavOrder };
+    persistNavigationPreferences(s.navigationPreferencesAccountKey, preferences);
+    return {
+      visibleTabs: safeVisibleTabs,
+      navOrder: safeNavOrder,
+      navigationPreferencesByAccount: {
+        ...s.navigationPreferencesByAccount,
+        [s.navigationPreferencesAccountKey]: preferences,
+      },
+    };
   }),
 
 

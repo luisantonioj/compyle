@@ -94,6 +94,7 @@ export interface NoteHandlers {
 export interface ProfileHandlers {
   handleSignOut: () => Promise<void>;
   handleEnableNotifications: () => Promise<void>;
+  saveNavigationPreferences: (visibleTabs: VisibleTabSettings, navOrder: NavOrderSettings) => void;
   createPartnerInvite?: () => Promise<string>;
   acceptPartnerInvite?: (code: string) => Promise<void>;
   unlinkCurrentPartner?: () => Promise<void>;

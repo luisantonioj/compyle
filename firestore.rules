@@ -139,6 +139,13 @@ service cloud.firestore {
       allow write: if isOwner(uid);
     }
 
+    // Navigation preferences (personal tab order + visible tabs).
+    // Linked partner can read for Partner View display; only the owner can write.
+    match /users/{uid}/navigation_preferences/{docId} {
+      allow read:  if isOwner(uid) || isLinkedPartner(uid);
+      allow write: if isOwner(uid);
+    }
+
     // ── Push subscriptions & notification settings ────────────────────────
     // Strictly owner-only — never exposed to partners.
     match /users/{uid}/push_subscriptions/{docId} {

@@ -21,6 +21,10 @@ export const CUSTOMIZABLE_NAV_ITEMS: { id: CustomizableTabId; label: string }[] 
 ];
 export type VisibleTabSettings = Record<CustomizableTabId, boolean>;
 export type NavOrderSettings = CustomizableTabId[];
+export interface NavigationPreferences {
+  visibleTabs: VisibleTabSettings;
+  navOrder: NavOrderSettings;
+}
 
 export const DEFAULT_VISIBLE_TABS: VisibleTabSettings = {
   cal: true,
@@ -32,6 +36,10 @@ export const DEFAULT_VISIBLE_TABS: VisibleTabSettings = {
 };
 
 export const DEFAULT_NAV_ORDER: NavOrderSettings = CUSTOMIZABLE_NAV_ITEMS.map((item) => item.id);
+export const DEFAULT_NAVIGATION_PREFERENCES: NavigationPreferences = {
+  visibleTabs: DEFAULT_VISIBLE_TABS,
+  navOrder: DEFAULT_NAV_ORDER,
+};
 
 export function normalizeNavOrder(saved: unknown): NavOrderSettings {
   if (!Array.isArray(saved)) return DEFAULT_NAV_ORDER;
@@ -52,4 +60,15 @@ export function getVisibleNavItems(visibleTabs: VisibleTabSettings, navOrder: Na
 
 export function getFirstVisibleTab(visibleTabs: VisibleTabSettings, navOrder: NavOrderSettings): TabId {
   return getVisibleNavItems(visibleTabs, navOrder)[0]?.id ?? 'cal';
+}
+
+export function normalizeVisibleTabs(saved: Partial<VisibleTabSettings> | undefined | null): VisibleTabSettings {
+  return {
+    cal: saved?.cal !== false,
+    notes: saved?.notes !== false,
+    links: saved?.links !== false,
+    focus: saved?.focus !== false,
+    habits: saved?.habits !== false,
+    money: saved?.money !== false,
+  };
 }
