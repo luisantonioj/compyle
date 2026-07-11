@@ -77,7 +77,7 @@ export function AuthScreen() {
                 One place for the day <em>before it scatters.</em>
               </h2>
             </div>
-            <div className="auth-story-mark" aria-hidden="true">c</div>
+            <img className="auth-story-mark" src="/compyle-logo.png" alt="" aria-hidden="true" />
           </div>
 
           <div className="auth-showcase" aria-hidden="true">
@@ -142,11 +142,9 @@ export function AuthScreen() {
           </div>
 
           <div className="auth-story-footer" aria-hidden="true">
-            <span>tasks</span>
-            <span>habits</span>
-            <span>notes</span>
-            <span>links</span>
-            <span>money</span>
+            <span>offline-first</span>
+            <span>personal or with partner</span>
+            <span>compyle them all</span>
           </div>
         </section>
 
