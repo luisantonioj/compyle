@@ -4,8 +4,11 @@ import { SEED_YLE, SEED_LUIS, EMPTY_DATA } from '../lib/seed';
 import { IS_CONFIGURED } from '../lib/firebase';
 import type { TabId, ViewMode, EditingState, UserData, UserProfile, FocusSettings } from '../types';
 import {
+  DEFAULT_NAV_ORDER,
   DEFAULT_VISIBLE_TABS,
+  normalizeNavOrder,
   type CustomizableTabId,
+  type NavOrderSettings,
   type VisibleTabSettings,
 } from '../lib/navigation';
 
@@ -55,6 +58,14 @@ const getInitialVisibleTabs = (): VisibleTabSettings => {
   }
 };
 
+const getInitialNavOrder = (): NavOrderSettings => {
+  try {
+    return normalizeNavOrder(JSON.parse(localStorage.getItem('compyle_nav_order') ?? 'null'));
+  } catch {
+    return DEFAULT_NAV_ORDER;
+  }
+};
+
 import { SEED_USER_ME, SEED_USER_PARTNER } from '../lib/seed';
 
 interface ConfirmState {
@@ -83,6 +94,7 @@ interface AppStore {
   crown: boolean;
   focusSettings: FocusSettings;
   visibleTabs: VisibleTabSettings;
+  navOrder: NavOrderSettings;
 
 
   // data
@@ -105,6 +117,7 @@ interface AppStore {
   triggerCrown: () => void;
   setFocusSettings: (s: FocusSettings) => void;
   toggleVisibleTab: (tab: CustomizableTabId) => void;
+  saveNavigationPreferences: (visibleTabs: VisibleTabSettings, navOrder: NavOrderSettings) => void;
 
 
   // loading state for Firestore initial fetch
@@ -139,6 +152,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   crown: false,
   focusSettings: getInitialFocusSettings(),
   visibleTabs: getInitialVisibleTabs(),
+  navOrder: getInitialNavOrder(),
 
 
   dataLoading: IS_CONFIGURED,
@@ -186,6 +200,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const visibleTabs = { ...s.visibleTabs, [tab]: !s.visibleTabs[tab] };
     localStorage.setItem('compyle_visible_tabs', JSON.stringify(visibleTabs));
     return { visibleTabs };
+  }),
+  saveNavigationPreferences: (visibleTabs, navOrder) => set(() => {
+    const safeVisibleTabs = Object.values(visibleTabs).some(Boolean) ? visibleTabs : DEFAULT_VISIBLE_TABS;
+    const safeNavOrder = normalizeNavOrder(navOrder);
+    localStorage.setItem('compyle_visible_tabs', JSON.stringify(safeVisibleTabs));
+    localStorage.setItem('compyle_nav_order', JSON.stringify(safeNavOrder));
+    return { visibleTabs: safeVisibleTabs, navOrder: safeNavOrder };
   }),
 
 

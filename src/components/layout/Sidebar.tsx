@@ -1,7 +1,7 @@
 import React from 'react';
 import { Icons, TabIcons } from '../Icons';
 import type { TabId, ViewMode } from '../../types';
-import { getVisibleNavItems, type VisibleTabSettings } from '../../lib/navigation';
+import { getVisibleNavItems, type NavOrderSettings, type VisibleTabSettings } from '../../lib/navigation';
 
 interface SidebarProps {
   tab: TabId;
@@ -17,11 +17,12 @@ interface SidebarProps {
   partnerName: string;
   partnerLinked: boolean;
   visibleTabs: VisibleTabSettings;
+  navOrder: NavOrderSettings;
 }
 
-export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collapsed = false, onToggle, meInitial, meName, meEmail, partnerName, partnerLinked, visibleTabs }: SidebarProps) {
+export function Sidebar({ tab, onTab, viewMode, onProfile, onSwitchView, collapsed = false, onToggle, meInitial, meName, meEmail, partnerName, partnerLinked, visibleTabs, navOrder }: SidebarProps) {
   const isPartner = viewMode === 'partner';
-  const navItems = getVisibleNavItems(visibleTabs);
+  const navItems = getVisibleNavItems(visibleTabs, navOrder);
 
   return (
     <aside className={`sidebar${collapsed ? ' collapsed' : ''}`}>

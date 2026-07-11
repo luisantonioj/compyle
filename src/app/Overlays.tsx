@@ -73,6 +73,8 @@ export function Overlays({
           onSwitchView={store.switchView}
           visibleTabs={store.visibleTabs}
           onVisibleTabToggle={store.toggleVisibleTab}
+          navOrder={store.navOrder}
+          onSaveNavigationPreferences={store.saveNavigationPreferences}
           partnerLinked={!!store.meProfile.partnerId}
           partnerName={partnerName}
           user={user}

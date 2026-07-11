@@ -24,7 +24,7 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
   const isPartner = useAppStore(selectIsPartner);
   const partnerName = useAppStore(selectPartnerName);
   const { tab, viewMode, profileOpen, editing, confirm, toast, confettiTrigger, crown, dataLoading } = store;
-  const { visibleTabs, setTab } = store;
+  const { visibleTabs, navOrder, setTab } = store;
   const isWeb = useIsWeb();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [calDate, setCalDate] = useState(TODAY_KEY);
@@ -97,9 +97,9 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
   const profileHandlers = useProfileActions({ user, fs, onPushEnabled: () => setPushEnabled(true) });
 
   useEffect(() => {
-    if (getVisibleNavItems(visibleTabs).some((item) => item.id === tab)) return;
-    setTab(getFirstVisibleTab(visibleTabs));
-  }, [visibleTabs, tab, setTab]);
+    if (getVisibleNavItems(visibleTabs, navOrder).some((item) => item.id === tab)) return;
+    setTab(getFirstVisibleTab(visibleTabs, navOrder));
+  }, [visibleTabs, navOrder, tab, setTab]);
 
   if (dataLoading) return <div className="auth-loading paper-grain" />;
 
@@ -143,6 +143,7 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
     partnerName,
     profileInitial,
     visibleTabs,
+    navOrder,
     overlays,
     taskHandlers,
     habitHandlers,

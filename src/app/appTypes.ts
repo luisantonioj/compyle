@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { User } from 'firebase/auth';
-import type { VisibleTabSettings } from '../lib/navigation';
+import type { NavOrderSettings, VisibleTabSettings } from '../lib/navigation';
 import type {
   BankAccount,
   Bill,
@@ -107,6 +107,7 @@ export interface LayoutBaseProps {
   partnerName: string;
   profileInitial: string;
   visibleTabs: VisibleTabSettings;
+  navOrder: NavOrderSettings;
   overlays: ReactNode;
   taskHandlers: TaskHandlers;
   habitHandlers: HabitHandlers;
