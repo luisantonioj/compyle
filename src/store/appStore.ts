@@ -42,9 +42,14 @@ const getInitialTab = (): TabId => {
   return 'cal';
 };
 
-const getInitialVisibleTabs = (): VisibleTabSettings => {
+const LOCAL_NAV_ACCOUNT_KEY = 'local';
+
+const getNavPreferenceStorageKey = (accountKey: string, setting: 'visible_tabs' | 'nav_order') =>
+  `compyle_${setting}:${encodeURIComponent(accountKey)}`;
+
+const getInitialVisibleTabs = (accountKey = LOCAL_NAV_ACCOUNT_KEY): VisibleTabSettings => {
   try {
-    const saved = JSON.parse(localStorage.getItem('compyle_visible_tabs') ?? '{}') as Partial<VisibleTabSettings>;
+    const saved = JSON.parse(localStorage.getItem(getNavPreferenceStorageKey(accountKey, 'visible_tabs')) ?? '{}') as Partial<VisibleTabSettings>;
     return {
       cal: saved.cal !== false,
       notes: saved.notes !== false,
@@ -58,9 +63,9 @@ const getInitialVisibleTabs = (): VisibleTabSettings => {
   }
 };
 
-const getInitialNavOrder = (): NavOrderSettings => {
+const getInitialNavOrder = (accountKey = LOCAL_NAV_ACCOUNT_KEY): NavOrderSettings => {
   try {
-    return normalizeNavOrder(JSON.parse(localStorage.getItem('compyle_nav_order') ?? 'null'));
+    return normalizeNavOrder(JSON.parse(localStorage.getItem(getNavPreferenceStorageKey(accountKey, 'nav_order')) ?? 'null'));
   } catch {
     return DEFAULT_NAV_ORDER;
   }
@@ -93,6 +98,7 @@ interface AppStore {
   confettiTrigger: number;
   crown: boolean;
   focusSettings: FocusSettings;
+  navigationPreferencesAccountKey: string;
   visibleTabs: VisibleTabSettings;
   navOrder: NavOrderSettings;
 
@@ -116,6 +122,7 @@ interface AppStore {
   triggerConfetti: () => void;
   triggerCrown: () => void;
   setFocusSettings: (s: FocusSettings) => void;
+  setNavigationPreferencesAccount: (uid: string | null | undefined) => void;
   toggleVisibleTab: (tab: CustomizableTabId) => void;
   saveNavigationPreferences: (visibleTabs: VisibleTabSettings, navOrder: NavOrderSettings) => void;
 
@@ -151,6 +158,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   confettiTrigger: 0,
   crown: false,
   focusSettings: getInitialFocusSettings(),
+  navigationPreferencesAccountKey: LOCAL_NAV_ACCOUNT_KEY,
   visibleTabs: getInitialVisibleTabs(),
   navOrder: getInitialNavOrder(),
 
@@ -194,18 +202,27 @@ export const useAppStore = create<AppStore>((set, get) => ({
     localStorage.setItem('compyle_focus_settings', JSON.stringify(focusSettings));
     set({ focusSettings });
   },
+  setNavigationPreferencesAccount: (uid) => set((s) => {
+    const navigationPreferencesAccountKey = uid || LOCAL_NAV_ACCOUNT_KEY;
+    if (s.navigationPreferencesAccountKey === navigationPreferencesAccountKey) return s;
+    return {
+      navigationPreferencesAccountKey,
+      visibleTabs: getInitialVisibleTabs(navigationPreferencesAccountKey),
+      navOrder: getInitialNavOrder(navigationPreferencesAccountKey),
+    };
+  }),
   toggleVisibleTab: (tab) => set((s) => {
     const visibleCount = Object.values(s.visibleTabs).filter(Boolean).length;
     if (s.visibleTabs[tab] && visibleCount <= 1) return s;
     const visibleTabs = { ...s.visibleTabs, [tab]: !s.visibleTabs[tab] };
-    localStorage.setItem('compyle_visible_tabs', JSON.stringify(visibleTabs));
+    localStorage.setItem(getNavPreferenceStorageKey(s.navigationPreferencesAccountKey, 'visible_tabs'), JSON.stringify(visibleTabs));
     return { visibleTabs };
   }),
-  saveNavigationPreferences: (visibleTabs, navOrder) => set(() => {
+  saveNavigationPreferences: (visibleTabs, navOrder) => set((s) => {
     const safeVisibleTabs = Object.values(visibleTabs).some(Boolean) ? visibleTabs : DEFAULT_VISIBLE_TABS;
     const safeNavOrder = normalizeNavOrder(navOrder);
-    localStorage.setItem('compyle_visible_tabs', JSON.stringify(safeVisibleTabs));
-    localStorage.setItem('compyle_nav_order', JSON.stringify(safeNavOrder));
+    localStorage.setItem(getNavPreferenceStorageKey(s.navigationPreferencesAccountKey, 'visible_tabs'), JSON.stringify(safeVisibleTabs));
+    localStorage.setItem(getNavPreferenceStorageKey(s.navigationPreferencesAccountKey, 'nav_order'), JSON.stringify(safeNavOrder));
     return { visibleTabs: safeVisibleTabs, navOrder: safeNavOrder };
   }),
 

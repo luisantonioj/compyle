@@ -24,7 +24,7 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
   const isPartner = useAppStore(selectIsPartner);
   const partnerName = useAppStore(selectPartnerName);
   const { tab, viewMode, profileOpen, editing, confirm, toast, confettiTrigger, crown, dataLoading } = store;
-  const { visibleTabs, navOrder, setTab } = store;
+  const { visibleTabs, navOrder, setTab, setNavigationPreferencesAccount } = store;
   const isWeb = useIsWeb();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [calDate, setCalDate] = useState(TODAY_KEY);
@@ -95,6 +95,10 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
   const linkHandlers = useLinkActions({ data, fs, activeUid, setActiveData });
   const noteHandlers = useNoteActions({ fs, activeUid, setActiveData });
   const profileHandlers = useProfileActions({ user, fs, onPushEnabled: () => setPushEnabled(true) });
+
+  useEffect(() => {
+    setNavigationPreferencesAccount(user?.uid);
+  }, [user?.uid, setNavigationPreferencesAccount]);
 
   useEffect(() => {
     if (getVisibleNavItems(visibleTabs, navOrder).some((item) => item.id === tab)) return;

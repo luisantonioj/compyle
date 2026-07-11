@@ -208,9 +208,10 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, visibleTabs, onV
                         fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 600,
                         letterSpacing: '0.12em', textTransform: 'uppercase',
                         color: 'var(--clay)',
+                        width: 44, boxSizing: 'border-box',
                         padding: '8px 12px', border: '1px solid var(--clay)',
                         borderRadius: 999, background: 'none', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: 5,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                       }}
                       onClick={async () => { await onUnlink(); }}
                     >
@@ -235,12 +236,18 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, visibleTabs, onV
                       fontWeight: 600,
                       letterSpacing: '0.12em',
                       textTransform: 'uppercase',
+                      width: 44,
+                      height: 26,
                       color: editingNavigation ? 'var(--cream)' : 'var(--clay)',
                       background: editingNavigation ? 'var(--ink)' : 'transparent',
                       border: '1px solid var(--hair-strong)',
                       borderRadius: 999,
-                      padding: '6px 10px',
+                      padding: 0,
                       cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
                     }}
                   >
                     {editingNavigation ? 'Done' : 'Edit'}
