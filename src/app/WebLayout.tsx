@@ -23,6 +23,8 @@ export function WebLayout({
   viewMode,
   isPartner,
   partnerName,
+  visibleTabs,
+  navOrder,
   overlays,
   taskHandlers,
   habitHandlers,
@@ -50,6 +52,8 @@ export function WebLayout({
         meEmail={store.meProfile.email || ''}
         partnerName={partnerName}
         partnerLinked={!!store.meProfile.partnerId}
+        visibleTabs={visibleTabs}
+        navOrder={navOrder}
       />
       <main className="web-content">
         {isPartner && (

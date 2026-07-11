@@ -1,30 +1,24 @@
-// compyle — bottom navigation bar
+// compyle - bottom navigation bar
 import React from 'react';
 import { TabIcons } from '../Icons';
 import type { TabId } from '../../types';
+import { getVisibleNavItems, type NavOrderSettings, type VisibleTabSettings } from '../../lib/navigation';
 
 interface BottomNavProps {
   tab: TabId;
   onTab: (t: TabId) => void;
   partner: boolean;
+  visibleTabs: VisibleTabSettings;
+  navOrder: NavOrderSettings;
 }
 
-const TABS: { id: TabId; label: string }[] = [
-  // { id: 'today', label: 'Today' }, // hidden — reserved for future use
-  { id: 'cal', label: 'Plan' },
-  { id: 'notes', label: 'Notes' },
-  { id: 'links', label: 'Links' },
-  { id: 'focus', label: 'Focus' },
-  { id: 'habits', label: 'Track' },
-  { id: 'money', label: 'Money' },
+export function BottomNav({ tab, onTab, partner, visibleTabs, navOrder }: BottomNavProps) {
+  const tabs = getVisibleNavItems(visibleTabs, navOrder);
 
-];
-
-export function BottomNav({ tab, onTab, partner }: BottomNavProps) {
   return (
     <div className={`bottom-nav${partner ? ' partner' : ''}`}>
       <div className="bottom-nav-inner">
-        {TABS.map((t) => {
+        {tabs.map((t) => {
           const active = tab === t.id;
           return (
             <button key={t.id} className={`tab${active ? ' active' : ''}`} onClick={() => onTab(t.id)}>

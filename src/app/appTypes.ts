@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { User } from 'firebase/auth';
+import type { NavOrderSettings, VisibleTabSettings } from '../lib/navigation';
 import type {
   BankAccount,
   Bill,
@@ -11,7 +12,6 @@ import type {
   LinkCategory,
   LinkItem,
   Note,
-  PrivacySettings,
   TabId,
   Task,
   TaskType,
@@ -94,7 +94,7 @@ export interface NoteHandlers {
 export interface ProfileHandlers {
   handleSignOut: () => Promise<void>;
   handleEnableNotifications: () => Promise<void>;
-  togglePrivacy: (key: keyof PrivacySettings) => void;
+  saveNavigationPreferences: (visibleTabs: VisibleTabSettings, navOrder: NavOrderSettings) => void;
   createPartnerInvite?: () => Promise<string>;
   acceptPartnerInvite?: (code: string) => Promise<void>;
   unlinkCurrentPartner?: () => Promise<void>;
@@ -107,6 +107,8 @@ export interface LayoutBaseProps {
   isPartner: boolean;
   partnerName: string;
   profileInitial: string;
+  visibleTabs: VisibleTabSettings;
+  navOrder: NavOrderSettings;
   overlays: ReactNode;
   taskHandlers: TaskHandlers;
   habitHandlers: HabitHandlers;

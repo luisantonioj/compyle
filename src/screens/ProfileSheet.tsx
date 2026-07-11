@@ -1,18 +1,43 @@
 // compyle — Profile / Settings sheet
 import { useState } from 'react';
 import type { User } from 'firebase/auth';
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Icons } from '../components/Icons';
 import { Sheet, Toggle } from '../components/ui/shared';
 import { IS_CONFIGURED } from '../lib/firebase';
-import type { ViewMode, PrivacySettings } from '../types';
+import type { ViewMode } from '../types';
 import { useAppStore } from '../store/appStore';
+import {
+  getOrderedNavItems,
+  type CustomizableTabId,
+  type NavOrderSettings,
+  type VisibleTabSettings,
+} from '../lib/navigation';
 
 interface ProfileSheetProps {
   onClose: () => void;
   viewMode: ViewMode;
   onSwitchView: () => void;
-  privacy: PrivacySettings;
-  onPrivacyToggle: (key: keyof PrivacySettings) => void;
+  visibleTabs: VisibleTabSettings;
+  onVisibleTabToggle: (tab: CustomizableTabId) => void;
+  navOrder: NavOrderSettings;
+  onSaveNavigationPreferences: (visibleTabs: VisibleTabSettings, navOrder: NavOrderSettings) => void;
   partnerLinked: boolean;
   partnerName: string;
   user?: User | null;
@@ -24,14 +49,6 @@ interface ProfileSheetProps {
   onUnlink?: () => Promise<void>;
 }
 
-const PRIVACY_ITEMS: { key: keyof PrivacySettings; label: string }[] = [
-  { key: 'cal', label: 'Plan' },
-  { key: 'notes', label: 'Notes' },
-  { key: 'links', label: 'Links' },
-  { key: 'habits', label: 'Track' },
-  { key: 'money', label: 'Money' },
-];
-
 const STATIC_SETTINGS_ROWS = [
   { icon: '🌙', label: 'Appearance', detail: 'Cream' },
   { icon: '📥', label: 'Export data', detail: 'CSV / JSON' },
@@ -39,7 +56,7 @@ const STATIC_SETTINGS_ROWS = [
   { icon: '✨', label: 'About compyle', detail: 'v1.43' },
 ];
 
-export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPrivacyToggle, partnerLinked, partnerName, user, onSignOut, onEnableNotifications, pushEnabled, onCreateInvite, onAcceptInvite, onUnlink }: ProfileSheetProps) {
+export function ProfileSheet({ onClose, viewMode, onSwitchView, visibleTabs, onVisibleTabToggle, navOrder, onSaveNavigationPreferences, partnerLinked, partnerName, user, onSignOut, onEnableNotifications, pushEnabled, onCreateInvite, onAcceptInvite, onUnlink }: ProfileSheetProps) {
   const flash = useAppStore((s) => s.flash);
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'yle';
   const initial = (viewMode === 'partner' ? partnerName : displayName).charAt(0).toUpperCase();
@@ -50,6 +67,13 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
   const [linkLoading, setLinkLoading] = useState(false);
   const [linkError, setLinkError] = useState('');
   const [showAbout, setShowAbout] = useState(false);
+  const [editingNavigation, setEditingNavigation] = useState(false);
+  const [draftVisibleTabs, setDraftVisibleTabs] = useState(visibleTabs);
+  const [draftNavOrder, setDraftNavOrder] = useState(navOrder);
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   const notifDetail = IS_CONFIGURED
     ? pushEnabled
@@ -59,6 +83,35 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
         : 'Off'
     : 'On';
   const notifClickable = IS_CONFIGURED && !pushEnabled && typeof Notification !== 'undefined' && Notification.permission !== 'denied';
+
+  const startNavigationEdit = () => {
+    setDraftVisibleTabs(visibleTabs);
+    setDraftNavOrder(navOrder);
+    setEditingNavigation(true);
+  };
+
+  const saveNavigationEdit = () => {
+    onSaveNavigationPreferences(draftVisibleTabs, draftNavOrder);
+    setEditingNavigation(false);
+  };
+
+  const toggleDraftVisibleTab = (tab: CustomizableTabId) => {
+    setDraftVisibleTabs((current) => {
+      const visibleCount = Object.values(current).filter(Boolean).length;
+      if (current[tab] && visibleCount <= 1) return current;
+      return { ...current, [tab]: !current[tab] };
+    });
+  };
+
+  const handleNavigationDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    setDraftNavOrder((current) => {
+      const oldIndex = current.indexOf(active.id as CustomizableTabId);
+      const newIndex = current.indexOf(over.id as CustomizableTabId);
+      if (oldIndex < 0 || newIndex < 0) return current;
+      return arrayMove(current, oldIndex, newIndex);
+    });
+  };
 
   if (showAbout) {
     return (
@@ -155,9 +208,10 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
                         fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 600,
                         letterSpacing: '0.12em', textTransform: 'uppercase',
                         color: 'var(--clay)',
+                        width: 44, boxSizing: 'border-box',
                         padding: '8px 12px', border: '1px solid var(--clay)',
                         borderRadius: 999, background: 'none', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: 5,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                       }}
                       onClick={async () => { await onUnlink(); }}
                     >
@@ -169,16 +223,58 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
             </div>
 
 
-            {/* privacy controls — only shown in own view */}
+            {/* personal navigation controls - only shown in own view */}
             {viewMode !== 'partner' && (
               <div style={{ padding: '12px 18px' }}>
-                <div className="label" style={{ marginBottom: 10 }}>What {partnerName} can see</div>
-                {PRIVACY_ITEMS.map((p) => (
-                  <div key={p.key} className="row-between" style={{ padding: '8px 0' }}>
-                    <span style={{ fontSize: 14 }}>{p.label}</span>
-                    <Toggle on={privacy[p.key]} onToggle={() => onPrivacyToggle(p.key)} />
-                  </div>
-                ))}
+                <div className="row-between" style={{ marginBottom: 10 }}>
+                  <div className="label">Customize navigation</div>
+                  <button
+                    className="mono"
+                    onClick={editingNavigation ? saveNavigationEdit : startNavigationEdit}
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      width: 44,
+                      height: 26,
+                      color: editingNavigation ? 'var(--cream)' : 'var(--clay)',
+                      background: editingNavigation ? 'var(--ink)' : 'transparent',
+                      border: '1px solid var(--hair-strong)',
+                      borderRadius: 999,
+                      padding: 0,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {editingNavigation ? 'Done' : 'Edit'}
+                  </button>
+                </div>
+                {editingNavigation ? (
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleNavigationDragEnd}>
+                    <SortableContext items={draftNavOrder} strategy={verticalListSortingStrategy}>
+                      {getOrderedNavItems(draftNavOrder).map((item) => (
+                        <SortableNavigationRow
+                          key={item.id}
+                          id={item.id}
+                          label={item.label}
+                          visible={draftVisibleTabs[item.id]}
+                          onToggle={() => toggleDraftVisibleTab(item.id)}
+                        />
+                      ))}
+                    </SortableContext>
+                  </DndContext>
+                ) : (
+                  getOrderedNavItems(navOrder).map((item) => (
+                    <div key={item.id} className="row-between" style={{ padding: '8px 0' }}>
+                      <span style={{ fontSize: 14 }}>{item.label}</span>
+                      <Toggle on={visibleTabs[item.id]} onToggle={() => onVisibleTabToggle(item.id)} />
+                    </div>
+                  ))
+                )}
               </div>
             )}
           </div>
@@ -333,5 +429,63 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, privacy, onPriva
         </div>
       </div>
     </Sheet>
+  );
+}
+
+function SortableNavigationRow({
+  id,
+  label,
+  visible,
+  onToggle,
+}: {
+  id: CustomizableTabId;
+  label: string;
+  visible: boolean;
+  onToggle: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className="row-between"
+      style={{
+        padding: '8px 0',
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.45 : 1,
+        position: 'relative',
+        zIndex: isDragging ? 2 : 0,
+      }}
+    >
+      <div className="row" style={{ gap: 10 }}>
+        <button
+          {...attributes}
+          {...listeners}
+          title="Drag to reorder"
+          style={{
+            width: 28,
+            height: 28,
+            border: '1px solid var(--hair)',
+            borderRadius: 8,
+            background: 'var(--cream)',
+            color: 'var(--ink-mute)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 3,
+            cursor: 'grab',
+            touchAction: 'none',
+          }}
+        >
+          <span style={{ width: 12, height: 1, background: 'currentColor' }} />
+          <span style={{ width: 12, height: 1, background: 'currentColor' }} />
+          <span style={{ width: 12, height: 1, background: 'currentColor' }} />
+        </button>
+        <span style={{ fontSize: 14 }}>{label}</span>
+      </div>
+      <Toggle on={visible} onToggle={onToggle} />
+    </div>
   );
 }

@@ -3,6 +3,16 @@ import { create } from 'zustand';
 import { SEED_YLE, SEED_LUIS, EMPTY_DATA } from '../lib/seed';
 import { IS_CONFIGURED } from '../lib/firebase';
 import type { TabId, ViewMode, EditingState, UserData, UserProfile, FocusSettings } from '../types';
+import {
+  DEFAULT_NAV_ORDER,
+  DEFAULT_NAVIGATION_PREFERENCES,
+  normalizeNavOrder,
+  normalizeVisibleTabs,
+  type CustomizableTabId,
+  type NavOrderSettings,
+  type NavigationPreferences,
+  type VisibleTabSettings,
+} from '../lib/navigation';
 
 const defaultFocusSettings: FocusSettings = {
   focusDuration: 25,
@@ -34,6 +44,38 @@ const getInitialTab = (): TabId => {
   return 'cal';
 };
 
+const LOCAL_NAV_ACCOUNT_KEY = 'local';
+
+const getNavPreferenceStorageKey = (accountKey: string, setting: 'visible_tabs' | 'nav_order') =>
+  `compyle_${setting}:${encodeURIComponent(accountKey)}`;
+
+const getInitialVisibleTabs = (accountKey = LOCAL_NAV_ACCOUNT_KEY): VisibleTabSettings => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(getNavPreferenceStorageKey(accountKey, 'visible_tabs')) ?? '{}') as Partial<VisibleTabSettings>;
+    return normalizeVisibleTabs(saved);
+  } catch {
+    return DEFAULT_NAVIGATION_PREFERENCES.visibleTabs;
+  }
+};
+
+const getInitialNavOrder = (accountKey = LOCAL_NAV_ACCOUNT_KEY): NavOrderSettings => {
+  try {
+    return normalizeNavOrder(JSON.parse(localStorage.getItem(getNavPreferenceStorageKey(accountKey, 'nav_order')) ?? 'null'));
+  } catch {
+    return DEFAULT_NAVIGATION_PREFERENCES.navOrder;
+  }
+};
+
+const getInitialNavigationPreferences = (accountKey = LOCAL_NAV_ACCOUNT_KEY): NavigationPreferences => ({
+  visibleTabs: getInitialVisibleTabs(accountKey),
+  navOrder: getInitialNavOrder(accountKey),
+});
+
+const persistNavigationPreferences = (accountKey: string, preferences: NavigationPreferences) => {
+  localStorage.setItem(getNavPreferenceStorageKey(accountKey, 'visible_tabs'), JSON.stringify(preferences.visibleTabs));
+  localStorage.setItem(getNavPreferenceStorageKey(accountKey, 'nav_order'), JSON.stringify(preferences.navOrder));
+};
+
 import { SEED_USER_ME, SEED_USER_PARTNER } from '../lib/seed';
 
 interface ConfirmState {
@@ -61,6 +103,10 @@ interface AppStore {
   confettiTrigger: number;
   crown: boolean;
   focusSettings: FocusSettings;
+  navigationPreferencesAccountKey: string;
+  navigationPreferencesByAccount: Record<string, NavigationPreferences>;
+  visibleTabs: VisibleTabSettings;
+  navOrder: NavOrderSettings;
 
 
   // data
@@ -82,6 +128,10 @@ interface AppStore {
   triggerConfetti: () => void;
   triggerCrown: () => void;
   setFocusSettings: (s: FocusSettings) => void;
+  setNavigationPreferencesAccount: (uid: string | null | undefined) => void;
+  setNavigationPreferencesForAccount: (uid: string, preferences: NavigationPreferences) => void;
+  toggleVisibleTab: (tab: CustomizableTabId) => void;
+  saveNavigationPreferences: (visibleTabs: VisibleTabSettings, navOrder: NavOrderSettings) => void;
 
 
   // loading state for Firestore initial fetch
@@ -115,6 +165,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
   confettiTrigger: 0,
   crown: false,
   focusSettings: getInitialFocusSettings(),
+  navigationPreferencesAccountKey: LOCAL_NAV_ACCOUNT_KEY,
+  navigationPreferencesByAccount: {
+    [LOCAL_NAV_ACCOUNT_KEY]: getInitialNavigationPreferences(),
+  },
+  visibleTabs: getInitialVisibleTabs(),
+  navOrder: getInitialNavOrder(),
 
 
   dataLoading: IS_CONFIGURED,
@@ -156,6 +212,67 @@ export const useAppStore = create<AppStore>((set, get) => ({
     localStorage.setItem('compyle_focus_settings', JSON.stringify(focusSettings));
     set({ focusSettings });
   },
+  setNavigationPreferencesAccount: (uid) => set((s) => {
+    const navigationPreferencesAccountKey = uid || LOCAL_NAV_ACCOUNT_KEY;
+    if (s.navigationPreferencesAccountKey === navigationPreferencesAccountKey) return s;
+    const preferences = s.navigationPreferencesByAccount[navigationPreferencesAccountKey]
+      ?? getInitialNavigationPreferences(navigationPreferencesAccountKey);
+    return {
+      navigationPreferencesAccountKey,
+      navigationPreferencesByAccount: {
+        ...s.navigationPreferencesByAccount,
+        [navigationPreferencesAccountKey]: preferences,
+      },
+      visibleTabs: preferences.visibleTabs,
+      navOrder: preferences.navOrder,
+    };
+  }),
+  setNavigationPreferencesForAccount: (uid, preferences) => set((s) => {
+    const safePreferences = {
+      visibleTabs: Object.values(preferences.visibleTabs).some(Boolean)
+        ? preferences.visibleTabs
+        : DEFAULT_NAVIGATION_PREFERENCES.visibleTabs,
+      navOrder: normalizeNavOrder(preferences.navOrder),
+    };
+    persistNavigationPreferences(uid, safePreferences);
+    const isActive = s.navigationPreferencesAccountKey === uid;
+    return {
+      navigationPreferencesByAccount: {
+        ...s.navigationPreferencesByAccount,
+        [uid]: safePreferences,
+      },
+      visibleTabs: isActive ? safePreferences.visibleTabs : s.visibleTabs,
+      navOrder: isActive ? safePreferences.navOrder : s.navOrder,
+    };
+  }),
+  toggleVisibleTab: (tab) => set((s) => {
+    const visibleCount = Object.values(s.visibleTabs).filter(Boolean).length;
+    if (s.visibleTabs[tab] && visibleCount <= 1) return s;
+    const visibleTabs = { ...s.visibleTabs, [tab]: !s.visibleTabs[tab] };
+    const preferences = { visibleTabs, navOrder: s.navOrder };
+    persistNavigationPreferences(s.navigationPreferencesAccountKey, preferences);
+    return {
+      visibleTabs,
+      navigationPreferencesByAccount: {
+        ...s.navigationPreferencesByAccount,
+        [s.navigationPreferencesAccountKey]: preferences,
+      },
+    };
+  }),
+  saveNavigationPreferences: (visibleTabs, navOrder) => set((s) => {
+    const safeVisibleTabs = Object.values(visibleTabs).some(Boolean) ? visibleTabs : DEFAULT_NAVIGATION_PREFERENCES.visibleTabs;
+    const safeNavOrder = normalizeNavOrder(navOrder);
+    const preferences = { visibleTabs: safeVisibleTabs, navOrder: safeNavOrder };
+    persistNavigationPreferences(s.navigationPreferencesAccountKey, preferences);
+    return {
+      visibleTabs: safeVisibleTabs,
+      navOrder: safeNavOrder,
+      navigationPreferencesByAccount: {
+        ...s.navigationPreferencesByAccount,
+        [s.navigationPreferencesAccountKey]: preferences,
+      },
+    };
+  }),
 
 
   setDataLoading:    (dataLoading) => set({ dataLoading }),

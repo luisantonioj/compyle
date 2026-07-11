@@ -16,6 +16,7 @@ import { Overlays } from './Overlays';
 import { WebLayout } from './WebLayout';
 import { MobileLayout } from './MobileLayout';
 import { NotificationCenter } from '../components/ui/NotificationCenter';
+import { getFirstVisibleTab, getVisibleNavItems } from '../lib/navigation';
 
 export function AppShell({ user }: { user: import('firebase/auth').User | null }) {
   const store = useAppStore();
@@ -23,6 +24,7 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
   const isPartner = useAppStore(selectIsPartner);
   const partnerName = useAppStore(selectPartnerName);
   const { tab, viewMode, profileOpen, editing, confirm, toast, confettiTrigger, crown, dataLoading } = store;
+  const { visibleTabs, navOrder, setTab, setNavigationPreferencesAccount } = store;
   const isWeb = useIsWeb();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [calDate, setCalDate] = useState(TODAY_KEY);
@@ -93,6 +95,18 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
   const linkHandlers = useLinkActions({ data, fs, activeUid, setActiveData });
   const noteHandlers = useNoteActions({ fs, activeUid, setActiveData });
   const profileHandlers = useProfileActions({ user, fs, onPushEnabled: () => setPushEnabled(true) });
+  const viewedNavigationUid = isPartner
+    ? (store.partnerProfile.uid || store.meProfile.partnerId)
+    : user?.uid;
+
+  useEffect(() => {
+    setNavigationPreferencesAccount(viewedNavigationUid);
+  }, [viewedNavigationUid, setNavigationPreferencesAccount]);
+
+  useEffect(() => {
+    if (getVisibleNavItems(visibleTabs, navOrder).some((item) => item.id === tab)) return;
+    setTab(getFirstVisibleTab(visibleTabs, navOrder));
+  }, [visibleTabs, navOrder, tab, setTab]);
 
   if (dataLoading) return <div className="auth-loading paper-grain" />;
 
@@ -135,6 +149,8 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
     isPartner,
     partnerName,
     profileInitial,
+    visibleTabs,
+    navOrder,
     overlays,
     taskHandlers,
     habitHandlers,

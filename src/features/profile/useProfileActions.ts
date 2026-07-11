@@ -1,9 +1,16 @@
 import { signOut, type User } from 'firebase/auth';
 import { useAppStore } from '../../store/appStore';
 import { auth } from '../../lib/firebase';
-import { acceptInvite, createInvite, savePrivacy, unlinkPartner } from './profileRepository';
+import {
+  acceptInvite,
+  createInvite,
+  saveNavigationPreferences as saveNavigationPreferencesDoc,
+  savePrivacy,
+  unlinkPartner,
+} from './profileRepository';
 import { enablePushNotifications } from '../../lib/messaging';
 import type { PrivacySettings } from '../../types';
+import type { NavOrderSettings, VisibleTabSettings } from '../../lib/navigation';
 
 interface ProfileActionOptions {
   user: User | null;
@@ -39,6 +46,17 @@ export function useProfileActions({ user, fs, onPushEnabled }: ProfileActionOpti
     }
   };
 
+  const saveNavigationPreferences = (visibleTabs: VisibleTabSettings, navOrder: NavOrderSettings) => {
+    if (user) {
+      store.setNavigationPreferencesForAccount(user.uid, { visibleTabs, navOrder });
+    } else {
+      store.saveNavigationPreferences(visibleTabs, navOrder);
+    }
+    if (fs && user) {
+      void saveNavigationPreferencesDoc(user.uid, { visibleTabs, navOrder });
+    }
+  };
+
   const createPartnerInvite = user ? () => createInvite(user.uid) : undefined;
   const acceptPartnerInvite = user ? (code: string) => acceptInvite(code, user.uid) : undefined;
 
@@ -59,6 +77,7 @@ export function useProfileActions({ user, fs, onPushEnabled }: ProfileActionOpti
     handleSignOut,
     handleEnableNotifications,
     togglePrivacy,
+    saveNavigationPreferences,
     createPartnerInvite,
     acceptPartnerInvite,
     unlinkCurrentPartner,
