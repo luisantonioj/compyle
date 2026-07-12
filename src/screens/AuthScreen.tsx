@@ -9,6 +9,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
+import { TabIcons } from '../components/Icons';
 import { useAppStore } from '../store/appStore';
 
 type Mode = 'in' | 'up';
@@ -72,9 +73,9 @@ export function AuthScreen() {
         <section className="auth-story" aria-label="Compyle preview">
           <div className="auth-story-top">
             <div>
-              <p className="auth-story-kicker">your personal companion</p>
               <h2 className="auth-story-title">
-                One place for the day <em>before it scatters.</em>
+                <em>Compyle</em> it all
+                <span>Everything you need</span>
               </h2>
             </div>
             <img className="auth-story-mark" src="/compyle-logo.png" alt="" aria-hidden="true" />
@@ -82,12 +83,12 @@ export function AuthScreen() {
 
           <div className="auth-showcase" aria-hidden="true">
             <aside className="auth-mini-sidebar">
-              <span></span>
-              <span className="active"></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
+              <span className="active">{TabIcons.cal(true)}</span>
+              <span>{TabIcons.habits(false)}</span>
+              <span>{TabIcons.notes(false)}</span>
+              <span>{TabIcons.links(false)}</span>
+              <span>{TabIcons.focus(false)}</span>
+              <span>{TabIcons.money(false)}</span>
             </aside>
             <div className="auth-mini-app">
               <div className="auth-page-line">

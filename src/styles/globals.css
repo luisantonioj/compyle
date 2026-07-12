@@ -1042,6 +1042,11 @@ input, textarea, select {
   font-style: italic;
 }
 
+.auth-story-title span {
+  display: block;
+  color: var(--ink);
+}
+
 .auth-story-mark {
   display: block;
   width: clamp(54px, 5.4vw, 76px);
@@ -1073,22 +1078,28 @@ input, textarea, select {
 }
 
 .auth-mini-sidebar span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: clamp(25px, 2.5vw, 30px);
   height: clamp(25px, 2.5vw, 30px);
   border: 1px solid var(--hair-strong);
   border-radius: 9px;
-  background:
-    linear-gradient(var(--ink-mute), var(--ink-mute)) center / 12px 2px no-repeat,
-    var(--paper);
+  background: var(--paper);
+  color: var(--ink-mute);
   opacity: 0.62;
 }
 
 .auth-mini-sidebar span.active {
   border-color: var(--ink);
-  background:
-    linear-gradient(var(--cream), var(--cream)) center / 12px 2px no-repeat,
-    var(--ink);
+  background: var(--ink);
+  color: var(--cream);
   opacity: 1;
+}
+
+.auth-mini-sidebar svg {
+  width: 17px;
+  height: 17px;
 }
 
 .auth-mini-app {
