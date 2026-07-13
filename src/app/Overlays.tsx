@@ -188,6 +188,7 @@ export function Overlays({
           <NoteForm
             note={editing.item}
             onSave={noteHandlers.saveNote}
+            onAutosave={noteHandlers.updateNoteContent}
             onDelete={(id) => confirmDelete('this note', () => noteHandlers.deleteNote(id))}
             onArchive={editing.item ? () => (editing.item!.archived ? noteHandlers.restoreNote(editing.item!) : noteHandlers.archiveNote(editing.item!)) : undefined}
             archiveLabel={editing.item?.archived ? 'Restore' : 'Archive'}

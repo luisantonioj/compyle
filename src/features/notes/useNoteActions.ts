@@ -25,7 +25,13 @@ export function useNoteActions({ fs, activeUid, setActiveData }: NoteActionOptio
     if (fs) {
       void upsertNote(activeUid, note);
     } else {
-      setActiveData((d) => ({ ...d, notes: d.notes.map((n) => (n.id === note.id ? note : n)) }));
+      setActiveData((d) => {
+        const existed = d.notes.some((n) => n.id === note.id);
+        const notes = existed
+          ? d.notes.map((n) => (n.id === note.id ? note : n))
+          : [note, ...d.notes];
+        return { ...d, notes };
+      });
     }
   };
 
