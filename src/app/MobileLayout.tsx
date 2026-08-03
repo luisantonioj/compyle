@@ -80,6 +80,10 @@ export function MobileLayout({
               {...sharedScreenProps}
               onTrackDate={habitHandlers.toggleTrackerDate}
               onReorderHabits={habitHandlers.reorderHabits}
+              onSaveCategory={habitHandlers.saveHabitCategory}
+              onSaveHabit={habitHandlers.saveHabit}
+              onDeleteHabit={habitHandlers.deleteHabit}
+              onDeleteCategory={habitHandlers.deleteHabitCategory}
             />
           )}
           {tab === 'money' && (

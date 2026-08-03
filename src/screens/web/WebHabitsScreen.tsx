@@ -17,11 +17,12 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Icons } from '../../components/Icons';
+import { HabitManager } from '../../components/ui/HabitManager';
 import { buildHabitMonth, TODAY, TODAY_KEY } from '../../lib/seed';
 // Streak calculations are temporarily disabled. Restore with the streak UI below if needed.
 // import { computeStreak } from '../../lib/seed';
 import { isHabitGuideDate } from '../../features/habits/habitSchedule';
-import type { UserData, EditingState, Habit } from '../../types';
+import type { UserData, EditingState, Habit, HabitCategory } from '../../types';
 
 interface WebHabitsProps {
   data: UserData;
@@ -29,6 +30,10 @@ interface WebHabitsProps {
   onEdit: (e: EditingState) => void;
   onTrackDate: (id: string, dk: string) => void;
   onReorderHabits?: (habits: Habit[]) => void;
+  onSaveCategory?: (category: HabitCategory) => void;
+  onSaveHabit?: (habit: Habit) => void;
+  onDeleteHabit?: (id: string) => void;
+  onDeleteCategory?: (id: string) => void;
 }
 
 interface HabitCalendarView {
@@ -40,10 +45,10 @@ const MONTHS = Array.from({ length: 12 }, (_, month) =>
   new Date(2000, month, 1).toLocaleString('en-US', { month: 'long' }),
 );
 
-export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate, onReorderHabits }: WebHabitsProps) {
+export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate, onReorderHabits, onSaveCategory, onSaveHabit, onDeleteHabit, onDeleteCategory }: WebHabitsProps) {
   const [calendarViews, setCalendarViews] = useState<Record<string, HabitCalendarView>>({});
   const [openPeriodPicker, setOpenPeriodPicker] = useState<string | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [managerOpen, setManagerOpen] = useState(false);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -74,9 +79,9 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate, onReorde
   };
 
   const trackers = data.habits.filter((habit) => !habit.archived);
-  const categoryById = new Map((data.habitCategories ?? []).map((category) => [category.id, category]));
+  const categoryById = new Map((data.habitCategories ?? []).filter((category) => !category.deleted).map((category) => [category.id, category]));
   const categoryGroups = [
-    ...(data.habitCategories ?? []).map((category) => ({
+    ...[...(data.habitCategories ?? [])].filter((category) => !category.deleted).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((category) => ({
       id: category.id,
       name: category.name,
       trackers: trackers.filter((habit) => habit.categoryId === category.id),
@@ -86,7 +91,7 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate, onReorde
       name: 'Uncategorized',
       trackers: trackers.filter((habit) => !habit.categoryId || !categoryById.has(habit.categoryId)),
     },
-  ].filter((group) => group.trackers.length > 0 && (categoryFilter === 'all' || categoryFilter === group.id));
+  ].filter((group) => group.trackers.length > 0);
 
   const doneToday = trackers.filter((h) => (h.completedDates ?? []).includes(TODAY_KEY)).length;
 
@@ -141,10 +146,15 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate, onReorde
           <div className="kicker">Tracker</div>
           <h1>Habit <em>Logs</em></h1>
         </div>
-        <button className="btn-add" onClick={() => onEdit({ type: 'habit' })}>
+        <div className="habit-page-actions">
+          <button className="habit-category-edit-button" type="button" onClick={() => setManagerOpen(true)}>
+            {Icons.pencil({ size: 13, stroke: 'var(--ink)' })} EDIT TRACKERS
+          </button>
+          <button className="btn-add" onClick={() => onEdit({ type: 'habit' })}>
             {Icons.plus({ size: 14, stroke: 'var(--cream)' })}
             <span>New tracker</span>
           </button>
+        </div>
       </div>
 
       {/* metric-row — temporarily hidden */}
@@ -177,24 +187,7 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate, onReorde
         </div>
       </div> */}
 
-      {trackers.length > 0 && (
-        <div className="habit-filter">
-          <label htmlFor="web-habit-category-filter">Show</label>
-          <select
-            id="web-habit-category-filter"
-            value={categoryFilter}
-            onChange={(event) => setCategoryFilter(event.target.value)}
-          >
-            <option value="all">All categories</option>
-            {(data.habitCategories ?? []).map((category) => (
-              <option key={category.id} value={category.id}>{category.name}</option>
-            ))}
-            {trackers.some((habit) => !habit.categoryId || !categoryById.has(habit.categoryId)) && (
-              <option value="uncategorized">Uncategorized</option>
-            )}
-          </select>
-        </div>
-      )}
+      {managerOpen && <HabitManager data={data} onClose={() => setManagerOpen(false)} onSaveHabit={onSaveHabit ?? (() => undefined)} onSaveCategory={onSaveCategory ?? (() => undefined)} onDeleteHabit={onDeleteHabit ?? (() => undefined)} onDeleteCategory={onDeleteCategory ?? (() => undefined)} onReorderHabits={onReorderHabits ?? (() => undefined)} />}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <div className="habit-category-groups">

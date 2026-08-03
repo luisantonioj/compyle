@@ -1,5 +1,5 @@
 import { useAppStore } from '../../store/appStore';
-import { removeHabit, upsertHabit, upsertHabitCategory } from './habitRepository';
+import { removeHabit, removeHabitCategory, upsertHabit, upsertHabitCategory } from './habitRepository';
 import type { DataSetter } from '../actionTypes';
 import type { Habit, HabitCategory, UserData } from '../../types';
 
@@ -52,6 +52,22 @@ export function useHabitActions({ data, fs, activeUid, setActiveData, onComplete
     }
     store.setEditing(null);
     store.flash(store.editing && 'item' in store.editing && store.editing.item ? 'Tracker updated' : 'New tracker created');
+  };
+
+  const deleteHabitCategory = (id: string) => {
+    const category = (data.habitCategories ?? []).find((item) => item.id === id);
+    if (!category) return;
+    if (fs) {
+      void upsertHabitCategory(activeUid, { ...category, deleted: true });
+      data.habits.filter((habit) => habit.categoryId === id).forEach((habit) => void upsertHabit(activeUid, { ...habit, categoryId: undefined }));
+    } else {
+      setActiveData((d) => ({
+        ...d,
+        habitCategories: (d.habitCategories ?? []).map((item) => item.id === id ? { ...item, deleted: true } : item),
+        habits: d.habits.map((habit) => habit.categoryId === id ? { ...habit, categoryId: undefined } : habit),
+      }));
+    }
+    store.flash('Category deleted');
   };
 
   const deleteHabit = (id: string) => {
@@ -119,5 +135,5 @@ export function useHabitActions({ data, fs, activeUid, setActiveData, onComplete
     }
   };
 
-  return { reorderHabits, saveHabit, saveHabitCategory, deleteHabit, archiveHabit, restoreHabit, toggleTrackerDate };
+  return { reorderHabits, saveHabit, saveHabitCategory, deleteHabitCategory, deleteHabit, archiveHabit, restoreHabit, toggleTrackerDate };
 }

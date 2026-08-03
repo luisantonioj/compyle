@@ -16,12 +16,16 @@ export const upsertHabitCategory = (uid: string, category: HabitCategory) =>
     stripUndefined(category as unknown as Record<string, unknown>),
   ));
 
+export const removeHabitCategory = (uid: string, id: string) =>
+  trackFirestoreWrite(deleteDoc(userDoc(uid, 'habit_categories', id)));
+
 export function normalizeHabitCategoryDoc(data: Record<string, unknown>): HabitCategory | null {
   if (typeof data.id !== 'string' || typeof data.name !== 'string' || !data.name.trim()) return null;
   return {
     id: data.id,
     name: data.name.trim(),
     sort_order: typeof data.sort_order === 'number' ? data.sort_order : undefined,
+    deleted: data.deleted === true,
   };
 }
 

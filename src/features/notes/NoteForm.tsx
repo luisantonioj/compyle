@@ -1,5 +1,5 @@
 // compyle - rich-text note form using Tiptap
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TaskList from '@tiptap/extension-task-list';
@@ -13,15 +13,28 @@ import '../../styles/notes.css';
 interface NoteFormProps {
   note?: Note;
   onSave: (n: Note) => void;
+  onAutosave?: (n: Note) => void;
   onDelete?: (id: string) => void;
   onArchive?: () => void;
   archiveLabel?: 'Archive' | 'Restore';
   onClose: () => void;
 }
 
-export function NoteForm({ note, onSave, onDelete, onArchive, archiveLabel, onClose }: NoteFormProps) {
+export function NoteForm({ note, onSave, onAutosave, onDelete, onArchive, archiveLabel, onClose }: NoteFormProps) {
   const [title, setTitle] = useState(note?.title ?? '');
+  const [draftId, setDraftId] = useState(() => note?.id ?? createId('n'));
+  const [content, setContent] = useState(note?.content ?? '{}');
+  const [bodyText, setBodyText] = useState('');
+  const lastSavedSignatureRef = useRef(`${note?.title ?? ''}\n${note?.content ?? '{}'}`);
   const isEditing = !!note?.id;
+
+  useEffect(() => {
+    setDraftId(note?.id ?? createId('n'));
+    setTitle(note?.title ?? '');
+    setContent(note?.content ?? '{}');
+    setBodyText('');
+    lastSavedSignatureRef.current = `${note?.title ?? ''}\n${note?.content ?? '{}'}`;
+  }, [note?.id, note?.title, note?.content]);
 
   const editor = useEditor({
     extensions: [
@@ -41,17 +54,45 @@ export function NoteForm({ note, onSave, onDelete, onArchive, archiveLabel, onCl
     editorProps: {
       attributes: { class: 'note-editor-body' },
     },
+    onUpdate: ({ editor }) => {
+      setContent(JSON.stringify(editor.getJSON()));
+      setBodyText(editor.getText());
+    },
   });
 
+  const buildNote = useCallback((): Note => ({
+    ...note,
+    id: draftId,
+    title: title.trim() || 'Untitled note',
+    content: editor ? JSON.stringify(editor.getJSON()) : content,
+    updated_at: Date.now(),
+  }), [content, draftId, editor, note, title]);
+
+  const hasDraftContent = title.trim().length > 0 || bodyText.trim().length > 0;
+
+  useEffect(() => {
+    if (!onAutosave || !hasDraftContent) return;
+
+    const noteToSave = buildNote();
+    const signature = `${noteToSave.title}\n${noteToSave.content}`;
+    if (signature === lastSavedSignatureRef.current) return;
+
+    const timeout = window.setTimeout(() => {
+      onAutosave(noteToSave);
+      lastSavedSignatureRef.current = signature;
+    }, 500);
+
+    return () => window.clearTimeout(timeout);
+  }, [buildNote, title, content, bodyText, draftId, onAutosave, hasDraftContent]);
+
   const handleSave = () => {
-    if (!title.trim()) return;
-    const content = editor ? JSON.stringify(editor.getJSON()) : '{}';
-    onSave({
-      id: note?.id ?? createId('n'),
-      title: title.trim(),
-      content,
+    if (!hasDraftContent) return;
+    const noteToSave = {
+      ...buildNote(),
       updated_at: Date.now(),
-    });
+    };
+    onSave(noteToSave);
+    lastSavedSignatureRef.current = `${noteToSave.title}\n${noteToSave.content}`;
   };
 
   return (
@@ -122,7 +163,7 @@ export function NoteForm({ note, onSave, onDelete, onArchive, archiveLabel, onCl
           onDelete={isEditing && onDelete ? () => onDelete(note!.id) : undefined}
           onArchive={isEditing ? onArchive : undefined}
           archiveLabel={archiveLabel}
-          canSave={!!title.trim()}
+          canSave={hasDraftContent}
         />
       </div>
     </FormSheet>
