@@ -1107,6 +1107,8 @@
 
 /* ── Auth feature deck ── */
 .feature-deck { width: min(840px, 100%); min-height: clamp(390px, 46vh, 500px); display: flex; flex-direction: column; justify-content: space-between; gap: 18px; }
+.auth-story-caret { display: inline-block; margin-left: .08em; color: var(--clay-soft); font: normal .8em var(--sans); animation: auth-caret-blink 1s steps(1) infinite; }
+@keyframes auth-caret-blink { 50% { opacity: 0; } }
 .feature-deck-stage { position: relative; flex: 1; min-height: 350px; isolation: isolate; }
 .feature-card { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: stretch; min-width: 0; padding: clamp(20px, 2.8vw, 34px); border: 1px solid rgba(21, 19, 15, .12); border-radius: 26px; background: var(--paper); color: var(--ink); text-align: left; box-shadow: 0 20px 48px rgba(21, 19, 15, .08); transform: translate(calc(var(--card-index) * 17px), calc(var(--card-index) * 10px)) rotate(calc((var(--card-index) - 1) * 2.1deg)) scale(calc(1 - var(--card-index) * .035)); transform-origin: 72% 50%; opacity: calc(1 - var(--card-index) * .09); z-index: calc(20 - var(--card-index)); transition: transform .48s cubic-bezier(.22, 1, .36, 1), opacity .35s ease, box-shadow .3s ease; touch-action: pan-y; cursor: pointer; }
 .feature-card:nth-child(3n + 2) { background: #f8f2e8; }
@@ -1168,7 +1170,7 @@
 .preview-flow i { display: block; height: 4px; margin-top: 6px; border-radius: 99px; background: var(--moss); }
 .preview-flow span:nth-child(2) i { background: var(--clay); }
 .preview-flow span:nth-child(3) i { background: var(--ink); }
-@media (prefers-reduced-motion: reduce) { .feature-card, .deck-dots button, .deck-arrow { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .feature-card, .deck-dots button, .deck-arrow { transition: none; } .auth-story-caret { animation: none; } }
 @media (max-width: 980px) { .feature-deck { min-height: 390px; } }
 @media (max-width: 640px) {
   .feature-deck { min-height: 375px; gap: 14px; }

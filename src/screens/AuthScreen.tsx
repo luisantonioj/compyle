@@ -1,5 +1,5 @@
 // compyle - sign-in / sign-up screen
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -9,7 +9,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
-import { TabIcons } from '../components/Icons';
+import { Icons, TabIcons } from '../components/Icons';
 import { useAppStore } from '../store/appStore';
 
 type Mode = 'in' | 'up';
@@ -32,6 +32,55 @@ const FEATURE_CARDS: {
 ];
 
 const FEATURE_ORDER: FeatureId[] = FEATURE_CARDS.map((feature) => feature.id);
+const HERO_WORDS = ['Compyle', 'Plan', 'Track', 'Organize', 'Focus', 'Remember', 'Save', 'Manage', 'Build'];
+
+function useHeroWord() {
+  const [word, setWord] = useState(HERO_WORDS[0]);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [wordIndex, setWordIndex] = useState(0);
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setReduceMotion(mediaQuery.matches);
+    updatePreference();
+    mediaQuery.addEventListener('change', updatePreference);
+    return () => mediaQuery.removeEventListener('change', updatePreference);
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      setWord(HERO_WORDS[0]);
+      setIsDeleting(false);
+      setWordIndex(0);
+      return;
+    }
+
+    const currentWord = HERO_WORDS[wordIndex];
+    const isComplete = word === currentWord && !isDeleting;
+    const delay = isComplete ? 1700 : isDeleting ? 70 : 125;
+    const timer = window.setTimeout(() => {
+      if (!isDeleting && word.length < currentWord.length) {
+        setWord(currentWord.slice(0, word.length + 1));
+        return;
+      }
+      if (!isDeleting && word.length === currentWord.length) {
+        setIsDeleting(true);
+        return;
+      }
+      if (isDeleting && word.length > 0) {
+        setWord(word.slice(0, -1));
+        return;
+      }
+      setIsDeleting(false);
+      setWordIndex((index) => (index + 1) % HERO_WORDS.length);
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [isDeleting, reduceMotion, word, wordIndex]);
+
+  return word;
+}
 
 function FeaturePreview({ id }: { id: FeatureId }) {
   if (id === 'cal') return <div className="deck-preview plan-preview"><div className="preview-week"><b>M</b><b>T</b><b>W</b><b>T</b><b>F</b><b>S</b><b>S</b></div><div className="preview-task is-done"><i />send the proposal<span>9:00</span></div><div className="preview-task"><i />make space for a walk<span>17:30</span></div><div className="preview-task"><i />check in with yle<span>20:00</span></div></div>;
@@ -103,6 +152,7 @@ function FeatureDeck() {
 
 export function AuthScreen() {
   const flash = useAppStore((s) => s.flash);
+  const heroWord = useHeroWord();
   const [mode, setMode] = useState<Mode>('in');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -161,7 +211,7 @@ export function AuthScreen() {
           <div className="auth-story-top">
             <div>
               <h2 className="auth-story-title">
-                <em>Compyle</em> it all
+                <em>{heroWord}<i className="auth-story-caret" aria-hidden="true">|</i></em>
                 <span>Everything you need</span>
               </h2>
             </div>
@@ -171,9 +221,9 @@ export function AuthScreen() {
           <FeatureDeck />
 
           <div className="auth-story-footer" aria-hidden="true">
-            <span>offline-first</span>
-            <span>personal or with partner</span>
-            <span>compyle them all</span>
+            <span><i>{Icons.wifiOff({ size: 18 })}</i><b>Works offline</b></span>
+            <span><i>{Icons.heart({ size: 17 })}</i><b>Yours or shared</b></span>
+            <span><i>{Icons.lock({ size: 18 })}</i><b>Private by default</b></span>
           </div>
         </section>
 
