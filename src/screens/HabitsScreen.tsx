@@ -20,11 +20,12 @@ import { CSS } from '@dnd-kit/utilities';
 import { Icons } from '../components/Icons';
 
 import { DayChecklist } from '../components/ui/shared';
+import { HabitManager } from '../components/ui/HabitManager';
 import { TODAY_KEY, dateKey } from '../lib/seed';
 import { isHabitGuideDate } from '../features/habits/habitSchedule';
 // Streak calculations are temporarily disabled. Restore with the summary UI below if needed.
 // import { computeStreak } from '../lib/seed';
-import type { UserData, ViewMode, Habit, EditingState } from '../types';
+import type { UserData, ViewMode, Habit, HabitCategory, EditingState } from '../types';
 
 interface HabitsProps {
   data: UserData;
@@ -35,6 +36,10 @@ interface HabitsProps {
   onTrackDate: (id: string, dk: string) => void;
   onEdit: (e: EditingState) => void;
   onReorderHabits?: (habits: Habit[]) => void;
+  onSaveCategory?: (category: HabitCategory) => void;
+  onSaveHabit?: (habit: Habit) => void;
+  onDeleteHabit?: (id: string) => void;
+  onDeleteCategory?: (id: string) => void;
 }
 
 function trackerSummary(habit: Habit): string {
@@ -63,14 +68,18 @@ export function HabitsScreen({
   onTrackDate,
   onEdit,
   onReorderHabits,
+  onSaveCategory,
+  onSaveHabit,
+  onDeleteHabit,
+  onDeleteCategory,
 }: HabitsProps) {
   const trackers = data.habits.filter((h) => !h.archived);
   const archivedTrackers = data.habits.filter((h) => h.archived);
   const [showArchived, setShowArchived] = useState(false);
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const categoryById = new Map((data.habitCategories ?? []).map((category) => [category.id, category]));
+  const [managerOpen, setManagerOpen] = useState(false);
+  const categoryById = new Map((data.habitCategories ?? []).filter((category) => !category.deleted).map((category) => [category.id, category]));
   const categoryGroups = [
-    ...(data.habitCategories ?? []).map((category) => ({
+    ...[...(data.habitCategories ?? [])].filter((category) => !category.deleted).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((category) => ({
       id: category.id,
       name: category.name,
       trackers: trackers.filter((habit) => habit.categoryId === category.id),
@@ -80,7 +89,7 @@ export function HabitsScreen({
       name: 'Uncategorized',
       trackers: trackers.filter((habit) => !habit.categoryId || !categoryById.has(habit.categoryId)),
     },
-  ].filter((group) => group.trackers.length > 0 && (categoryFilter === 'all' || categoryFilter === group.id));
+  ].filter((group) => group.trackers.length > 0);
   const visibleTrackerIds = categoryGroups.flatMap((group) => group.trackers.map((habit) => habit.id));
   const visibleTrackerSignature = visibleTrackerIds.join('|');
   const [expandedOrder, setExpandedOrder] = useState<string[]>(() => trackers.slice(0, 2).map((habit) => habit.id));
@@ -226,10 +235,15 @@ export function HabitsScreen({
           <div className="kicker">Tracker</div>
           <h1>Habit <em>Logs</em></h1>
         </div>
-        <button className={`profile-pill${viewMode === 'partner' ? ' partner' : ''}`} onClick={onProfile}>
-          {profileInitial}
-          <span className="dot" />
-        </button>
+        <div className="mobile-top-actions">
+          <button className="icon-btn" type="button" onClick={() => setManagerOpen(true)} aria-label="Edit trackers">
+            {Icons.pencil({ size: 20, stroke: 'var(--ink)' })}
+          </button>
+          <button className={`profile-pill${viewMode === 'partner' ? ' partner' : ''}`} onClick={onProfile}>
+            {profileInitial}
+            <span className="dot" />
+          </button>
+        </div>
       </div>
 
       {/* summary card — temporarily hidden */}
@@ -271,20 +285,6 @@ export function HabitsScreen({
           </div>
         ) : (
           <>
-            <select
-              className="mobile-habit-filter"
-              value={categoryFilter}
-              onChange={(event) => setCategoryFilter(event.target.value)}
-              aria-label="Filter trackers by category"
-            >
-              <option value="all">All categories</option>
-              {(data.habitCategories ?? []).map((category) => (
-                <option key={category.id} value={category.id}>{category.name}</option>
-              ))}
-              {trackers.some((habit) => !habit.categoryId || !categoryById.has(habit.categoryId)) && (
-                <option value="uncategorized">Uncategorized</option>
-              )}
-            </select>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <div className="mobile-habit-groups">
               {categoryGroups.map((group) => (
@@ -293,7 +293,7 @@ export function HabitsScreen({
                   <div className="mobile-habit-card-list">
                     <SortableContext items={group.trackers.map((habit) => habit.id)} strategy={verticalListSortingStrategy}>
                     {group.trackers.map((h: Habit) => {
-                      const expanded = expandedOrder.includes(h.id);
+                      const expanded = true;
                       return (
                       <SortableMobileHabitCard
                         key={h.id}
@@ -378,6 +378,7 @@ export function HabitsScreen({
       )}
 
       <div style={{ height: 40 }} />
+      {managerOpen && <HabitManager data={data} onClose={() => setManagerOpen(false)} onSaveHabit={onSaveHabit ?? (() => undefined)} onSaveCategory={onSaveCategory ?? (() => undefined)} onDeleteHabit={onDeleteHabit ?? (() => undefined)} onDeleteCategory={onDeleteCategory ?? (() => undefined)} onReorderHabits={onReorderHabits ?? (() => undefined)} />}
     </div>
   );
 }

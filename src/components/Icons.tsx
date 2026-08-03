@@ -111,6 +111,13 @@ export const Icons = {
       <line x1="4" y1="4" x2="18" y2="18" stroke={stroke} strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
   ),
+  dragHandle: ({ size = 14, stroke = 'currentColor' }: IconProps = {}) => (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <circle cx="4" cy="3" r="1" fill={stroke}/><circle cx="10" cy="3" r="1" fill={stroke}/>
+      <circle cx="4" cy="7" r="1" fill={stroke}/><circle cx="10" cy="7" r="1" fill={stroke}/>
+      <circle cx="4" cy="11" r="1" fill={stroke}/><circle cx="10" cy="11" r="1" fill={stroke}/>
+    </svg>
+  ),
   wifiOff: ({ size = 16, stroke = 'currentColor' }: IconProps = {}) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M2 8.8A15.8 15.8 0 015.2 7M8.5 5.2A16 16 0 0122 8.8M5 12.6a10.5 10.5 0 012.2-1.3M10.7 10.6a10.5 10.5 0 018.3 2M8.5 16.4a5.2 5.2 0 017 0M12 20h.01M3 3l18 18" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

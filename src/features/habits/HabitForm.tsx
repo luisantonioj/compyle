@@ -33,7 +33,11 @@ export function HabitForm({
   const [name, setName] = useState(habit?.name ?? '');
   const mergedCategories = useMemo(() => {
     const byId = new Map(DEFAULT_CATEGORIES.map((category) => [category.id, category]));
-    categories.forEach((category) => byId.set(category.id, category));
+    categories.forEach((category) => {
+      if (category.deleted) byId.delete(category.id);
+      else byId.set(category.id, category);
+    });
+    if (byId.size === 0) byId.set('uncategorized', { id: 'uncategorized', name: 'Uncategorized', sort_order: 0 });
     return [...byId.values()].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   }, [categories]);
   const [addedCategories, setAddedCategories] = useState<HabitCategory[]>([]);

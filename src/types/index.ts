@@ -30,6 +30,7 @@ export interface HabitCategory {
   id: string;
   name: string;
   sort_order?: number;
+  deleted?: boolean;
 }
 
 export interface Habit {

@@ -48,6 +48,7 @@ export interface HabitHandlers {
   reorderHabits: (habits: Habit[]) => void;
   saveHabit: (habit: Habit) => void;
   saveHabitCategory: (category: HabitCategory) => void;
+  deleteHabitCategory: (id: string) => void;
   deleteHabit: (id: string) => void;
   archiveHabit: (habit: Habit) => void;
   restoreHabit: (habit: Habit) => void;

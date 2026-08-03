@@ -234,8 +234,8 @@
   .page-head h1 em { font-style: italic; color: var(--clay); }
   .page-head .ph-right { text-align: right; }
   .web-habits-screen .page-head {
-    padding-bottom: 20px;
-    margin-bottom: 12px;
+    padding-bottom: 28px;
+    margin-bottom: 32px;
   }
 
   /* ─── metrics grid ─── */
@@ -379,6 +379,36 @@
     font-family: var(--mono);
     font-size: 10px;
   }
+  .habit-category-edit-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    width: auto;
+    margin: 0;
+    padding: 7px 14px;
+    border: 1px solid var(--hair-strong);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    font: 600 10px var(--mono);
+    letter-spacing: 0.14em;
+  }
+  .habit-page-actions { display: flex; align-items: center; gap: 12px; }
+  .habit-page-actions .habit-category-edit-button { margin: 0; }
+  .habit-category-editor {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 12px;
+    border: 1px solid var(--hair);
+    border-radius: 10px;
+    background: var(--white);
+  }
+  .habit-category-editor-row { display: flex; gap: 6px; }
+  .habit-category-editor-row input { min-width: 0; flex: 1; padding: 8px 9px; border: 1px solid var(--hair-strong); border-radius: 7px; background: var(--cream); color: var(--ink); font: 12px var(--mono); }
+  .habit-category-editor-row button { width: 30px; border: 1px solid var(--hair-strong); border-radius: 7px; background: transparent; color: var(--ink-mute); }
+  .habit-category-editor-row button:disabled { opacity: 0.35; }
+  .habit-category-editor small { color: var(--ink-faint); font: 10px var(--mono); }
   .habit-category-groups {
     display: flex;
     flex-direction: column;
@@ -422,7 +452,7 @@
   .habit-card .hc-head > :first-child { min-width: 0; }
   .habit-card .hc-name {
     font-family: var(--serif);
-    font-size: clamp(17px, 1.25vw, 22px);
+    font-size: clamp(14px, 1.25vw, 22px);
     letter-spacing: -0.01em;
     line-height: 1.1;
     overflow: hidden;
