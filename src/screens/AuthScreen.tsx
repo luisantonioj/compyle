@@ -1,5 +1,5 @@
 // compyle - sign-in / sign-up screen
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -13,6 +13,93 @@ import { TabIcons } from '../components/Icons';
 import { useAppStore } from '../store/appStore';
 
 type Mode = 'in' | 'up';
+
+type FeatureId = 'cal' | 'notes' | 'links' | 'focus' | 'habits' | 'money';
+
+const FEATURE_CARDS: {
+  id: FeatureId;
+  label: string;
+  title: string;
+  copy: string;
+  accent: string;
+}[] = [
+  { id: 'cal', label: 'plan', title: 'Make room for what matters.', copy: 'Shape your day around the things worth doing.', accent: 'var(--ink)' },
+  { id: 'notes', label: 'notes', title: 'Keep the good ideas close.', copy: 'A quiet notebook for thoughts, plans, and everything in between.', accent: 'var(--clay)' },
+  { id: 'links', label: 'links', title: 'Save the things you’ll come back to.', copy: 'Turn scattered bookmarks into a collection you can actually find.', accent: 'var(--moss)' },
+  { id: 'focus', label: 'focus', title: 'Give your attention a place to land.', copy: 'A simple timer for doing one meaningful thing at a time.', accent: 'var(--clay)' },
+  { id: 'habits', label: 'track', title: 'Notice the small wins.', copy: 'Build momentum with a clear view of the habits you keep.', accent: 'var(--moss)' },
+  { id: 'money', label: 'money', title: 'Know where your money goes.', copy: 'See your balances, spending, and plans without the noise.', accent: 'var(--amber)' },
+];
+
+const FEATURE_ORDER: FeatureId[] = FEATURE_CARDS.map((feature) => feature.id);
+
+function FeaturePreview({ id }: { id: FeatureId }) {
+  if (id === 'cal') return <div className="deck-preview plan-preview"><div className="preview-week"><b>M</b><b>T</b><b>W</b><b>T</b><b>F</b><b>S</b><b>S</b></div><div className="preview-task is-done"><i />send the proposal<span>9:00</span></div><div className="preview-task"><i />make space for a walk<span>17:30</span></div><div className="preview-task"><i />check in with yle<span>20:00</span></div></div>;
+  if (id === 'notes') return <div className="deck-preview notes-preview"><div className="preview-note is-featured"><span>today</span><strong>things I want to remember</strong><small>Somewhere between the ordinary and the important.</small></div><div className="preview-note"><span>ideas</span><strong>online courses</strong></div><div className="preview-note"><span>personal</span><strong>weekend plans</strong></div></div>;
+  if (id === 'links') return <div className="deck-preview links-preview"><div className="preview-link"><i>↗</i><div><strong>designing a slower web</strong><small>read.cv · articles</small></div></div><div className="preview-link"><i>↗</i><div><strong>the tools I use</strong><small>nesslabs.com · resources</small></div></div><div className="preview-link"><i>↗</i><div><strong>learn something new</strong><small>youtube.com · learning</small></div></div></div>;
+  if (id === 'focus') return <div className="deck-preview focus-preview"><span className="preview-timer-label">deep work</span><strong>25:00</strong><div className="preview-progress"><i /></div><small>one thing at a time</small></div>;
+  if (id === 'habits') return <div className="deck-preview habits-preview"><div className="preview-streak"><strong>12</strong><span>day streak</span><b>↑ 4 this month</b></div><div className="preview-heatmap">{Array.from({ length: 28 }, (_, index) => <i className={index % 4 === 0 ? 'hot' : index % 3 === 0 ? 'done' : ''} key={index} />)}</div><small>keep showing up</small></div>;
+  return <div className="deck-preview money-preview"><div className="preview-balance"><span>total balance</span><strong>₱24,680</strong><b>+ ₱3,240 this month</b></div><div className="preview-flow"><span>in <i /></span><span>out <i /></span><span>net <i /></span></div></div>;
+}
+
+function FeatureDeck() {
+  const [order, setOrder] = useState<FeatureId[]>(FEATURE_ORDER);
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
+  const active = order[0];
+
+  const bringForward = (id: FeatureId) => {
+    setOrder((current) => [id, ...current.filter((item) => item !== id)]);
+  };
+
+  const cycle = (direction: 1 | -1) => {
+    setOrder((current) => {
+      const next = [...current];
+      if (direction === 1) next.push(next.shift()!);
+      else next.unshift(next.pop()!);
+      return next;
+    });
+  };
+
+  return (
+    <div className="feature-deck" aria-label="Compyle features">
+      <div className="feature-deck-stage">
+        {order.map((id, index) => {
+          const feature = FEATURE_CARDS.find((item) => item.id === id)!;
+          return (
+            <button
+              type="button"
+              className={`feature-card${index === 0 ? ' is-front' : ''}`}
+              key={id}
+              style={{ '--card-index': index, '--card-accent': feature.accent } as React.CSSProperties}
+              aria-label={`${feature.label}: ${feature.title}`}
+              aria-pressed={id === active}
+              onClick={() => bringForward(id)}
+              onPointerDown={(event) => { pointerStart.current = { x: event.clientX, y: event.clientY }; }}
+              onPointerUp={(event) => {
+                if (!pointerStart.current) return;
+                const deltaX = event.clientX - pointerStart.current.x;
+                pointerStart.current = null;
+                if (Math.abs(deltaX) > 48) cycle(deltaX < 0 ? 1 : -1);
+              }}
+            >
+              <div className="feature-card-head"><span className="label">{feature.label}</span>{TabIcons[id](index === 0)}</div>
+              <div className="feature-card-copy"><h3>{feature.title}</h3><p>{feature.copy}</p></div>
+              <FeaturePreview id={id} />
+              <span className="feature-card-hint">tap to explore <b>↗</b></span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="feature-deck-controls">
+        <button type="button" className="deck-arrow" onClick={() => cycle(-1)} aria-label="Previous feature">←</button>
+        <div className="deck-dots" aria-label="Feature selection">
+          {FEATURE_CARDS.map((feature) => <button type="button" key={feature.id} className={feature.id === active ? 'active' : ''} onClick={() => bringForward(feature.id)} aria-label={`Show ${feature.label}`} aria-pressed={feature.id === active} />)}
+        </div>
+        <button type="button" className="deck-arrow" onClick={() => cycle(1)} aria-label="Next feature">→</button>
+      </div>
+    </div>
+  );
+}
 
 export function AuthScreen() {
   const flash = useAppStore((s) => s.flash);
@@ -81,66 +168,7 @@ export function AuthScreen() {
             <img className="auth-story-mark" src="/compyle-logo.png" alt="" aria-hidden="true" />
           </div>
 
-          <div className="auth-showcase" aria-hidden="true">
-            <aside className="auth-mini-sidebar">
-              <span className="active">{TabIcons.cal(true)}</span>
-              <span>{TabIcons.habits(false)}</span>
-              <span>{TabIcons.notes(false)}</span>
-              <span>{TabIcons.links(false)}</span>
-              <span>{TabIcons.focus(false)}</span>
-              <span>{TabIcons.money(false)}</span>
-            </aside>
-            <div className="auth-mini-app">
-              <div className="auth-page-line">
-                <span>plan</span>
-                <i></i>
-              </div>
-              <div className="auth-mini-heading">
-                Daily <em>Schedule</em>
-              </div>
-
-              <div className="auth-calendar-strip">
-                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
-                  <div className={index === 6 ? 'today' : ''} key={`${day}-${index}`}>
-                    <b>{day}</b>
-                    <span>{index + 5}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="auth-visual-grid">
-                <div className="auth-visual-card focus-card">
-                  <span className="label">focus</span>
-                  <strong>25:00</strong>
-                  <button type="button" tabIndex={-1}>start</button>
-                </div>
-                <div className="auth-visual-card habit-card-preview">
-                  <span className="label">tracker</span>
-                  <div className="auth-mini-month">
-                    {Array.from({ length: 21 }, (_, index) => (
-                      <i
-                        className={
-                          index === 10 ? 'hot' : index % 3 === 0 || index % 5 === 0 ? 'done' : ''
-                        }
-                        key={index}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <div className="auth-visual-card money-card-preview">
-                  <span className="label">money</span>
-                  <strong>P0.00</strong>
-                  <small>net this month</small>
-                </div>
-                <div className="auth-visual-card notes-card-preview">
-                  <span className="label">notes</span>
-                  <p>online courses</p>
-                  <p>coding dump</p>
-                  <p>for yle</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <FeatureDeck />
 
           <div className="auth-story-footer" aria-hidden="true">
             <span>offline-first</span>
