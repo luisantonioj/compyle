@@ -25,10 +25,10 @@ const FEATURE_CARDS: {
 }[] = [
   { id: 'cal', label: 'plan', title: 'Make room for what matters.', copy: 'Shape your day around the things worth doing.', accent: 'var(--ink)' },
   { id: 'notes', label: 'notes', title: 'Keep the good ideas close.', copy: 'A quiet notebook for thoughts, plans, and everything in between.', accent: 'var(--clay)' },
-  { id: 'links', label: 'links', title: 'Save the things you’ll come back to.', copy: 'Turn scattered bookmarks into a collection you can actually find.', accent: 'var(--moss)' },
+  { id: 'links', label: 'links', title: 'Save the things you’ll come back to.', copy: 'Turn scattered bookmarks into a collection you can actually find.', accent: 'var(--clay-soft)' },
   { id: 'focus', label: 'focus', title: 'Give your attention a place to land.', copy: 'A simple timer for doing one meaningful thing at a time.', accent: 'var(--clay)' },
-  { id: 'habits', label: 'track', title: 'Notice the small wins.', copy: 'Build momentum with a clear view of the habits you keep.', accent: 'var(--moss)' },
-  { id: 'money', label: 'money', title: 'Know where your money goes.', copy: 'See your balances, spending, and plans without the noise.', accent: 'var(--amber)' },
+  { id: 'habits', label: 'track', title: 'Notice the small wins.', copy: 'Build momentum with a clear view of the habits you keep.', accent: 'var(--clay)' },
+  { id: 'money', label: 'money', title: 'Know where your money goes.', copy: 'See your balances, spending, and plans without the noise.', accent: 'var(--ink-soft)' },
 ];
 
 const FEATURE_ORDER: FeatureId[] = FEATURE_CARDS.map((feature) => feature.id);
@@ -142,7 +142,6 @@ function FeatureDeck() {
               <div className="feature-card-head"><span className="label">{feature.label}</span>{TabIcons[id](index === 0)}</div>
               <div className="feature-card-copy"><h3>{feature.title}</h3><p>{feature.copy}</p></div>
               <FeaturePreview id={id} />
-              <span className="feature-card-hint">tap to explore <b>↗</b></span>
             </button>
           );
         })}
