@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAppStore } from '../../store/appStore';
 import type { FocusSettings } from '../../types';
-import { Sheet, Toggle } from '../ui/shared';
-import { Icons } from '../Icons';
+import { FormFoot, FormHead, FormSheet, Field } from './FormPrimitives';
+import { Toggle } from '../ui/shared';
 
 interface Props {
   onClose: () => void;
@@ -11,8 +12,11 @@ interface Props {
 export function FocusSettingsForm({ onClose }: Props) {
   const storeSettings = useAppStore(s => s.focusSettings);
   const setFocusSettings = useAppStore(s => s.setFocusSettings);
-  
-  const [local, setLocal] = useState<any>(storeSettings);
+  const [local, setLocal] = useState<FocusSettings>(storeSettings);
+
+  const update = <K extends keyof FocusSettings>(key: K, value: FocusSettings[K]) => {
+    setLocal(current => ({ ...current, [key]: value }));
+  };
 
   const handleSave = () => {
     setFocusSettings({
@@ -25,64 +29,57 @@ export function FocusSettingsForm({ onClose }: Props) {
     onClose();
   };
 
-  return (
-    <Sheet onClose={onClose}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <div style={{ fontFamily: 'var(--serif)', fontSize: 24, lineHeight: 1 }}>Timer Settings</div>
-        <button className="icon-btn" onClick={onClose} style={{ transform: 'rotate(45deg)', margin: '-10px' }}>
-          {Icons.plus({ size: 24, stroke: 'currentColor' })}
-        </button>
+  return createPortal((
+    <FormSheet onClose={onClose} className="focus-settings-sheet">
+      <FormHead kicker="Focus settings" title="Tune your" accent="session" onClose={onClose} />
+
+      <div className="form-body focus-settings-body">
+        <section className="focus-settings-section" aria-labelledby="focus-duration-heading">
+          <div className="focus-settings-section-title" id="focus-duration-heading">Session durations</div>
+          <div className="focus-settings-duration-grid">
+            <Field label="Focus (min)">
+              <input className="field-input" type="number" min={1} inputMode="numeric" value={local.focusDuration}
+                onChange={event => update('focusDuration', event.target.value === '' ? 0 : Number(event.target.value))} />
+            </Field>
+            <Field label="Short break">
+              <input className="field-input" type="number" min={1} inputMode="numeric" value={local.shortBreakDuration}
+                onChange={event => update('shortBreakDuration', event.target.value === '' ? 0 : Number(event.target.value))} />
+            </Field>
+            <Field label="Long break">
+              <input className="field-input" type="number" min={1} inputMode="numeric" value={local.longBreakDuration}
+                onChange={event => update('longBreakDuration', event.target.value === '' ? 0 : Number(event.target.value))} />
+            </Field>
+          </div>
+        </section>
+
+        <section className="focus-settings-section" aria-labelledby="focus-automation-heading">
+          <div className="focus-settings-section-title" id="focus-automation-heading">Automation</div>
+          <div className="focus-settings-options">
+            <div className="focus-settings-option">
+              <span>Auto-start breaks</span>
+              <Toggle label="Auto-start breaks" on={local.autoStartBreaks} onToggle={() => update('autoStartBreaks', !local.autoStartBreaks)} />
+            </div>
+            <div className="focus-settings-option">
+              <span>Auto-start focus</span>
+              <Toggle label="Auto-start focus" on={local.autoStartFocus} onToggle={() => update('autoStartFocus', !local.autoStartFocus)} />
+            </div>
+          </div>
+        </section>
+
+        <section className="focus-settings-section" aria-labelledby="focus-clock-heading">
+          <div className="focus-settings-section-title" id="focus-clock-heading">Clock</div>
+          <Field label="Long break interval (sessions)">
+            <input className="field-input" type="number" min={1} inputMode="numeric" value={local.longBreakInterval}
+              onChange={event => update('longBreakInterval', event.target.value === '' ? 0 : Number(event.target.value))} />
+          </Field>
+          <div className="focus-settings-option focus-settings-option-last">
+            <span>Use 24-hour format</span>
+            <Toggle label="Use 24-hour format" on={local.use24HourFormat} onToggle={() => update('use24HourFormat', !local.use24HourFormat)} />
+          </div>
+        </section>
       </div>
-      
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-          <label className="field" style={{ flex: 1, minWidth: 0 }}>
-            <span className="field-label" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Focus (min)</span>
-            <input type="number" style={{ minWidth: 0, paddingLeft: 8, paddingRight: 8 }} value={local.focusDuration} onChange={e => setLocal({...local, focusDuration: e.target.value === '' ? '' : Number(e.target.value)})} min={1} />
-          </label>
-          <label className="field" style={{ flex: 1, minWidth: 0 }}>
-            <span className="field-label" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Short Break</span>
-            <input type="number" style={{ minWidth: 0, paddingLeft: 8, paddingRight: 8 }} value={local.shortBreakDuration} onChange={e => setLocal({...local, shortBreakDuration: e.target.value === '' ? '' : Number(e.target.value)})} min={1} />
-          </label>
-          <label className="field" style={{ flex: 1, minWidth: 0 }}>
-            <span className="field-label" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Long Break</span>
-            <input type="number" style={{ minWidth: 0, paddingLeft: 8, paddingRight: 8 }} value={local.longBreakDuration} onChange={e => setLocal({...local, longBreakDuration: e.target.value === '' ? '' : Number(e.target.value)})} min={1} />
-          </label>
-        </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--hair-strong)' }}>
-          <span style={{ fontWeight: 500, fontSize: '0.95rem' }}>Auto-start Breaks</span>
-          <Toggle on={local.autoStartBreaks} onToggle={() => setLocal({...local, autoStartBreaks: !local.autoStartBreaks})} />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--hair-strong)' }}>
-          <span style={{ fontWeight: 500, fontSize: '0.95rem' }}>Auto-start Focus</span>
-          <Toggle on={local.autoStartFocus} onToggle={() => setLocal({...local, autoStartFocus: !local.autoStartFocus})} />
-        </div>
-
-        <label className="field" style={{ marginTop: '12px' }}>
-          <span className="field-label">Long Break Interval (sessions)</span>
-          <input type="number" value={local.longBreakInterval} onChange={e => setLocal({...local, longBreakInterval: e.target.value === '' ? '' : Number(e.target.value)})} min={1} />
-        </label>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0' }}>
-          <span style={{ fontWeight: 500, fontSize: '0.95rem' }}>Use 24-hour Format</span>
-          <Toggle on={local.use24HourFormat} onToggle={() => setLocal({...local, use24HourFormat: !local.use24HourFormat})} />
-        </div>
-
-        <button 
-          onClick={handleSave} 
-          style={{ 
-            marginTop: '20px', 
-            fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', 
-            padding: '12px 16px', borderRadius: 10, background: 'var(--ink)', color: 'var(--cream)', 
-            border: 'none', cursor: 'pointer', textAlign: 'center', fontWeight: 600
-          }}
-        >
-          Save Settings
-        </button>
-      </div>
-    </Sheet>
-  );
+      <FormFoot onSave={handleSave} onCancel={onClose} saveLabel="Save settings" />
+    </FormSheet>
+  ), document.body);
 }

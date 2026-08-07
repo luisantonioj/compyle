@@ -24,7 +24,7 @@
     overflow: hidden;
     transition: padding 0.18s ease;
   }
-  .sidebar.collapsed { padding: 22px 12px; }
+  .sidebar.collapsed { padding: 32px 12px 22px; }
 
   .sidebar-top {
     display: flex;
@@ -32,14 +32,22 @@
     justify-content: space-between;
     margin-bottom: 32px;
   }
-  .sidebar.collapsed .sidebar-top { justify-content: center; margin-bottom: 32px; }
-  .sidebar.collapsed .brand-block { display: none; }
+  .sidebar.collapsed .sidebar-top {
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .sidebar.collapsed .brand-block {
+    justify-content: center;
+  }
+  .sidebar.collapsed .brand-block .brand { display: none; }
 
   .sidebar-toggle {
     width: 26px; height: 26px;
     border-radius: 7px;
-    border: 1px solid var(--hair-strong);
-    background: none;
+    border: none;
+    background: transparent;
     display: flex; align-items: center; justify-content: center;
     color: var(--ink-mute);
     cursor: pointer;
@@ -48,13 +56,33 @@
   }
   .sidebar-toggle:hover { background: rgba(21,19,15,0.06); color: var(--ink); }
 
-  .sidebar.collapsed .nav-item .nav-label,
   .sidebar.collapsed .nav-item .nav-badge,
   .sidebar.collapsed .profile-card .pc-name,
   .sidebar.collapsed .profile-card .pc-email,
   .sidebar.collapsed .profile-card > div:not(.pp),
   .sidebar.collapsed .partner-switch span { display: none; }
-  .sidebar.collapsed .nav-item { justify-content: center; padding: 12px; }
+  .sidebar.collapsed .nav-item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 3px;
+  }
+  .sidebar.collapsed .nav-item .nav-label {
+    display: block;
+    flex: none;
+    width: 100%;
+    overflow: hidden;
+    color: currentColor;
+    font-family: var(--mono);
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    text-align: center;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
   .sidebar.collapsed .partner-switch { justify-content: center; padding: 8px; }
   .sidebar.collapsed .profile-card { justify-content: center; padding: 6px; }
 

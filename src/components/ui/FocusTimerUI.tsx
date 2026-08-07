@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useFocusTimer, TimerMode } from '../../hooks/useFocusTimer';
-import { Icons } from '../Icons';
-import { FocusSettingsForm } from '../forms/FocusSettingsForm';
 
 export function FocusTimerUI() {
   const { mode, switchMode, timeLeft, isActive, toggleTimer, pomodorosCompleted, settings } = useFocusTimer();

@@ -223,59 +223,60 @@ export function ProfileSheet({ onClose, viewMode, onSwitchView, visibleTabs, onV
             </div>
 
 
-            {/* personal navigation controls - only shown in own view */}
-            {viewMode !== 'partner' && (
-              <div style={{ padding: '12px 18px' }}>
-                <div className="row-between" style={{ marginBottom: 10 }}>
-                  <div className="label">Customize navigation</div>
-                  <button
-                    className="mono"
-                    onClick={editingNavigation ? saveNavigationEdit : startNavigationEdit}
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 600,
-                      letterSpacing: '0.12em',
-                      textTransform: 'uppercase',
-                      width: 44,
-                      height: 26,
-                      color: editingNavigation ? 'var(--cream)' : 'var(--clay)',
-                      background: editingNavigation ? 'var(--ink)' : 'transparent',
-                      border: '1px solid var(--hair-strong)',
-                      borderRadius: 999,
-                      padding: 0,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {editingNavigation ? 'Done' : 'Edit'}
-                  </button>
+          </div>
+        )}
+
+        {/* personal navigation controls - available for every own account */}
+        {viewMode !== 'partner' && (
+          <div className="card white" style={{ padding: '12px 18px', marginBottom: 16 }}>
+            <div className="row-between" style={{ marginBottom: 10 }}>
+              <div className="label">Customize navigation</div>
+              <button
+                className="mono"
+                onClick={editingNavigation ? saveNavigationEdit : startNavigationEdit}
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  width: 44,
+                  height: 26,
+                  color: editingNavigation ? 'var(--cream)' : 'var(--clay)',
+                  background: editingNavigation ? 'var(--ink)' : 'transparent',
+                  border: '1px solid var(--hair-strong)',
+                  borderRadius: 999,
+                  padding: 0,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                {editingNavigation ? 'Done' : 'Edit'}
+              </button>
+            </div>
+            {editingNavigation ? (
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleNavigationDragEnd}>
+                <SortableContext items={draftNavOrder} strategy={verticalListSortingStrategy}>
+                  {getOrderedNavItems(draftNavOrder).map((item) => (
+                    <SortableNavigationRow
+                      key={item.id}
+                      id={item.id}
+                      label={item.label}
+                      visible={draftVisibleTabs[item.id]}
+                      onToggle={() => toggleDraftVisibleTab(item.id)}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            ) : (
+              getOrderedNavItems(navOrder).map((item) => (
+                <div key={item.id} className="row-between" style={{ padding: '8px 0' }}>
+                  <span style={{ fontSize: 14 }}>{item.label}</span>
+                  <Toggle on={visibleTabs[item.id]} onToggle={() => onVisibleTabToggle(item.id)} />
                 </div>
-                {editingNavigation ? (
-                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleNavigationDragEnd}>
-                    <SortableContext items={draftNavOrder} strategy={verticalListSortingStrategy}>
-                      {getOrderedNavItems(draftNavOrder).map((item) => (
-                        <SortableNavigationRow
-                          key={item.id}
-                          id={item.id}
-                          label={item.label}
-                          visible={draftVisibleTabs[item.id]}
-                          onToggle={() => toggleDraftVisibleTab(item.id)}
-                        />
-                      ))}
-                    </SortableContext>
-                  </DndContext>
-                ) : (
-                  getOrderedNavItems(navOrder).map((item) => (
-                    <div key={item.id} className="row-between" style={{ padding: '8px 0' }}>
-                      <span style={{ fontSize: 14 }}>{item.label}</span>
-                      <Toggle on={visibleTabs[item.id]} onToggle={() => onVisibleTabToggle(item.id)} />
-                    </div>
-                  ))
-                )}
-              </div>
+              ))
             )}
           </div>
         )}
