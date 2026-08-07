@@ -63,6 +63,11 @@ export function useFirestoreSync(user: User | null) {
       return;
     }
     if (!hasLoadedRef.current) store.setDataLoading(true);
+    const startedAt = performance.now();
+    console.info('[compyle] firestore_started', {
+      online: navigator.onLine,
+      standalone: window.matchMedia('(display-mode: standalone)').matches,
+    });
     store.beginSyncRefresh();
     void ensureProfile(user.uid, user.displayName ?? '', user.email ?? '');
     const unsubData    = subscribeUserData(
@@ -71,8 +76,19 @@ export function useFirestoreSync(user: User | null) {
       () => {
         hasLoadedRef.current = true;
         store.setDataLoading(false);
+        console.info('[compyle] firestore_ready', {
+          elapsedMs: Math.round(performance.now() - startedAt),
+          online: navigator.onLine,
+        });
       },
-      friendlySyncError,
+      (error) => {
+        console.warn('[compyle] firestore_error', {
+          message: error.message,
+          elapsedMs: Math.round(performance.now() - startedAt),
+          online: navigator.onLine,
+        });
+        friendlySyncError(error);
+      },
       () => store.markServerSynced(),
     );
     const unsubProfile = subscribeProfile(
