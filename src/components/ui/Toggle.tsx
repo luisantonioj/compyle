@@ -1,6 +1,6 @@
-﻿export function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+export function Toggle({ on, onToggle, label }: { on: boolean; onToggle: () => void; label?: string }) {
   return (
-    <button onClick={onToggle} style={{
+    <button type="button" onClick={onToggle} aria-label={label} aria-pressed={on} style={{
       width: 44, height: 26, borderRadius: 999,
       background: on ? 'var(--ink)' : 'var(--ink-faint)',
       position: 'relative', transition: 'background 0.2s', flexShrink: 0,

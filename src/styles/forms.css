@@ -122,6 +122,43 @@
 .field-row { display: flex; gap: 10px; }
 .field-row .field { flex: 1; }
 
+/* Focus settings */
+.focus-settings-sheet {
+  bottom: 0;
+  max-height: 92%;
+  border-radius: 28px 28px 0 0;
+}
+.focus-settings-body { gap: 22px; }
+.focus-settings-section { display: flex; flex-direction: column; gap: 12px; }
+.focus-settings-section-title {
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.focus-settings-duration-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.focus-settings-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 48px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hair);
+  font-size: 14px;
+}
+.focus-settings-option-last { border-bottom: 0; padding-bottom: 0; }
+
+@media (max-width: 420px) {
+  .focus-settings-duration-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 /* emoji category picker */
 .emoji-cats {
   display: flex;
