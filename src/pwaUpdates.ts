@@ -32,10 +32,15 @@ export function registerAppServiceWorker(): void {
   });
 
   window.addEventListener('load', () => {
+    const startedAt = performance.now();
     void navigator.serviceWorker.register('/service-worker.js', {
       scope: '/',
       updateViaCache: 'none',
     }).then((registration) => {
+      console.info('[compyle] service_worker_registered', {
+        elapsedMs: Math.round(performance.now() - startedAt),
+        standalone: window.matchMedia('(display-mode: standalone)').matches,
+      });
       const checkForUpdate = () => {
         if (navigator.onLine) void registration.update().catch(() => undefined);
       };
@@ -46,7 +51,10 @@ export function registerAppServiceWorker(): void {
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') checkForUpdate();
       });
-    }).catch(() => {
+    }).catch((error) => {
+      console.warn('[compyle] service_worker_error', {
+        message: error instanceof Error ? error.message : String(error),
+      });
       // Offline first loads and browsers with disabled service workers should
       // continue using the app without turning registration into a fatal error.
     });

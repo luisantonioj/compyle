@@ -108,8 +108,6 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
     setTab(getFirstVisibleTab(visibleTabs, navOrder));
   }, [visibleTabs, navOrder, tab, setTab]);
 
-  if (dataLoading) return <div className="auth-loading paper-grain" />;
-
   const meInitial = (store.meProfile.displayName || store.meProfile.email || '?').charAt(0).toUpperCase();
   const profileInitial = isPartner ? partnerName.charAt(0).toUpperCase() : meInitial;
 

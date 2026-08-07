@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
 import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching';
-import { registerRoute, NavigationRoute } from 'workbox-routing';
+import { registerRoute, NavigationRoute, setCatchHandler } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 
@@ -75,6 +75,14 @@ try {
     ],
   });
   registerRoute(navigationRoute);
+  setCatchHandler(async ({ request }) => {
+    if (request.mode !== 'navigate') return Response.error();
+    const cachedShell = await caches.match('/index.html');
+    return cachedShell ?? new Response(
+      '<!doctype html><title>compyle</title><p>compyle is temporarily unavailable. Please try again.</p>',
+      { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 503 },
+    );
+  });
 } catch (e) {
   console.warn('NavigationRoute fallback failed', e);
 }
