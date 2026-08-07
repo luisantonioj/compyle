@@ -7,7 +7,7 @@ import { IS_CONFIGURED } from './lib/firebase';
 import { AppShell } from './app/AppShell';
 
 export default function App() {
-  const { user, loading, error, retry } = useAuth();
+  const { user, loading, error, authTransition, googleSignIn, retry } = useAuth();
   const store = useAppStore();
 
   if (loading) return <div className="auth-loading paper-grain" />;
@@ -23,10 +23,10 @@ export default function App() {
     );
   }
 
-  if (IS_CONFIGURED && !user) {
+  if (IS_CONFIGURED && (!user || authTransition)) {
     return (
       <>
-        <AuthScreen />
+        <AuthScreen onGoogleSignIn={googleSignIn} googleLoading={authTransition} />
         <NotificationCenter
           toast={store.toast}
           onToastDismiss={() => store.setToast(null)}
