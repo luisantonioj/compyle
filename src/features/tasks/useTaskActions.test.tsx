@@ -293,3 +293,101 @@ describe('useTaskActions saveTask', () => {
     );
   });
 });
+
+describe('useTaskActions moveTask', () => {
+  it('moves task to a different date at specific index and normalizes sort_order', () => {
+    const taskToMove: Task = { id: 't1', title: 'Task 1', emoji: '📌', time: null, done: false, sort_order: 0 };
+    const destTask1: Task = { id: 't2', title: 'Task 2', emoji: '📌', time: null, done: false, sort_order: 0 };
+    const destTask2: Task = { id: 't3', title: 'Task 3', emoji: '📌', time: null, done: false, sort_order: 1 };
+
+    const data: UserData = {
+      tasks: {
+        '2026-06-28': [taskToMove],
+        '2026-06-29': [destTask1, destTask2],
+      },
+      taskTypes: [],
+      habits: [],
+      banks: [],
+      transactions: [],
+      bills: [],
+      debts: [],
+      privacy: { cal: true, notes: true, links: true, habits: true, money: true },
+      linkCategories: [],
+      links: [],
+      notes: [],
+    };
+    const setActiveData = vi.fn();
+
+    const { result } = renderHook(() =>
+      useTaskActions({
+        data,
+        fs: false,
+        activeUid: 'user-1',
+        setActiveData,
+        onComplete: vi.fn(),
+      })
+    );
+
+    // Move t1 to index 1 of '2026-06-29' (between destTask1 and destTask2)
+    result.current.moveTask('t1', '2026-06-28', '2026-06-29', 1);
+
+    expect(setActiveData).toHaveBeenCalled();
+    const updater = setActiveData.mock.calls[0][0];
+    const updatedState = updater(data);
+
+    expect(updatedState.tasks['2026-06-28']).toHaveLength(0);
+    const newDayTasks = updatedState.tasks['2026-06-29'];
+    expect(newDayTasks).toHaveLength(3);
+    expect(newDayTasks[0].id).toBe('t2');
+    expect(newDayTasks[0].sort_order).toBe(0);
+    expect(newDayTasks[1].id).toBe('t1');
+    expect(newDayTasks[1].sort_order).toBe(1);
+    expect(newDayTasks[2].id).toBe('t3');
+    expect(newDayTasks[2].sort_order).toBe(2);
+  });
+
+  it('reorders tasks on the same date without duplicating items', () => {
+    const t1: Task = { id: 't1', title: 'Task 1', emoji: '📌', time: null, done: false, sort_order: 0 };
+    const t2: Task = { id: 't2', title: 'Task 2', emoji: '📌', time: null, done: false, sort_order: 1 };
+    const t3: Task = { id: 't3', title: 'Task 3', emoji: '📌', time: null, done: false, sort_order: 2 };
+
+    const data: UserData = {
+      tasks: {
+        '2026-06-29': [t1, t2, t3],
+      },
+      taskTypes: [],
+      habits: [],
+      banks: [],
+      transactions: [],
+      bills: [],
+      debts: [],
+      privacy: { cal: true, notes: true, links: true, habits: true, money: true },
+      linkCategories: [],
+      links: [],
+      notes: [],
+    };
+    const setActiveData = vi.fn();
+
+    const { result } = renderHook(() =>
+      useTaskActions({
+        data,
+        fs: false,
+        activeUid: 'user-1',
+        setActiveData,
+        onComplete: vi.fn(),
+      })
+    );
+
+    // Move t1 from index 0 to index 2 on the same day
+    result.current.moveTask('t1', '2026-06-29', '2026-06-29', 2);
+
+    expect(setActiveData).toHaveBeenCalled();
+    const updater = setActiveData.mock.calls[0][0];
+    const updatedState = updater(data);
+
+    const reordered = updatedState.tasks['2026-06-29'];
+    expect(reordered).toHaveLength(3);
+    expect(reordered.map((t: Task) => t.id)).toEqual(['t2', 't3', 't1']);
+    expect(reordered.map((t: Task) => t.sort_order)).toEqual([0, 1, 2]);
+  });
+});

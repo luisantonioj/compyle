@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppStore, selectData, selectIsPartner, selectPartnerName } from '../store/appStore';
 import { TODAY_KEY } from '../lib/seed';
 import { useIsWeb } from '../hooks/useIsWeb';
@@ -35,7 +35,7 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
   const { refresh: refreshData } = useFirestoreSync(user);
 
   const fs = IS_CONFIGURED && !!user;
-  const activeUid = isPartner ? store.partnerProfile.uid : (user?.uid ?? '');
+  const activeUid = isPartner ? (store.partnerProfile.uid || store.meProfile.partnerId || '') : (user?.uid ?? '');
   const setActiveData = isPartner ? store.setLuisData : store.setYleData;
   const tapRef = useRef({ count: 0, timer: 0 as unknown as ReturnType<typeof setTimeout> });
 

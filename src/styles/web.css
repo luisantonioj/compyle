@@ -945,12 +945,13 @@
     border: 1px solid var(--hair);
     background: var(--white);
     cursor: pointer;
-    transition: background 0.12s, border-color 0.12s;
+    transition: background 0.12s, border-color 0.12s, transform 0.15s;
     min-height: 90px;
   }
   .web-week-day:hover { background: var(--cream); border-color: var(--hair-strong); }
   .web-week-day.selected { border-color: var(--ink-soft); background: var(--cream-deep); }
   .web-week-day.today { background: var(--ink); border-color: var(--ink); }
+  .web-week-day.drop-target { background: var(--clay-tint) !important; border-color: var(--clay) !important; transform: scale(1.04); }
   .web-week-day .wwd-name {
     font-family: var(--mono);
     font-size: 9px;

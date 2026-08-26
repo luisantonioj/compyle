@@ -15,7 +15,7 @@ interface WebPlanProps {
   onMoveTask?: (taskId: string, sourceDate: string, destDate: string, newIndex: number) => void;
 }
 
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, useDroppable } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, useDroppable } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -137,6 +137,11 @@ function SortableTaskItem({
       style={{ ...style, cursor: ti._virtual ? 'default' : 'grab', touchAction: ti._virtual ? 'auto' : 'none' }}
       className={`task-list-item${t.done ? ' done' : ''}${isDragging ? ' dragging' : ''}`}
       onClick={(e) => {
+        if ((e.target as HTMLElement).closest('.check')) return;
+        onEdit({ type: 'task-view', item: t, dateKey: editKey });
+      }}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
         if ((e.target as HTMLElement).closest('.check')) return;
         onEdit({ type: 'task-view', item: t, dateKey: editKey });
       }}
@@ -267,6 +272,11 @@ function SortableMiniTaskItem({
         if ((e.target as HTMLElement).closest('.mini-check')) return;
         onEdit({ type: 'task-view', item: t, dateKey: editKey });
       }}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        if ((e.target as HTMLElement).closest('.mini-check')) return;
+        onEdit({ type: 'task-view', item: t, dateKey: editKey });
+      }}
       onMouseEnter={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         setTooltip({ task: t, x: r.left + r.width / 2, y: r.top });
@@ -288,44 +298,99 @@ function SortableMiniTaskItem({
   );
 }
 
+function DroppableWebWeekDay({
+  d,
+  dateKey: k,
+  tasks,
+  isToday,
+  isSel,
+  onClick,
+}: {
+  d: Date;
+  dateKey: string;
+  tasks: TaskInstance[];
+  isToday: boolean;
+  isSel: boolean;
+  onClick: () => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: k });
+
+  return (
+    <button
+      ref={setNodeRef}
+      key={k}
+      className={`web-week-day${isToday ? ' today' : ''}${isSel && !isToday ? ' selected' : ''}${isOver ? ' drop-target' : ''}`}
+      onClick={onClick}
+      style={{
+        outline: isOver ? '2px solid var(--clay)' : undefined,
+        backgroundColor: isOver ? 'var(--clay-tint)' : undefined,
+        transform: isOver ? 'scale(1.04)' : undefined,
+        transition: 'transform 0.15s ease, background-color 0.15s ease',
+      }}
+    >
+      <div className="wwd-name">{d.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+      <div className="wwd-num">{d.getDate()}</div>
+      <div className="wwd-dots">
+        {tasks.slice(0, 3).map((_, i) => <i key={i} className="wwd-dot" />)}
+      </div>
+    </button>
+  );
+}
+
 export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderTasks, onMoveTask }: WebPlanProps) {
   const [view, setView] = useState<View>('month');
   const [selected, setSelected] = useState(TODAY_KEY);
   const [month, setMonth] = useState(() => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1));
   const [showPastWeeks, setShowPastWeeks] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const taskId = event.active.id as string;
+    for (const dayTasks of Object.values(data.tasks)) {
+      const found = dayTasks.find((t) => t.id === taskId);
+      if (found) {
+        setActiveTask(found);
+        break;
+      }
+    }
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveTask(null);
     if (!over) return;
 
-    const activeContainer = active.data.current?.sortable?.containerId;
+    const activeContainer = active.data.current?.sortable?.containerId || selected;
     const overContainer = over.data.current?.sortable?.containerId || over.id;
 
     if (!activeContainer || !overContainer) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
 
     if (activeContainer !== overContainer) {
       // Cross-container drag
       const sourceDate = activeContainer as string;
       const destDate = overContainer as string;
-      const taskId = active.id as string;
+      const taskId = activeId;
       
       const destTasks = getTaskInstances(data.tasks, destDate);
-      let newIndex = destTasks.findIndex((t) => t.id === over.id);
+      let newIndex = destTasks.findIndex((t) => t.id === overId);
       if (newIndex === -1) newIndex = destTasks.length;
 
       onMoveTask?.(taskId, sourceDate, destDate, newIndex);
-    } else if (active.id !== over.id) {
+    } else if (activeId !== overId) {
       // Same container drag
       const dateKey = activeContainer as string;
       const dayTasks = getTaskInstances(data.tasks, dateKey);
-      const oldIndex = dayTasks.findIndex((t) => t.id === active.id);
-      const newIndex = dayTasks.findIndex((t) => t.id === over.id);
+      const oldIndex = dayTasks.findIndex((t) => t.id === activeId);
+      const newIndex = dayTasks.findIndex((t) => t.id === overId);
       
       if (oldIndex !== -1 && newIndex !== -1 && onReorderTasks) {
         onReorderTasks(dateKey, arrayMove(dayTasks, oldIndex, newIndex));
@@ -398,7 +463,7 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
   const selTasks = getTaskInstances(data.tasks, selected);
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div>
         <div className="page-head">
         <div>
@@ -470,17 +535,15 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
               const isToday = k === TODAY_KEY;
               const isSel = k === selected;
               return (
-                <button
+                <DroppableWebWeekDay
                   key={k}
-                  className={`web-week-day${isToday ? ' today' : ''}${isSel && !isToday ? ' selected' : ''}`}
+                  d={d}
+                  dateKey={k}
+                  tasks={tasks}
+                  isToday={isToday}
+                  isSel={isSel}
                   onClick={() => setSelected(k)}
-                >
-                  <div className="wwd-name">{d.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                  <div className="wwd-num">{d.getDate()}</div>
-                  <div className="wwd-dots">
-                    {tasks.slice(0, 3).map((_, i) => <i key={i} className="wwd-dot" />)}
-                  </div>
-                </button>
+                />
               );
             })}
           </div>
@@ -555,6 +618,34 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
           }} />
         </div>
       )}
+
+      <DragOverlay>
+        {activeTask ? (
+          <div
+            style={{
+              background: 'var(--white)',
+              border: '1.5px solid var(--clay)',
+              borderRadius: 8,
+              padding: '6px 12px',
+              boxShadow: '0 10px 28px rgba(21,19,15,0.22)',
+              fontSize: 13,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              fontFamily: 'var(--sans)',
+              color: 'var(--ink)',
+              opacity: 0.96,
+              maxWidth: 280,
+              pointerEvents: 'none',
+            }}
+          >
+            {activeTask.emoji && <span>{activeTask.emoji}</span>}
+            <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {activeTask.title}
+            </span>
+          </div>
+        ) : null}
+      </DragOverlay>
     </div>
     </DndContext>
   );

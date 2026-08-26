@@ -29,28 +29,53 @@ export function useTaskActions({ data, fs, activeUid, setActiveData, onComplete 
   };
 
   const moveTask = (taskId: string, sourceDate: string, destDate: string, newIndex: number) => {
-    const taskToMove = (data.tasks[sourceDate] ?? []).find((t) => t.id === taskId);
+    let actualSource = sourceDate;
+    let taskToMove = (data.tasks[actualSource] ?? []).find((t) => t.id === taskId);
+    if (!taskToMove) {
+      for (const [dk, dayTasks] of Object.entries(data.tasks)) {
+        const found = dayTasks.find((t) => t.id === taskId);
+        if (found) {
+          taskToMove = found;
+          actualSource = dk;
+          break;
+        }
+      }
+    }
     if (!taskToMove) return;
 
     const { _virtual, _originKey, ...cleanTask } = taskToMove as any;
     const task = cleanTask as Task;
-    const newSourceTasks = (data.tasks[sourceDate] ?? []).filter((t) => t.id !== taskId);
-    const newDestTasks = [...(data.tasks[destDate] ?? [])];
 
-    newDestTasks.splice(newIndex, 0, task);
+    if (actualSource === destDate) {
+      const currentTasks = [...(data.tasks[destDate] ?? [])];
+      const oldIndex = currentTasks.findIndex((t) => t.id === taskId);
+      if (oldIndex === -1) return;
+      const safeIndex = Math.max(0, Math.min(newIndex, currentTasks.length - 1));
+      const reordered = [...currentTasks];
+      const [item] = reordered.splice(oldIndex, 1);
+      reordered.splice(safeIndex, 0, item);
+      reorderTasks(destDate, reordered);
+      return;
+    }
+
+    const newSourceTasks = (data.tasks[actualSource] ?? []).filter((t) => t.id !== taskId);
+    const newDestTasks = (data.tasks[destDate] ?? []).filter((t) => t.id !== taskId);
+    const safeIndex = Math.max(0, Math.min(newIndex, newDestTasks.length));
+
+    newDestTasks.splice(safeIndex, 0, task);
 
     const orderedSource = newSourceTasks.map((t, i) => ({ ...t, sort_order: i }));
     const orderedDest = newDestTasks.map((t, i) => ({ ...t, sort_order: i }));
 
     if (fs) {
       orderedDest.forEach((t) => void upsertTask(activeUid, t, destDate));
-      orderedSource.forEach((t) => void upsertTask(activeUid, t, sourceDate));
+      orderedSource.forEach((t) => void upsertTask(activeUid, t, actualSource));
     } else {
       setActiveData((d) => ({
         ...d,
         tasks: {
           ...d.tasks,
-          [sourceDate]: orderedSource,
+          [actualSource]: orderedSource,
           [destDate]: orderedDest,
         },
       }));
