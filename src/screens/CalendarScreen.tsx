@@ -4,8 +4,26 @@ import { Icons } from '../components/Icons';
 import { TODAY_KEY, daysInMonth, dateKey, parseKey, getTaskInstances } from '../lib/seed';
 import type { TaskInstance } from '../lib/seed';
 import type { UserData, ViewMode, Task, EditingState } from '../types';
-import { DndContext, closestCenter, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+  useDroppable,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 interface CalProps {
@@ -19,29 +37,65 @@ interface CalProps {
   onSelectedChange?: (dateKey: string) => void;
   defaultView?: 'month' | 'week' | 'day';
   onReorderTasks?: (dateKey: string, reorderedTasks: Task[]) => void;
+  onMoveTask?: (taskId: string, sourceDate: string, destDate: string, newIndex: number) => void;
 }
 
-export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onProfile, onCheck, onEdit, onSelectedChange, defaultView = 'month', onReorderTasks }: CalProps) {
+export function CalendarScreen({
+  data,
+  viewMode,
+  isPartner,
+  profileInitial,
+  onProfile,
+  onCheck,
+  onEdit,
+  onSelectedChange,
+  defaultView = 'month',
+  onReorderTasks,
+  onMoveTask,
+}: CalProps) {
   const [view, setView] = useState<'month' | 'week' | 'day'>(defaultView);
   const [selected, setSelected] = useState(TODAY_KEY);
   const [month, setMonth] = useState(new Date());
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
-  useEffect(() => { onSelectedChange?.(selected); }, [selected]);
+  useEffect(() => {
+    onSelectedChange?.(selected);
+  }, [selected, onSelectedChange]);
 
   const tasksOnSelected = getTaskInstances(data.tasks, selected);
   const done = tasksOnSelected.filter((t) => t.done).length;
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 300, tolerance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = tasksOnSelected.find((t) => t.id === event.active.id);
+    if (task) setActiveTask(task);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = tasksOnSelected.findIndex((t) => t.id === active.id);
-      const newIndex = tasksOnSelected.findIndex((t) => t.id === over.id);
+    setActiveTask(null);
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Check if dropped on a calendar day (date format YYYY-MM-DD)
+    const isDateDropTarget = /^\d{4}-\d{2}-\d{2}$/.test(overId);
+
+    if (isDateDropTarget) {
+      if (overId !== selected) {
+        const destTasks = getTaskInstances(data.tasks, overId);
+        onMoveTask?.(activeId, selected, overId, destTasks.length);
+      }
+    } else if (activeId !== overId) {
+      // Reorder within selected day
+      const oldIndex = tasksOnSelected.findIndex((t) => t.id === activeId);
+      const newIndex = tasksOnSelected.findIndex((t) => t.id === overId);
       if (oldIndex !== -1 && newIndex !== -1 && onReorderTasks) {
         onReorderTasks(selected, arrayMove(tasksOnSelected, oldIndex, newIndex));
       }
@@ -54,43 +108,81 @@ export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onPr
   }
 
   return (
-    <div className="screen">
-      <div className="top-bar">
-        <div>
-          <div className="kicker">Plan</div>
-          <h1>Daily <em>Schedule</em></h1>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="screen">
+        <div className="top-bar">
+          <div>
+            <div className="kicker">Plan</div>
+            <h1>Daily <em>Schedule</em></h1>
+          </div>
+          <button className={`profile-pill${viewMode === 'partner' ? ' partner' : ''}`} onClick={onProfile}>
+            {profileInitial}
+            <span className="dot" />
+          </button>
         </div>
-        <button className={`profile-pill${viewMode === 'partner' ? ' partner' : ''}`} onClick={onProfile}>
-          {profileInitial}
-          <span className="dot" />
-        </button>
-      </div>
 
-      <div className="pad-x" style={{ marginBottom: 14 }}>
-        <div className="segment">
-          {(['month', 'week', 'day'] as const).map((v) => (
-            <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>{v}</button>
-          ))}
+        <div className="pad-x" style={{ marginBottom: 14 }}>
+          <div className="segment">
+            {(['month', 'week', 'day'] as const).map((v) => (
+              <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
+                {v}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {view === 'month' && <MonthView month={month} setMonth={setMonth} selected={selected} setSelected={setSelected} data={data}/>}
-      {view === 'week' && <WeekView selected={selected} setSelected={setSelected} data={data}/>}
-      {view === 'day' && <DayView selected={selected} setSelected={setSelected}/>}
+        {view === 'month' && (
+          <MonthView
+            month={month}
+            setMonth={setMonth}
+            selected={selected}
+            setSelected={setSelected}
+            data={data}
+          />
+        )}
+        {view === 'week' && (
+          <WeekView
+            selected={selected}
+            setSelected={setSelected}
+            data={data}
+          />
+        )}
+        {view === 'day' && (
+          <DayView
+            selected={selected}
+            setSelected={setSelected}
+          />
+        )}
 
-      {/* task list for selected day */}
-      <div className="pad-x" style={{ marginTop: 20 }}>
-        <div className="row-between" style={{ marginBottom: 10 }}>
-          <div style={{ fontFamily: 'var(--serif)', fontSize: 22 }}>{formatDay(selected)}</div>
-          {selected !== TODAY_KEY && (
-            <div className="mono" style={{ fontSize: 11, color: 'var(--ink-mute)' }}>{done}/{tasksOnSelected.length} done</div>
-          )}
-        </div>
-        <div className="card white" style={{ padding: tasksOnSelected.length ? '4px 16px' : '24px 16px' }}>
-          {tasksOnSelected.length === 0 && (
-            <div style={{ textAlign: 'center', color: 'var(--ink-mute)', fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 16 }}>Nothing planned. Quiet day.</div>
-          )}
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        {/* task list for selected day */}
+        <div className="pad-x" style={{ marginTop: 20 }}>
+          <div className="row-between" style={{ marginBottom: 10 }}>
+            <div style={{ fontFamily: 'var(--serif)', fontSize: 22 }}>{formatDay(selected)}</div>
+            {selected !== TODAY_KEY && (
+              <div className="mono" style={{ fontSize: 11, color: 'var(--ink-mute)' }}>
+                {done}/{tasksOnSelected.length} done
+              </div>
+            )}
+          </div>
+          <div className="card white" style={{ padding: tasksOnSelected.length ? '4px 16px' : '24px 16px' }}>
+            {tasksOnSelected.length === 0 && (
+              <div
+                style={{
+                  textAlign: 'center',
+                  color: 'var(--ink-mute)',
+                  fontFamily: 'var(--serif)',
+                  fontStyle: 'italic',
+                  fontSize: 16,
+                }}
+              >
+                Nothing planned. Quiet day.
+              </div>
+            )}
             <SortableContext items={tasksOnSelected.map((t) => t.id)} strategy={verticalListSortingStrategy}>
               {tasksOnSelected.map((t: Task) => {
                 const ti = t as TaskInstance;
@@ -98,23 +190,67 @@ export function CalendarScreen({ data, viewMode, isPartner, profileInitial, onPr
                 return (
                   <SortableTaskItemMobile
                     key={ti._virtual ? `${t.id}-${selected}` : t.id}
-                    t={t} ti={ti} editKey={editKey} selected={selected} onEdit={onEdit} onCheck={onCheck}
+                    t={t}
+                    ti={ti}
+                    editKey={editKey}
+                    selected={selected}
+                    onEdit={onEdit}
+                    onCheck={onCheck}
                   />
                 );
               })}
             </SortableContext>
-          </DndContext>
+          </div>
         </div>
+        <div style={{ height: 40 }} />
       </div>
-      <div style={{ height: 40 }}/>
-    </div>
+
+      <DragOverlay>
+        {activeTask ? (
+          <div
+            className="task-item row-tap dragging-preview"
+            style={{
+              background: 'var(--white)',
+              border: '1.5px solid var(--clay)',
+              borderRadius: 12,
+              padding: '12px 16px',
+              boxShadow: '0 14px 32px rgba(21,19,15,0.22)',
+              opacity: 0.96,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              width: '90vw',
+              maxWidth: 400,
+            }}
+          >
+            <div className="check plan-check checked" style={{ background: 'var(--ink)' }}>
+              {Icons.check()}
+            </div>
+            <div style={{ flex: 1, minWidth: 0, fontSize: 15, fontFamily: 'var(--sans)', color: 'var(--ink)' }}>
+              {activeTask.emoji && <span style={{ marginRight: 6 }}>{activeTask.emoji}</span>}
+              <span style={{ fontWeight: 600 }}>{activeTask.title}</span>
+            </div>
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }
 
 function SortableTaskItemMobile({
-  t, ti, editKey, selected, onEdit, onCheck
+  t,
+  ti,
+  editKey,
+  selected: _selected,
+  onEdit,
+  onCheck,
 }: {
-  t: Task, ti: TaskInstance, editKey: string, selected: string, onEdit: (e: EditingState) => void, onCheck: (id: string, dateKey: string) => void
+  t: Task;
+  ti: TaskInstance;
+  editKey: string;
+  selected: string;
+  onEdit: (e: EditingState) => void;
+  onCheck: (id: string, dateKey: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: t.id,
@@ -142,24 +278,64 @@ function SortableTaskItemMobile({
       {...(!ti._virtual ? attributes : {})}
       {...(!ti._virtual ? listeners : {})}
     >
-      <button className={`check plan-check${t.done ? ' checked' : ''}`} disabled={!!ti._virtual}
-        onClick={(e) => { e.stopPropagation(); !ti._virtual && onCheck(t.id, editKey); }}>
+      <button
+        className={`check plan-check${t.done ? ' checked' : ''}`}
+        disabled={!!ti._virtual}
+        onClick={(e) => {
+          e.stopPropagation();
+          !ti._virtual && onCheck(t.id, editKey);
+        }}
+      >
         {Icons.check()}
       </button>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 15, color: t.done ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: t.done ? 'line-through' : 'none' }}>
-          {t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}{t.title}
+        <div
+          style={{
+            fontSize: 15,
+            color: t.done ? 'var(--ink-mute)' : 'var(--ink)',
+            textDecoration: t.done ? 'line-through' : 'none',
+          }}
+        >
+          {t.emoji && <span style={{ marginRight: 6 }}>{t.emoji}</span>}
+          {t.title}
         </div>
         {t.description && (
-          <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 3, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {t.description.split(/\r?\n|\||;|•/).map((line) => line.trim()).filter(Boolean).map((line, idx) => (
-              <div key={idx} style={{ lineHeight: 1.3 }}>{line}</div>
-            ))}
+          <div
+            style={{
+              fontSize: 12,
+              color: 'var(--ink-mute)',
+              marginTop: 3,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '2px',
+            }}
+          >
+            {t.description
+              .split(/\r?\n|\||;|•/)
+              .map((line) => line.trim())
+              .filter(Boolean)
+              .map((line, idx) => (
+                <div key={idx} style={{ lineHeight: 1.3 }}>
+                  {line}
+                </div>
+              ))}
           </div>
         )}
-        {t.time && <div className="mono" style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 2 }}>{t.time}</div>}
+        {t.time && (
+          <div
+            className="mono"
+            style={{ fontSize: 10, color: 'var(--ink-mute)', letterSpacing: '0.08em', marginTop: 2 }}
+          >
+            {t.time}
+          </div>
+        )}
         {ti._virtual && t.recurrence && (
-          <div className="mono" style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 3 }}>↻ {t.recurrence}</div>
+          <div
+            className="mono"
+            style={{ fontSize: 10, color: 'var(--clay)', letterSpacing: '0.08em', marginTop: 3 }}
+          >
+            ↻ {t.recurrence}
+          </div>
         )}
       </div>
       {Icons.chevR({ stroke: 'var(--ink-faint)' })}
@@ -167,19 +343,74 @@ function SortableTaskItemMobile({
   );
 }
 
-function MonthView({ month, setMonth, selected, setSelected, data }: {
-  month: Date; setMonth: (d: Date) => void;
-  selected: string; setSelected: (k: string) => void;
+function DroppableMonthDay({
+  c,
+  isToday,
+  isSel,
+  onClick,
+}: {
+  c: { other?: boolean; d: number; key: string; dateKey: string; tasks: Task[] };
+  isToday: boolean;
+  isSel: boolean;
+  onClick: () => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: c.dateKey });
+
+  return (
+    <button
+      ref={setNodeRef}
+      key={c.key}
+      className={`cal-day${c.other ? ' other' : ''}${isToday ? ' today' : ''}${isOver ? ' drop-target' : ''}`}
+      onClick={onClick}
+      style={{
+        outline: isOver
+          ? '2px solid var(--clay)'
+          : isSel && !isToday
+          ? '1.5px solid var(--clay)'
+          : 'none',
+        outlineOffset: -2,
+        backgroundColor: isOver ? 'var(--clay-tint)' : undefined,
+        transform: isOver ? 'scale(1.08)' : 'none',
+        transition: 'transform 0.15s ease, background-color 0.15s ease',
+        zIndex: isOver ? 2 : 1,
+      }}
+    >
+      {c.d}
+      {c.tasks.length > 0 && (
+        <div className="dots">
+          {c.tasks.slice(0, 3).map((_, i) => (
+            <i key={i} />
+          ))}
+        </div>
+      )}
+    </button>
+  );
+}
+
+function MonthView({
+  month,
+  setMonth,
+  selected,
+  setSelected,
+  data,
+}: {
+  month: Date;
+  setMonth: (d: Date) => void;
+  selected: string;
+  setSelected: (k: string) => void;
   data: UserData;
 }) {
-  const y = month.getFullYear(), m = month.getMonth();
+  const y = month.getFullYear(),
+    m = month.getMonth();
   const dim = daysInMonth(y, m);
   const first = new Date(y, m, 1).getDay();
   const monthName = month.toLocaleString('en-US', { month: 'long' });
 
   const prevDim = new Date(y, m, 0).getDate();
-  const prevY = m === 0 ? y - 1 : y, prevM = m === 0 ? 11 : m - 1;
-  const nextY = m === 11 ? y + 1 : y, nextM = m === 11 ? 0 : m + 1;
+  const prevY = m === 0 ? y - 1 : y,
+    prevM = m === 0 ? 11 : m - 1;
+  const nextY = m === 11 ? y + 1 : y,
+    nextM = m === 11 ? 0 : m + 1;
 
   type Cell = { other?: boolean; d: number; key: string; dateKey: string; tasks: Task[] };
   const cells: Cell[] = [];
@@ -200,7 +431,9 @@ function MonthView({ month, setMonth, selected, setSelected, data }: {
 
   const touchX = useRef<number | null>(null);
   const swipe = {
-    onTouchStart: (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; },
+    onTouchStart: (e: React.TouchEvent) => {
+      touchX.current = e.touches[0].clientX;
+    },
     onTouchEnd: (e: React.TouchEvent) => {
       if (touchX.current === null) return;
       const dx = e.changedTouches[0].clientX - touchX.current;
@@ -213,30 +446,39 @@ function MonthView({ month, setMonth, selected, setSelected, data }: {
   return (
     <div className="pad-x" {...swipe}>
       <div className="row-between" style={{ marginBottom: 6 }}>
-        <button style={{ padding: 6 }} onClick={() => setMonth(new Date(y, m - 1, 1))}>{Icons.chevL({ stroke: 'var(--ink-soft)' })}</button>
-        <div style={{ fontFamily: 'var(--serif)', fontSize: 22 }}>{monthName} <em style={{ fontStyle: 'italic', color: 'var(--clay)' }}>{y}</em></div>
-        <button style={{ padding: 6 }} onClick={() => setMonth(new Date(y, m + 1, 1))}>{Icons.chevR({ stroke: 'var(--ink-soft)' })}</button>
+        <button style={{ padding: 6 }} onClick={() => setMonth(new Date(y, m - 1, 1))}>
+          {Icons.chevL({ stroke: 'var(--ink-soft)' })}
+        </button>
+        <div style={{ fontFamily: 'var(--serif)', fontSize: 22 }}>
+          {monthName} <em style={{ fontStyle: 'italic', color: 'var(--clay)' }}>{y}</em>
+        </div>
+        <button style={{ padding: 6 }} onClick={() => setMonth(new Date(y, m + 1, 1))}>
+          {Icons.chevR({ stroke: 'var(--ink-soft)' })}
+        </button>
       </div>
       <div className="cal-grid">
-        {['S','M','T','W','T','F','S'].map((d, i) => <div key={i} className="cal-head">{d}</div>)}
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+          <div key={i} className="cal-head">
+            {d}
+          </div>
+        ))}
         {cells.map((c) => {
           const isToday = c.dateKey === TODAY_KEY;
           const isSel = c.dateKey === selected;
           const handleClick = c.other
-            ? () => { setSelected(c.dateKey); setMonth(new Date(parseKey(c.dateKey).getFullYear(), parseKey(c.dateKey).getMonth(), 1)); }
+            ? () => {
+                setSelected(c.dateKey);
+                setMonth(new Date(parseKey(c.dateKey).getFullYear(), parseKey(c.dateKey).getMonth(), 1));
+              }
             : () => setSelected(c.dateKey);
           return (
-            <button key={c.key}
-              className={`cal-day${c.other ? ' other' : ''}${isToday ? ' today' : ''}`}
+            <DroppableMonthDay
+              key={c.key}
+              c={c}
+              isToday={isToday}
+              isSel={isSel}
               onClick={handleClick}
-              style={{ outline: isSel && !isToday ? '1.5px solid var(--clay)' : 'none', outlineOffset: -2 }}>
-              {c.d}
-              {c.tasks.length > 0 && (
-                <div className="dots">
-                  {c.tasks.slice(0, 3).map((_, i) => <i key={i} />)}
-                </div>
-              )}
-            </button>
+            />
           );
         })}
       </div>
@@ -244,7 +486,83 @@ function MonthView({ month, setMonth, selected, setSelected, data }: {
   );
 }
 
-function WeekView({ selected, setSelected, data }: { selected: string; setSelected: (k: string) => void; data: UserData }) {
+function DroppableWeekDay({
+  d,
+  dateKey: k,
+  tasks,
+  isToday,
+  isSel,
+  onClick,
+}: {
+  d: Date;
+  dateKey: string;
+  tasks: TaskInstance[];
+  isToday: boolean;
+  isSel: boolean;
+  onClick: () => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: k });
+
+  return (
+    <button
+      ref={setNodeRef}
+      key={k}
+      onClick={onClick}
+      className={`web-week-day${isOver ? ' drop-target' : ''}`}
+      style={{
+        padding: '10px 4px',
+        borderRadius: 12,
+        background: isOver
+          ? 'var(--clay-tint)'
+          : isToday
+          ? 'var(--ink)'
+          : isSel
+          ? 'var(--cream-deep)'
+          : 'transparent',
+        border: isOver ? '2px solid var(--clay)' : 'none',
+        color: isToday && !isOver ? 'var(--cream)' : 'var(--ink)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 6,
+        minHeight: 86,
+        transform: isOver ? 'scale(1.05)' : 'none',
+        transition: 'transform 0.15s ease, background-color 0.15s ease',
+      }}
+    >
+      <div
+        className="mono"
+        style={{ fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.7 }}
+      >
+        {d.toLocaleDateString('en-US', { weekday: 'short' })}
+      </div>
+      <div style={{ fontFamily: 'var(--serif)', fontSize: 22 }}>{d.getDate()}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+        {tasks.slice(0, 3).map((_, i) => (
+          <i
+            key={i}
+            style={{
+              width: 4,
+              height: 4,
+              borderRadius: 999,
+              background: isToday && !isOver ? 'var(--cream)' : 'var(--clay)',
+            }}
+          />
+        ))}
+      </div>
+    </button>
+  );
+}
+
+function WeekView({
+  selected,
+  setSelected,
+  data,
+}: {
+  selected: string;
+  setSelected: (k: string) => void;
+  data: UserData;
+}) {
   const sel = parseKey(selected);
   const start = new Date(sel);
   start.setDate(sel.getDate() - sel.getDay());
@@ -257,10 +575,14 @@ function WeekView({ selected, setSelected, data }: { selected: string; setSelect
   });
 
   const touchX = useRef<number | null>(null);
-  const prevWeek = () => setSelected(dateKey(new Date(parseKey(selected).setDate(parseKey(selected).getDate() - 7))));
-  const nextWeek = () => setSelected(dateKey(new Date(parseKey(selected).setDate(parseKey(selected).getDate() + 7))));
+  const prevWeek = () =>
+    setSelected(dateKey(new Date(parseKey(selected).setDate(parseKey(selected).getDate() - 7))));
+  const nextWeek = () =>
+    setSelected(dateKey(new Date(parseKey(selected).setDate(parseKey(selected).getDate() + 7))));
   const swipe = {
-    onTouchStart: (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; },
+    onTouchStart: (e: React.TouchEvent) => {
+      touchX.current = e.touches[0].clientX;
+    },
     onTouchEnd: (e: React.TouchEvent) => {
       if (touchX.current === null) return;
       const dx = e.changedTouches[0].clientX - touchX.current;
@@ -273,33 +595,31 @@ function WeekView({ selected, setSelected, data }: { selected: string; setSelect
   return (
     <div className="pad-x" {...swipe}>
       <div className="row-between" style={{ marginBottom: 12 }}>
-        <button style={{ padding: 6 }} onClick={prevWeek}>{Icons.chevL({ stroke: 'var(--ink-soft)' })}</button>
+        <button style={{ padding: 6 }} onClick={prevWeek}>
+          {Icons.chevL({ stroke: 'var(--ink-soft)' })}
+        </button>
         <div style={{ fontFamily: 'var(--serif)', fontSize: 18 }}>
-          {days[0].d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — {days[6].d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          {days[0].d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} —{' '}
+          {days[6].d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         </div>
-        <button style={{ padding: 6 }} onClick={nextWeek}>{Icons.chevR({ stroke: 'var(--ink-soft)' })}</button>
+        <button style={{ padding: 6 }} onClick={nextWeek}>
+          {Icons.chevR({ stroke: 'var(--ink-soft)' })}
+        </button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
         {days.map(({ d, key, tasks }) => {
           const isToday = key === TODAY_KEY;
           const isSel = key === selected;
           return (
-            <button key={key} onClick={() => setSelected(key)} style={{
-              padding: '10px 4px', borderRadius: 12,
-              background: isToday ? 'var(--ink)' : (isSel ? 'var(--cream-deep)' : 'transparent'),
-              color: isToday ? 'var(--cream)' : 'var(--ink)',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minHeight: 86,
-            }}>
-              <div className="mono" style={{ fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.7 }}>
-                {d.toLocaleDateString('en-US', { weekday: 'short' })}
-              </div>
-              <div style={{ fontFamily: 'var(--serif)', fontSize: 22 }}>{d.getDate()}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
-                {tasks.slice(0, 3).map((_, i) => (
-                  <i key={i} style={{ width: 4, height: 4, borderRadius: 999, background: isToday ? 'var(--cream)' : 'var(--clay)' }}/>
-                ))}
-              </div>
-            </button>
+            <DroppableWeekDay
+              key={key}
+              d={d}
+              dateKey={key}
+              tasks={tasks}
+              isToday={isToday}
+              isSel={isSel}
+              onClick={() => setSelected(key)}
+            />
           );
         })}
       </div>
@@ -309,11 +629,21 @@ function WeekView({ selected, setSelected, data }: { selected: string; setSelect
 
 function DayView({ selected, setSelected }: { selected: string; setSelected: (k: string) => void }) {
   const d = parseKey(selected);
-  const prev = () => { const n = new Date(d); n.setDate(d.getDate() - 1); setSelected(dateKey(n)); };
-  const next = () => { const n = new Date(d); n.setDate(d.getDate() + 1); setSelected(dateKey(n)); };
+  const prev = () => {
+    const n = new Date(d);
+    n.setDate(d.getDate() - 1);
+    setSelected(dateKey(n));
+  };
+  const next = () => {
+    const n = new Date(d);
+    n.setDate(d.getDate() + 1);
+    setSelected(dateKey(n));
+  };
   const touchX = useRef<number | null>(null);
   const swipe = {
-    onTouchStart: (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; },
+    onTouchStart: (e: React.TouchEvent) => {
+      touchX.current = e.touches[0].clientX;
+    },
     onTouchEnd: (e: React.TouchEvent) => {
       if (touchX.current === null) return;
       const dx = e.changedTouches[0].clientX - touchX.current;
@@ -326,14 +656,21 @@ function DayView({ selected, setSelected }: { selected: string; setSelected: (k:
   return (
     <div className="pad-x" {...swipe}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0 6px' }}>
-        <button style={{ padding: 6 }} onClick={prev}>{Icons.chevL({ stroke: 'var(--ink-soft)' })}</button>
+        <button style={{ padding: 6 }} onClick={prev}>
+          {Icons.chevL({ stroke: 'var(--ink-soft)' })}
+        </button>
         <div style={{ textAlign: 'center' }}>
-          <div className="label" style={{ marginBottom: 4 }}>{d.toLocaleDateString('en-US', { weekday: 'long' })}</div>
+          <div className="label" style={{ marginBottom: 4 }}>
+            {d.toLocaleDateString('en-US', { weekday: 'long' })}
+          </div>
           <div style={{ fontFamily: 'var(--serif)', fontSize: 56, lineHeight: 0.9 }}>
-            {d.toLocaleDateString('en-US', { month: 'short' })} <em style={{ fontStyle: 'italic', color: 'var(--clay)' }}>{d.getDate()}</em>
+            {d.toLocaleDateString('en-US', { month: 'short' })}{' '}
+            <em style={{ fontStyle: 'italic', color: 'var(--clay)' }}>{d.getDate()}</em>
           </div>
         </div>
-        <button style={{ padding: 6 }} onClick={next}>{Icons.chevR({ stroke: 'var(--ink-soft)' })}</button>
+        <button style={{ padding: 6 }} onClick={next}>
+          {Icons.chevR({ stroke: 'var(--ink-soft)' })}
+        </button>
       </div>
     </div>
   );

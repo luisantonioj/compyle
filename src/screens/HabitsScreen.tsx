@@ -293,7 +293,7 @@ export function HabitsScreen({
                   <div className="mobile-habit-card-list">
                     <SortableContext items={group.trackers.map((habit) => habit.id)} strategy={verticalListSortingStrategy}>
                     {group.trackers.map((h: Habit) => {
-                      const expanded = true;
+                      const expanded = expandedOrder.includes(h.id);
                       return (
                       <SortableMobileHabitCard
                         key={h.id}

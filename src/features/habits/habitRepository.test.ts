@@ -11,6 +11,7 @@ describe('habit repository normalization', () => {
       id: 'hc_mind',
       name: 'Mind Care',
       sort_order: 2,
+      deleted: false,
     });
   });
 
