@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAppStore, selectData, selectIsPartner, selectPartnerName } from '../store/appStore';
 import { TODAY_KEY } from '../lib/seed';
 import { useIsWeb } from '../hooks/useIsWeb';
+import { useKeyboardHeight } from '../hooks/useKeyboardHeight';
 import { useFirestoreSync } from '../hooks/useFirestoreSync';
 import { IS_CONFIGURED } from '../lib/firebase';
 import { listenForegroundMessages } from '../lib/messaging';
@@ -26,6 +27,7 @@ export function AppShell({ user }: { user: import('firebase/auth').User | null }
   const { tab, viewMode, profileOpen, editing, confirm, toast, confettiTrigger, crown, dataLoading } = store;
   const { visibleTabs, navOrder, setTab, setNavigationPreferencesAccount } = store;
   const isWeb = useIsWeb();
+  useKeyboardHeight();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [calDate, setCalDate] = useState(TODAY_KEY);
   const [pushEnabled, setPushEnabled] = useState(

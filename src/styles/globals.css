@@ -340,16 +340,17 @@ input, textarea, select {
 
 .sheet {
   position: fixed;
-  left: 0; right: 0; bottom: 0;
+  left: 0; right: 0; bottom: var(--kb-h, 0px);
   z-index: 101;
   background: var(--paper);
   border-radius: 28px 28px 0 0;
   padding: 12px 22px calc(32px + var(--safe-bottom));
   transform: translateY(100%);
   animation: sheetIn 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  max-height: 80%;
+  max-height: calc(80% - var(--kb-h, 0px));
   overflow-y: auto;
   scrollbar-width: none;
+  transition: bottom 0.2s ease, max-height 0.2s ease;
 }
 .sheet::-webkit-scrollbar { display: none; }
 @keyframes sheetIn { to { transform: translateY(0); } }
@@ -1086,16 +1087,17 @@ input, textarea, select {
 
 .sheet {
   position: fixed;
-  left: 0; right: 0; bottom: 0;
+  left: 0; right: 0; bottom: var(--kb-h, 0px);
   z-index: 101;
   background: var(--paper);
   border-radius: 28px 28px 0 0;
   padding: 12px 22px calc(32px + var(--safe-bottom));
   transform: translateY(100%);
   animation: sheetIn 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  max-height: 80%;
+  max-height: calc(80% - var(--kb-h, 0px));
   overflow-y: auto;
   scrollbar-width: none;
+  transition: bottom 0.2s ease, max-height 0.2s ease;
 }
 .sheet::-webkit-scrollbar { display: none; }
 @keyframes sheetIn { to { transform: translateY(0); } }
@@ -2390,4 +2392,10 @@ input, textarea, select {
 
 @keyframes sync-pulse {
   50% { opacity: 0.35; transform: scale(0.8); }
+}
+
+/* ─── Mobile keyboard open: hide nav & FAB, they're not useful while typing ─── */
+html[data-keyboard-open] .bottom-nav,
+html[data-keyboard-open] .fab {
+  display: none;
 }
