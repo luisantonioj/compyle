@@ -1,13 +1,9 @@
-import { act, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { SEED_YLE } from '../lib/seed';
 import { HabitsScreen } from './HabitsScreen';
 
 describe('HabitsScreen mobile layout', () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it('stacks one full-month card per tracker beneath category labels', () => {
     const onReorderHabits = vi.fn();
     const { container } = render(
@@ -33,78 +29,40 @@ describe('HabitsScreen mobile layout', () => {
     expect(screen.queryByRole('button', { name: 'Add tracker' })).not.toBeInTheDocument();
   });
 
-  it('reopens collapsed calendars upward and expands the final tracker at the bottom', () => {
-    let observer: {
-      trigger: (element: Element) => void;
-    } | null = null;
+  it('keeps all trackers expanded without automatic untoggling or collapsing', () => {
+    const onTrackDate = vi.fn();
+    const onEdit = vi.fn();
+    const habits = SEED_YLE.habits.slice(0, 4);
 
-    class TestIntersectionObserver {
-      private callback: (entries: Array<{ isIntersecting: boolean; target: Element }>) => void;
-
-      constructor(callback: (entries: Array<{ isIntersecting: boolean; target: Element }>) => void) {
-        this.callback = callback;
-        observer = {
-          trigger: (element) => this.callback([{ isIntersecting: true, target: element }]),
-        };
-      }
-
-      observe() {}
-      disconnect() {}
-      unobserve() {}
-      takeRecords() { return []; }
-      readonly root = null;
-      readonly rootMargin = '';
-      readonly thresholds = [0];
-    }
-
-    vi.stubGlobal('IntersectionObserver', TestIntersectionObserver);
     const { container } = render(
       <HabitsScreen
-        data={{ ...SEED_YLE, habits: SEED_YLE.habits.slice(0, 4) }}
+        data={{ ...SEED_YLE, habits }}
         viewMode="me"
         isPartner={false}
         profileInitial="Y"
         onProfile={vi.fn()}
-        onTrackDate={vi.fn()}
-        onEdit={vi.fn()}
+        onTrackDate={onTrackDate}
+        onEdit={onEdit}
       />,
     );
 
-    expect(container.querySelectorAll('.mobile-habit-card.is-expanded')).toHaveLength(2);
-    const thirdTracker = container.querySelector('[data-habit-id="h3"]');
-    expect(thirdTracker).not.toBeNull();
-
-    act(() => observer?.trigger(thirdTracker!));
-
+    // All 4 trackers should be rendered and expanded
     const cards = Array.from(container.querySelectorAll('.mobile-habit-card'));
-    expect(cards[0]).toHaveClass('is-collapsed');
-    expect(cards[1]).toHaveClass('is-expanded');
-    expect(cards[2]).toHaveClass('is-expanded');
-    expect(screen.getByRole('button', { name: 'Expand Double Cleanse calendar' })).toBeInTheDocument();
-
-    const scrollRoot = container.querySelector<HTMLElement>('.track-mobile-screen')!;
-    Object.defineProperty(scrollRoot, 'clientHeight', { configurable: true, value: 600 });
-    Object.defineProperty(scrollRoot, 'scrollHeight', { configurable: true, value: 2000 });
-    const firstCard = container.querySelector<HTMLElement>('[data-habit-card-id="h1"]')!;
-    firstCard.getBoundingClientRect = () => ({
-      x: 0, y: 100, width: 300, height: 60,
-      top: 100, right: 300, bottom: 160, left: 0,
-      toJSON: () => ({}),
+    expect(cards).toHaveLength(4);
+    cards.forEach((card) => {
+      expect(card).toHaveClass('is-expanded');
+      expect(card).not.toHaveClass('is-collapsed');
     });
-    scrollRoot.scrollTop = 500;
-    act(() => scrollRoot.dispatchEvent(new Event('scroll')));
-    scrollRoot.scrollTop = 400;
-    act(() => scrollRoot.dispatchEvent(new Event('scroll')));
 
-    expect(firstCard).toHaveClass('is-expanded');
-    expect(container.querySelectorAll('.mobile-habit-card.is-expanded')).toHaveLength(2);
+    // All 4 month grids should be present and visible
+    expect(container.querySelectorAll('.mobile-month-grid')).toHaveLength(4);
 
-    Object.defineProperty(scrollRoot, 'scrollHeight', { configurable: true, value: 1000 });
-    scrollRoot.scrollTop = 400;
-    act(() => scrollRoot.dispatchEvent(new Event('scroll')));
+    // No collapsed summary buttons should be displayed
+    expect(container.querySelectorAll('.mobile-habit-summary')).toHaveLength(0);
 
-    const finalCard = container.querySelector<HTMLElement>('[data-habit-card-id="h4"]')!;
-    expect(finalCard).toHaveClass('is-expanded');
-    expect(container.querySelectorAll('.mobile-habit-card.is-expanded')).toHaveLength(2);
+    // Clicking a tracker title opens the edit flow
+    const firstTitle = screen.getByRole('button', { name: habits[0].name });
+    fireEvent.click(firstTitle);
+    expect(onEdit).toHaveBeenCalledWith({ type: 'habit', item: habits[0] });
   });
 });

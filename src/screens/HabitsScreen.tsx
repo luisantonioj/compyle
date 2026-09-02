@@ -1,5 +1,5 @@
 // compyle — Track screen (mobile)
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   DndContext,
   KeyboardSensor,
@@ -21,8 +21,7 @@ import { Icons } from '../components/Icons';
 
 import { DayChecklist } from '../components/ui/shared';
 import { HabitManager } from '../components/ui/HabitManager';
-import { TODAY_KEY, dateKey } from '../lib/seed';
-import { isHabitGuideDate } from '../features/habits/habitSchedule';
+import { TODAY_KEY } from '../lib/seed';
 // Streak calculations are temporarily disabled. Restore with the summary UI below if needed.
 // import { computeStreak } from '../lib/seed';
 import type { UserData, ViewMode, Habit, HabitCategory, EditingState } from '../types';
@@ -40,23 +39,6 @@ interface HabitsProps {
   onSaveHabit?: (habit: Habit) => void;
   onDeleteHabit?: (id: string) => void;
   onDeleteCategory?: (id: string) => void;
-}
-
-function trackerSummary(habit: Habit): string {
-  const today = new Date();
-  for (let offset = 0; offset <= 60; offset++) {
-    const candidate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
-    const key = dateKey(candidate);
-    if (!(habit.completedDates ?? []).includes(key) && isHabitGuideDate(habit, key)) {
-      if (offset === 0) return 'Scheduled today';
-      if (offset === 1) return 'Next tomorrow';
-      return `Next ${candidate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-    }
-  }
-
-  const monthPrefix = TODAY_KEY.slice(0, 7);
-  const checks = (habit.completedDates ?? []).filter((key) => key.startsWith(monthPrefix)).length;
-  return `${checks} ${checks === 1 ? 'check' : 'checks'} this month`;
 }
 
 export function HabitsScreen({
@@ -90,13 +72,6 @@ export function HabitsScreen({
       trackers: trackers.filter((habit) => !habit.categoryId || !categoryById.has(habit.categoryId)),
     },
   ].filter((group) => group.trackers.length > 0);
-  const visibleTrackerIds = categoryGroups.flatMap((group) => group.trackers.map((habit) => habit.id));
-  const visibleTrackerSignature = visibleTrackerIds.join('|');
-  const [expandedOrder, setExpandedOrder] = useState<string[]>(() => trackers.slice(0, 2).map((habit) => habit.id));
-  const expandedOrderRef = useRef(expandedOrder);
-  const screenRef = useRef<HTMLDivElement>(null);
-  const scrollDirectionRef = useRef<'up' | 'down'>('down');
-  const bottomRevealRef = useRef<string | null>(null);
   const doneToday = trackers.filter((h) => h.completedDates?.includes(TODAY_KEY)).length;
   const sensors = useSensors(
     useSensor(TouchSensor, { activationConstraint: { delay: 300, tolerance: 8 } }),
@@ -118,106 +93,6 @@ export function HabitsScreen({
     onReorderHabits(arrayMove(movedHabits, oldIndex, newIndex));
   };
 
-  const expandTracker = useCallback((habitId: string) => {
-    setExpandedOrder((current) => {
-      const promoted = current.filter((id) => id !== habitId);
-      return [...promoted, habitId].slice(-2);
-    });
-  }, []);
-
-  useEffect(() => {
-    expandedOrderRef.current = expandedOrder;
-  }, [expandedOrder]);
-
-  useEffect(() => {
-    setExpandedOrder((current) => {
-      const visible = new Set(visibleTrackerIds);
-      const next = current.filter((id) => visible.has(id));
-      for (const id of visibleTrackerIds) {
-        if (next.length >= 2) break;
-        if (!next.includes(id)) next.push(id);
-      }
-      return next;
-    });
-  // The signature changes only when the ordered visible tracker IDs change.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visibleTrackerSignature]);
-
-  useEffect(() => {
-    const root = screenRef.current;
-    if (!root || typeof IntersectionObserver === 'undefined') return;
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        const habitId = (entry.target as HTMLElement).dataset.habitId;
-        if (habitId) expandTracker(habitId);
-      });
-    }, {
-      root,
-      rootMargin: '-15% 0px -55% 0px',
-      threshold: 0,
-    });
-
-    root.querySelectorAll<HTMLElement>('.mobile-habit-activation').forEach((element) => observer.observe(element));
-    return () => observer.disconnect();
-  }, [expandTracker, visibleTrackerSignature]);
-
-  useEffect(() => {
-    const root = screenRef.current;
-    if (!root) return;
-    let previousScrollTop = root.scrollTop;
-    let revealTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const handleScroll = () => {
-      const currentScrollTop = root.scrollTop;
-      if (currentScrollTop < previousScrollTop - 2) scrollDirectionRef.current = 'up';
-      else if (currentScrollTop > previousScrollTop + 2) scrollDirectionRef.current = 'down';
-      previousScrollTop = currentScrollTop;
-
-      const nearBottom = currentScrollTop + root.clientHeight >= root.scrollHeight - 28;
-      const lastHabitId = visibleTrackerIds[visibleTrackerIds.length - 1];
-
-      if (nearBottom && lastHabitId) {
-        if (!expandedOrderRef.current.includes(lastHabitId)) expandTracker(lastHabitId);
-        if (bottomRevealRef.current !== lastHabitId) {
-          bottomRevealRef.current = lastHabitId;
-          if (revealTimer) clearTimeout(revealTimer);
-          revealTimer = setTimeout(() => {
-            const finalCard = root.querySelector<HTMLElement>(`[data-habit-card-id="${lastHabitId}"]`);
-            finalCard?.scrollIntoView?.({ behavior: 'smooth', block: 'end' });
-          }, 360);
-        }
-        return;
-      }
-
-      if (!nearBottom) bottomRevealRef.current = null;
-      if (scrollDirectionRef.current !== 'up') return;
-
-      const rootRect = root.getBoundingClientRect();
-      const activeTop = rootRect.top + root.clientHeight * 0.12;
-      const activeBottom = rootRect.top + root.clientHeight * 0.58;
-      const collapsedCards = Array.from(root.querySelectorAll<HTMLElement>('.mobile-habit-card.is-collapsed'));
-      const candidate = collapsedCards
-        .map((card) => ({ card, distance: Math.abs(card.getBoundingClientRect().top - activeTop) }))
-        .filter(({ card }) => {
-          const top = card.getBoundingClientRect().top;
-          return top >= activeTop && top <= activeBottom;
-        })
-        .sort((a, b) => a.distance - b.distance)[0]?.card;
-      const habitId = candidate?.dataset.habitCardId;
-      if (habitId) expandTracker(habitId);
-    };
-
-    root.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      root.removeEventListener('scroll', handleScroll);
-      if (revealTimer) clearTimeout(revealTimer);
-    };
-  // The signature tracks the ordered cards currently rendered by the category filter.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expandTracker, visibleTrackerSignature]);
-
   /*
   // Streak summary is temporarily disabled. Retained for future reuse.
   const longestStreak = trackers.length > 0
@@ -229,7 +104,7 @@ export function HabitsScreen({
   */
 
   return (
-    <div className="screen track-mobile-screen" ref={screenRef}>
+    <div className="screen track-mobile-screen">
       <div className="top-bar">
         <div>
           <div className="kicker">Tracker</div>
@@ -284,58 +159,37 @@ export function HabitsScreen({
             </div>
           </div>
         ) : (
-          <>
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <div className="mobile-habit-groups">
               {categoryGroups.map((group) => (
                 <section className="mobile-habit-group" key={group.id}>
                   <div className="mobile-habit-category">{group.name}</div>
                   <div className="mobile-habit-card-list">
                     <SortableContext items={group.trackers.map((habit) => habit.id)} strategy={verticalListSortingStrategy}>
-                    {group.trackers.map((h: Habit) => {
-                      const expanded = expandedOrder.includes(h.id);
-                      return (
-                      <SortableMobileHabitCard
-                        key={h.id}
-                        habitId={h.id}
-                        categoryId={group.id}
-                        expanded={expanded}
-                        disabled={!onReorderHabits}
-                      >
-                        <span className="mobile-habit-activation" data-habit-id={h.id} aria-hidden="true" />
-                        <div className="mobile-habit-calendar-shell" aria-hidden={!expanded}>
-                          <DayChecklist
-                            habit={h}
-                            title={h.name}
-                            onTitleClick={() => onEdit({ type: 'habit', item: h })}
-                            completedDates={h.completedDates ?? []}
-                            onToggle={(dk) => onTrackDate(h.id, dk)}
-                            disabled={!expanded}
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          className="mobile-habit-summary"
-                          onClick={() => expandTracker(h.id)}
-                          aria-expanded={expanded}
-                          aria-label={`Expand ${h.name} calendar`}
+                      {group.trackers.map((h: Habit) => (
+                        <SortableMobileHabitCard
+                          key={h.id}
+                          habitId={h.id}
+                          categoryId={group.id}
+                          disabled={!onReorderHabits}
                         >
-                          <span className="mobile-habit-summary-copy">
-                            <strong>{h.name}</strong>
-                            <small>{group.name} · {trackerSummary(h)}</small>
-                          </span>
-                          <span className="mobile-habit-summary-action">Calendar ›</span>
-                        </button>
-                      </SortableMobileHabitCard>
-                      );
-                    })}
+                          <div className="mobile-habit-calendar-shell">
+                            <DayChecklist
+                              habit={h}
+                              title={h.name}
+                              onTitleClick={() => onEdit({ type: 'habit', item: h })}
+                              completedDates={h.completedDates ?? []}
+                              onToggle={(dk) => onTrackDate(h.id, dk)}
+                            />
+                          </div>
+                        </SortableMobileHabitCard>
+                      ))}
                     </SortableContext>
                   </div>
                 </section>
               ))}
             </div>
-            </DndContext>
-          </>
+          </DndContext>
         )}
       </div>
 
@@ -378,7 +232,17 @@ export function HabitsScreen({
       )}
 
       <div style={{ height: 40 }} />
-      {managerOpen && <HabitManager data={data} onClose={() => setManagerOpen(false)} onSaveHabit={onSaveHabit ?? (() => undefined)} onSaveCategory={onSaveCategory ?? (() => undefined)} onDeleteHabit={onDeleteHabit ?? (() => undefined)} onDeleteCategory={onDeleteCategory ?? (() => undefined)} onReorderHabits={onReorderHabits ?? (() => undefined)} />}
+      {managerOpen && (
+        <HabitManager
+          data={data}
+          onClose={() => setManagerOpen(false)}
+          onSaveHabit={onSaveHabit ?? (() => undefined)}
+          onSaveCategory={onSaveCategory ?? (() => undefined)}
+          onDeleteHabit={onDeleteHabit ?? (() => undefined)}
+          onDeleteCategory={onDeleteCategory ?? (() => undefined)}
+          onReorderHabits={onReorderHabits ?? (() => undefined)}
+        />
+      )}
     </div>
   );
 }
@@ -386,13 +250,11 @@ export function HabitsScreen({
 function SortableMobileHabitCard({
   habitId,
   categoryId,
-  expanded,
   disabled,
   children,
 }: {
   habitId: string;
   categoryId: string;
-  expanded: boolean;
   disabled: boolean;
   children: React.ReactNode;
 }) {
@@ -405,7 +267,7 @@ function SortableMobileHabitCard({
   return (
     <article
       ref={setNodeRef}
-      className={`mobile-habit-card${expanded ? ' is-expanded' : ' is-collapsed'}${isDragging ? ' dragging' : ''}`}
+      className={`mobile-habit-card is-expanded${isDragging ? ' dragging' : ''}`}
       data-habit-card-id={habitId}
       style={{
         transform: CSS.Transform.toString(transform),
