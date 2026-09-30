@@ -10,7 +10,6 @@ export function WebFocusScreen() {
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="page-head">
         <div>
-          <div className="kicker">Focus</div>
           <h1>Current <em>Session</em></h1>
         </div>
         <button className="btn-add" onClick={() => setShowSettings(true)}>

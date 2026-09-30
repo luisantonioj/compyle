@@ -467,7 +467,6 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
       <div>
         <div className="page-head">
         <div>
-          <div className="kicker">Plan</div>
           <h1>Daily <em>Schedule</em></h1>
         </div>
         <button className="btn-add" onClick={() => onEdit({ type: 'task', dateKey: selected })}>
