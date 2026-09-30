@@ -465,7 +465,7 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div>
-        <div className="page-head">
+        <div className="page-head page-head-compact">
         <div>
           <h1>Daily <em>Schedule</em></h1>
         </div>

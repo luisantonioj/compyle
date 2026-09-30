@@ -58,7 +58,7 @@ export function WebLinksScreen({ data, onEdit, onReorder, onReorderLinks }: WebL
 
   return (
     <div>
-      <div className="page-head">
+      <div className="page-head page-head-compact">
         <div>
           <h1>Saved <em>Bookmarks</em></h1>
         </div>

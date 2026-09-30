@@ -8,7 +8,7 @@ export function WebFocusScreen() {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div className="page-head">
+      <div className="page-head page-head-compact">
         <div>
           <h1>Current <em>Session</em></h1>
         </div>
