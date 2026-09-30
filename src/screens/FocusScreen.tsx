@@ -19,7 +19,6 @@ export function FocusScreen({ viewMode, isPartner, profileInitial, onProfile }: 
       {/* top bar */}
       <div className="top-bar">
         <div>
-          <div className="kicker">Focus</div>
           <h1>Current <em>Session</em></h1>
         </div>
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>

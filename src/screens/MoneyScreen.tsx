@@ -24,7 +24,6 @@ export function MoneyScreen({ data, viewMode, isPartner, profileInitial, onProfi
     <div className="screen">
       <div className="top-bar">
         <div>
-          <div className="kicker">Money</div>
           <h1>Personal <em>Finances</em></h1>
         </div>
         <button className={`profile-pill${viewMode === 'partner' ? ' partner' : ''}`} onClick={onProfile}>
