@@ -32,7 +32,7 @@ interface CalProps {
   isPartner: boolean;
   profileInitial: string;
   onProfile: () => void;
-  onCheck: (id: string, dateKey: string) => void;
+  onCheck: (id: string, dateKey: string, occurrenceKey?: string) => void;
   onEdit: (e: EditingState) => void;
   onSelectedChange?: (dateKey: string) => void;
   defaultView?: 'month' | 'week' | 'day';
@@ -249,7 +249,7 @@ function SortableTaskItemMobile({
   editKey: string;
   selected: string;
   onEdit: (e: EditingState) => void;
-  onCheck: (id: string, dateKey: string) => void;
+  onCheck: (id: string, dateKey: string, occurrenceKey?: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: t.id,
@@ -279,10 +279,9 @@ function SortableTaskItemMobile({
     >
       <button
         className={`check plan-check${t.done ? ' checked' : ''}`}
-        disabled={!!ti._virtual}
         onClick={(e) => {
           e.stopPropagation();
-          !ti._virtual && onCheck(t.id, editKey);
+          onCheck(t.id, editKey, ti._occurrenceKey);
         }}
       >
         {Icons.check()}
