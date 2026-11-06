@@ -141,9 +141,8 @@ export function WebHabitsScreen({ data, isPartner, onEdit, onTrackDate, onReorde
 
   return (
     <div className="web-habits-screen">
-      <div className="page-head">
+      <div className="page-head page-head-compact">
         <div>
-          <div className="kicker">Tracker</div>
           <h1>Habit <em>Logs</em></h1>
         </div>
         <div className="habit-page-actions">

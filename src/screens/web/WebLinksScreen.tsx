@@ -58,9 +58,8 @@ export function WebLinksScreen({ data, onEdit, onReorder, onReorderLinks }: WebL
 
   return (
     <div>
-      <div className="page-head">
+      <div className="page-head page-head-compact">
         <div>
-          <div className="kicker">Links</div>
           <h1>Saved <em>Bookmarks</em></h1>
         </div>
         <button className="btn-add" onClick={() => onEdit({ type: 'link-category' })}>

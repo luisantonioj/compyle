@@ -41,7 +41,7 @@ export interface TaskHandlers {
   saveTask: (task: Task, dateKey: string) => void;
   saveTaskType: (taskType: TaskType) => void;
   deleteTask: (taskId: string, dateKey: string) => void;
-  checkTask: (taskId: string, dateKey?: string) => void;
+  checkTask: (taskId: string, dateKey?: string, occurrenceKey?: string) => void;
 }
 
 export interface HabitHandlers {

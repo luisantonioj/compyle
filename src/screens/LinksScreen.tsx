@@ -65,7 +65,6 @@ export function LinksScreen({ data, isPartner, profileInitial, onProfile, onEdit
     <div className="screen">
       <div className="top-bar">
         <div>
-          <div className="kicker">Links</div>
           <h1>Saved <em>Bookmarks</em></h1>
         </div>
         <button

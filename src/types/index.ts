@@ -11,6 +11,7 @@ export interface Task {
   done: boolean;
   recurrence?: 'daily' | 'weekly' | 'monthly' | 'yearly' | null;
   recurrenceEnd?: string | null; // "YYYY-MM-DD" — stop expanding after this date
+  completedDates?: string[]; // "YYYY-MM-DD" — recurring occurrences (not the origin date) that were ticked
   reminder_time?: string | null;
   created_at?: number;
   sort_order?: number;

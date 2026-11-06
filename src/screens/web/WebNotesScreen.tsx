@@ -178,9 +178,8 @@ export function WebNotesScreen({ data, isPartner, onEdit, onReorder, onUpdateNot
 
   return (
     <div>
-      <div className="page-head">
+      <div className="page-head page-head-compact">
         <div>
-          <div className="kicker">Notes</div>
           <h1>Personal <em>Notebook</em></h1>
         </div>
         <button className="btn-add" onClick={() => onEdit({ type: 'note' })}>

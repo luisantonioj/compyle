@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { TODAY_KEY } from '../lib/seed';
+import { TODAY_KEY, type TaskInstance } from '../lib/seed';
 import { useAppStore } from '../store/appStore';
 import { Confetti, ConfirmDialog } from '../components/ui/shared';
 import { FocusTimerManager } from '../components/FocusTimerManager';
@@ -94,7 +94,7 @@ export function Overlays({
             dateKey={editing.dateKey}
             onEdit={() => store.setEditing({ type: 'task', item: editing.item, dateKey: editing.dateKey })}
             onDelete={() => confirmDelete('this task', () => taskHandlers.deleteTask(editing.item.id, editing.dateKey))}
-            onCheck={() => taskHandlers.checkTask(editing.item.id, editing.dateKey)}
+            onCheck={() => taskHandlers.checkTask(editing.item.id, editing.dateKey, (editing.item as TaskInstance)._occurrenceKey)}
             onClose={() => store.setEditing(null)}
           />
         )}

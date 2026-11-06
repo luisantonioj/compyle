@@ -18,7 +18,7 @@ export function useTaskActions({ data, fs, activeUid, setActiveData, onComplete 
   const reorderTasks = (dateKey: string, reorderedTasks: Task[]) => {
     const realTasks = reorderedTasks.filter((t: any) => !t._virtual);
     const ordered = realTasks.map((t, i) => {
-      const { _virtual, _originKey, ...cleanTask } = t as any;
+      const { _virtual, _originKey, _occurrenceKey, ...cleanTask } = t as any;
       return { ...cleanTask, sort_order: i };
     });
     if (fs) {
@@ -43,7 +43,7 @@ export function useTaskActions({ data, fs, activeUid, setActiveData, onComplete 
     }
     if (!taskToMove) return;
 
-    const { _virtual, _originKey, ...cleanTask } = taskToMove as any;
+    const { _virtual, _originKey, _occurrenceKey, ...cleanTask } = taskToMove as any;
     const task = cleanTask as Task;
 
     if (actualSource === destDate) {
@@ -154,7 +154,35 @@ export function useTaskActions({ data, fs, activeUid, setActiveData, onComplete 
     });
   };
 
-  const checkTask = (taskId: string, dateKey = TODAY_KEY) => {
+  const checkTask = (taskId: string, dateKey = TODAY_KEY, occurrenceKey?: string) => {
+    // A recurring occurrence on a later date: toggle that date in the origin
+    // task's completedDates instead of the shared `done` flag.
+    if (occurrenceKey && occurrenceKey !== dateKey) {
+      const toggleOccurrence = (task: Task): Task => {
+        const dates = task.completedDates ?? [];
+        const completedDates = dates.includes(occurrenceKey)
+          ? dates.filter((d) => d !== occurrenceKey)
+          : [...dates, occurrenceKey].sort();
+        return { ...task, completedDates };
+      };
+      const task = (data.tasks[dateKey] ?? []).find((t) => t.id === taskId);
+      if (!task) return;
+      const updated = toggleOccurrence(task);
+      if (updated.completedDates!.includes(occurrenceKey)) onComplete();
+      if (fs) {
+        void upsertTask(activeUid, updated, dateKey);
+      } else {
+        setActiveData((d) => ({
+          ...d,
+          tasks: {
+            ...d.tasks,
+            [dateKey]: (d.tasks[dateKey] ?? []).map((t) => (t.id === taskId ? toggleOccurrence(t) : t)),
+          },
+        }));
+      }
+      return;
+    }
+
     if (fs) {
       const task = (data.tasks[dateKey] ?? []).find((t) => t.id === taskId);
       if (!task) return;

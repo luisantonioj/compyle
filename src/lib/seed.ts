@@ -309,6 +309,7 @@ export function computeStreak(completedDates: string[]): number {
 export interface TaskInstance extends Task {
   _virtual?: boolean;
   _originKey?: string;
+  _occurrenceKey?: string;
 }
 
 export function occursOn(
@@ -335,7 +336,13 @@ export function getTaskInstances(allTasks: Record<string, Task[]>, targetKey: st
     if (originKey === targetKey) continue;
     for (const task of tasks) {
       if (task.recurrence && occursOn(task.recurrence, originKey, targetKey, task.recurrenceEnd)) {
-        recurring.push({ ...task, done: false, _virtual: true, _originKey: originKey });
+        recurring.push({
+          ...task,
+          done: (task.completedDates ?? []).includes(targetKey),
+          _virtual: true,
+          _originKey: originKey,
+          _occurrenceKey: targetKey,
+        });
       }
     }
   }

@@ -10,7 +10,7 @@ interface WebPlanProps {
   data: UserData;
   isPartner: boolean;
   onEdit: (e: EditingState) => void;
-  onCheckTask: (id: string, dateKey?: string) => void;
+  onCheckTask: (id: string, dateKey?: string, occurrenceKey?: string) => void;
   onReorderTasks?: (dateKey: string, reorderedTasks: Task[]) => void;
   onMoveTask?: (taskId: string, sourceDate: string, destDate: string, newIndex: number) => void;
 }
@@ -50,7 +50,7 @@ function DayTaskPanel({
   tasks: Task[];
   isPartner: boolean;
   showHeader?: boolean;
-  onCheck: (id: string, dk: string) => void;
+  onCheck: (id: string, dk: string, occurrenceKey?: string) => void;
   onEdit: (e: EditingState) => void;
 }) {
   const done = tasks.filter((t) => t.done).length;
@@ -117,7 +117,7 @@ function SortableTaskItem({
   editKey: string;
   dk: string;
   onEdit: (e: EditingState) => void;
-  onCheck: (id: string, dk: string) => void;
+  onCheck: (id: string, dk: string, occurrenceKey?: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: t.id,
@@ -150,8 +150,7 @@ function SortableTaskItem({
     >
       <button
         className={`check${t.done ? ' checked' : ''}`}
-        onClick={(e) => { e.stopPropagation(); if (!ti._virtual) onCheck(t.id, editKey); }}
-        disabled={!!ti._virtual}
+        onClick={(e) => { e.stopPropagation(); onCheck(t.id, editKey, ti._occurrenceKey); }}
       >
         {Icons.check()}
       </button>
@@ -190,7 +189,7 @@ function SortableMonthCell({
   pct: number;
   dayTasks: Task[];
   onEdit: (e: EditingState) => void;
-  onCheckTask: (id: string, dateKey?: string) => void;
+  onCheckTask: (id: string, dateKey?: string, occurrenceKey?: string) => void;
   setTooltip: (s: TooltipState | null) => void;
 }) {
   const { setNodeRef } = useDroppable({ id: c.dateKey! });
@@ -245,7 +244,7 @@ function SortableMiniTaskItem({
   ti: TaskInstance;
   editKey: string;
   onEdit: (e: EditingState) => void;
-  onCheckTask: (id: string, dk?: string) => void;
+  onCheckTask: (id: string, dk?: string, occurrenceKey?: string) => void;
   setTooltip: (s: TooltipState | null) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -287,8 +286,7 @@ function SortableMiniTaskItem({
     >
       <button
         className="mini-check"
-        onClick={(e) => { e.stopPropagation(); if (!ti._virtual) onCheckTask(t.id, editKey); }}
-        disabled={!!ti._virtual}
+        onClick={(e) => { e.stopPropagation(); onCheckTask(t.id, editKey, ti._occurrenceKey); }}
       >
         <MiniCheck done={t.done} />
       </button>
@@ -465,9 +463,8 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div>
-        <div className="page-head">
+        <div className="page-head page-head-compact">
         <div>
-          <div className="kicker">Plan</div>
           <h1>Daily <em>Schedule</em></h1>
         </div>
         <button className="btn-add" onClick={() => onEdit({ type: 'task', dateKey: selected })}>
@@ -551,7 +548,7 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
             dk={selected}
             tasks={selTasks}
             isPartner={isPartner}
-            onCheck={(id, dk) => onCheckTask(id, dk)}
+            onCheck={(id, dk, occ) => onCheckTask(id, dk, occ)}
             onEdit={onEdit}
           />
         </>
@@ -573,7 +570,7 @@ export function WebPlanScreen({ data, isPartner, onEdit, onCheckTask, onReorderT
             dk={selected}
             tasks={selTasks}
             isPartner={isPartner}
-            onCheck={(id, dk) => onCheckTask(id, dk)}
+            onCheck={(id, dk, occ) => onCheckTask(id, dk, occ)}
             onEdit={onEdit}
             showHeader={false}
           />

@@ -24,7 +24,6 @@ export function NotesScreen({ data, isPartner, profileInitial, onProfile, onEdit
     <div className="screen">
       <div className="top-bar">
         <div>
-          <div className="kicker">Notes</div>
           <h1>Personal <em>Notebook</em></h1>
         </div>
         <button

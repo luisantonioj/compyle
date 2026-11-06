@@ -36,6 +36,9 @@ export function normalizeTaskDoc(data: Record<string, unknown>): (Task & { date:
     done: data.done === true,
     recurrence: isRecurrence(data.recurrence) ? data.recurrence : null,
     recurrenceEnd: typeof data.recurrenceEnd === 'string' ? data.recurrenceEnd : null,
+    completedDates: Array.isArray(data.completedDates)
+      ? data.completedDates.filter((d): d is string => typeof d === 'string')
+      : undefined,
     reminder_time: typeof data.reminder_time === 'string' ? data.reminder_time : null,
     created_at: typeof data.created_at === 'number' ? data.created_at : undefined,
     sort_order: typeof data.sort_order === 'number' ? data.sort_order : undefined,

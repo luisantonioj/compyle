@@ -16,9 +16,8 @@ export function WebMoneyScreen({ data, isPartner, onEdit, onMarkPaid }: WebMoney
 
   return (
     <div>
-      <div className="page-head">
+      <div className="page-head page-head-compact">
         <div>
-          <div className="kicker">Money</div>
           <h1>Personal <em>Finances</em></h1>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>

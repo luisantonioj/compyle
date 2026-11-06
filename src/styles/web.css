@@ -259,6 +259,9 @@
     margin: 0;
     color: var(--ink);
   }
+  .page-head.page-head-compact h1 {
+    font-size: clamp(30px, 3.5vw, 48px);
+  }
   .page-head h1 em { font-style: italic; color: var(--clay); }
   .page-head .ph-right { text-align: right; }
   .web-habits-screen .page-head {

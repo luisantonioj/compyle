@@ -107,7 +107,6 @@ export function HabitsScreen({
     <div className="screen track-mobile-screen">
       <div className="top-bar">
         <div>
-          <div className="kicker">Tracker</div>
           <h1>Habit <em>Logs</em></h1>
         </div>
         <div className="mobile-top-actions">

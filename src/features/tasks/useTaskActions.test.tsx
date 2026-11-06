@@ -391,3 +391,54 @@ describe('useTaskActions moveTask', () => {
     expect(reordered.map((t: Task) => t.sort_order)).toEqual([0, 1, 2]);
   });
 });
+
+describe('useTaskActions checkTask on recurring occurrences', () => {
+  const baseData = (tasks: Record<string, Task[]>): UserData => ({
+    tasks,
+    taskTypes: [],
+    habits: [],
+    banks: [],
+    transactions: [],
+    bills: [],
+    debts: [],
+    privacy: { cal: true, notes: true, links: true, habits: true, money: true },
+    linkCategories: [],
+    links: [],
+    notes: [],
+  });
+  const daily: Task = { id: 'r1', title: 'Water plants', emoji: '🌱', time: null, done: false, recurrence: 'daily' };
+
+  it('toggles only the occurrence date, leaving the origin done flag untouched', () => {
+    const data = baseData({ '2026-06-01': [daily] });
+    const setActiveData = vi.fn();
+    const onComplete = vi.fn();
+    const { result } = renderHook(() =>
+      useTaskActions({ data, fs: false, activeUid: 'user-1', setActiveData, onComplete }),
+    );
+
+    result.current.checkTask('r1', '2026-06-01', '2026-06-03');
+
+    const updated = setActiveData.mock.calls[0][0](data);
+    expect(updated.tasks['2026-06-01'][0]).toEqual(
+      expect.objectContaining({ done: false, completedDates: ['2026-06-03'] }),
+    );
+    expect(onComplete).toHaveBeenCalledTimes(1);
+
+    const unticked = baseData({ '2026-06-01': [{ ...daily, completedDates: ['2026-06-03'] }] });
+    const setAgain = vi.fn();
+    const { result: again } = renderHook(() =>
+      useTaskActions({ data: unticked, fs: false, activeUid: 'user-1', setActiveData: setAgain, onComplete: vi.fn() }),
+    );
+    again.current.checkTask('r1', '2026-06-01', '2026-06-03');
+    expect(setAgain.mock.calls[0][0](unticked).tasks['2026-06-01'][0].completedDates).toEqual([]);
+  });
+
+  it('expands occurrences with per-date done state', async () => {
+    const { getTaskInstances } = await import('../../lib/seed');
+    const tasks = { '2026-06-01': [{ ...daily, completedDates: ['2026-06-03'] }] };
+    expect(getTaskInstances(tasks, '2026-06-03')[0]).toEqual(
+      expect.objectContaining({ done: true, _virtual: true, _originKey: '2026-06-01', _occurrenceKey: '2026-06-03' }),
+    );
+    expect(getTaskInstances(tasks, '2026-06-04')[0].done).toBe(false);
+  });
+});
